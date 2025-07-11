@@ -1,0 +1,302 @@
+import React, { useEffect, useState, useRef } from 'react';
+import axios from 'axios';
+import './AdminDashboard.css';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import dayjs from 'dayjs';
+import { Helmet } from 'react-helmet-async';
+const API_BASE = '/api/orders';
+
+function AdminOrders() {
+  const [orders, setOrders] = useState([]);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [updating, setUpdating] = useState('');
+  const [deleting, setDeleting] = useState('');
+  const [dialog, setDialog] = useState({ open: false, type: '', orderId: '', status: '' });
+  const [email, setEmail] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [states, setStates] = useState([]);
+  const [selectedState, setSelectedState] = useState('');
+  const [detailsOrder, setDetailsOrder] = useState(null);
+  const suggestionTimeout = useRef(null);
+
+  const fetchOrders = async (emailTerm = '', stateTerm = '', isInitial = false) => {
+    if (isInitial) setInitialLoading(true);
+    try {
+      let url = API_BASE;
+      const params = [];
+      if (emailTerm && emailTerm.trim()) params.push(`email=${encodeURIComponent(emailTerm.trim())}`);
+      if (stateTerm && stateTerm.trim()) params.push(`state=${encodeURIComponent(stateTerm.trim())}`);
+      if (params.length) url += `?${params.join('&')}`;
+      const res = await axios.get(url);
+      setOrders(res.data);
+    } finally {
+      if (isInitial) setInitialLoading(false);
+    }
+  };
+
+  // Fetch available states for dropdown
+  useEffect(() => {
+    axios.get(`${API_BASE}/states`).then(res => setStates(res.data || []));
+  }, []);
+
+  useEffect(() => {
+    fetchOrders('', '', true);
+  }, []);
+
+  // Only search by email
+  function handleEmailChange(e) {
+    const value = e.target.value;
+    setEmail(value);
+    fetchOrders(value, selectedState);
+    // Debounced suggestion fetch
+    if (suggestionTimeout.current) clearTimeout(suggestionTimeout.current);
+    if (value.trim().length > 0) {
+      suggestionTimeout.current = setTimeout(async () => {
+        try {
+          const res = await axios.get(`${API_BASE}/suggestions?query=${encodeURIComponent(value)}`);
+          setSuggestions(res.data || []);
+        } catch {
+          setSuggestions([]);
+        }
+      }, 200);
+    } else {
+      setSuggestions([]);
+    }
+  }
+
+  function handleSuggestionClick(s) {
+    setEmail(s);
+    setSuggestions([]);
+    fetchOrders(s, selectedState);
+  }
+
+  function handleStateChange(e) {
+    setSelectedState(e.target.value);
+    fetchOrders(email, e.target.value);
+  }
+
+  const handleStatus = (id, status) => {
+    setDialog({ open: true, type: 'status', orderId: id, status });
+  };
+
+  const handleDelete = (id) => {
+    setDialog({ open: true, type: 'delete', orderId: id });
+  };
+
+  const confirmAction = async () => {
+    if (dialog.type === 'delete') {
+      setDeleting(dialog.orderId);
+      await axios.delete(`${API_BASE}/${dialog.orderId}`);
+      await fetchOrders();
+      setDeleting('');
+      setDialog({ open: false, type: '', orderId: '', status: '' });
+    } else if (dialog.type === 'status') {
+      setUpdating(dialog.orderId);
+      await axios.patch(`${API_BASE}/${dialog.orderId}`, { status: dialog.status });
+      await fetchOrders();
+      setUpdating('');
+      setDialog({ open: false, type: '', orderId: '', status: '' });
+    }
+  };
+
+  const cancelDialog = () => setDialog({ open: false, type: '', orderId: '', status: '' });
+
+  if (initialLoading) return (
+    <div className="loading-spinner">
+      <div className="spinner"></div>
+      Loading orders...
+    </div>
+  );
+
+  return (
+    <>
+      <Helmet>
+        <title>Admin Orders | JC's Closet</title>
+        <meta name="description" content="Admin panel for managing orders at JC's Closet." />
+      </Helmet>
+      <div className="admin-dashboard">
+        <h1>Orders</h1>
+        <div style={{ marginBottom: 20, display: 'flex', flexWrap: 'wrap', gap: 16, position: 'relative' }}>
+          <input
+            type="text"
+            placeholder="🔍 Search by customer email..."
+            value={email}
+            onChange={handleEmailChange}
+            style={{ padding: 8, width: 320, maxWidth: '100%', borderRadius: 24, border: '1.5px solid #cbd5e1', fontSize: 16, background: '#f8fafc', boxShadow: '0 1px 4px #e0e7ef', outline: 'none', transition: 'border 0.2s, box-shadow 0.2s' }}
+            onFocus={e => e.target.style.border = '1.5px solid #1976d2'}
+            onBlur={e => e.target.style.border = '1.5px solid #cbd5e1'}
+            aria-label="Search Orders by Email"
+          />
+          {suggestions.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: 44,
+              left: 0,
+              right: 0,
+              background: '#fff',
+              border: '1px solid #e0e7ef',
+              borderRadius: 8,
+              boxShadow: '0 2px 12px #e0e7ef',
+              zIndex: 1000,
+              maxHeight: 220,
+              overflowY: 'auto',
+              marginTop: 2,
+            }}>
+              {suggestions.map((s, i) => (
+                <div
+                  key={i}
+                  style={{ padding: '10px 16px', cursor: 'pointer', fontSize: 15, color: '#222', borderBottom: i !== suggestions.length - 1 ? '1px solid #f1f5f9' : 'none', background: '#fff' }}
+                  onMouseDown={() => handleSuggestionClick(s)}
+                >
+                  {s}
+                </div>
+              ))}
+            </div>
+          )}
+          <select
+            value={selectedState}
+            onChange={handleStateChange}
+            style={{ padding: 8, width: 180, borderRadius: 24, border: '1.5px solid #cbd5e1', fontSize: 16, background: '#f8fafc', boxShadow: '0 1px 4px #e0e7ef', outline: 'none', transition: 'border 0.2s, box-shadow 0.2s' }}
+            aria-label="Filter by State"
+          >
+            <option value="">All States</option>
+            {states.map((state, i) => (
+              <option key={state + i} value={state}>{state}</option>
+            ))}
+          </select>
+        </div>
+        <div className="latest-orders">
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Location</th>
+                <th>Items</th>
+                <th>Subtotal</th>
+                <th>Delivery</th>
+                <th>Grand Total</th>
+                <th>Status</th>
+                <th>Paid At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map(order => (
+                <tr key={order._id} className="order-row">
+                  <td data-label="Order ID">{order._id.slice(-6).toUpperCase()}</td>
+                  <td data-label="Customer">
+                    <b>{order.customer.name}</b><br />
+                    <span style={{ fontSize: 13 }}>{order.customer.email}<br />{order.customer.phone}</span>
+                  </td>
+                  <td data-label="Location">
+                    <span style={{ fontSize: 13 }}>
+                      {order.customer.address}<br/>
+                      <b>{order.customer.state}</b> / {order.customer.lga}
+                    </span>
+                  </td>
+                  <td data-label="Items">
+                    <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                      {order.cart.map(item => (
+                        <li key={item._id}>{item.name} x{item.quantity}</li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td data-label="Subtotal">₦{order.amount?.toLocaleString()}</td>
+                  <td data-label="Delivery">₦{order.deliveryFee?.toLocaleString?.() ?? order.deliveryFee ?? '-'}</td>
+                  <td data-label="Grand Total">₦{order.grandTotal?.toLocaleString?.() ?? order.grandTotal ?? '-'}</td>
+                  <td data-label="Status" className={order.status ? order.status.toLowerCase() : ''}>
+                    {order.status}
+                    {order.status === 'paid' && (
+                      <Button size="small" variant="outlined" color="info" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'shipped')}>Mark as Shipped</Button>
+                    )}
+                    {order.status === 'shipped' && (
+                      <>
+                        <Button size="small" variant="outlined" color="secondary" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'delivered')}>Mark as Delivered</Button>
+                        <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
+                      </>
+                    )}
+                    {order.status === 'paid' && (
+                      <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
+                    )}
+                  </td>
+                  <td data-label="Paid At">
+                    {new Date(order.paidAt).toLocaleString()}
+                    {order.shippedAt && <><br /><span style={{fontSize:12}}>Shipped: {new Date(order.shippedAt).toLocaleString()}</span></>}
+                    {order.deliveredAt && <><br /><span style={{fontSize:12}}>Delivered: {new Date(order.deliveredAt).toLocaleString()}</span></>}
+                    {order.cancelledAt && <><br /><span style={{fontSize:12, color:'#b71c1c'}}>Cancelled: {new Date(order.cancelledAt).toLocaleString()}</span></>}
+                  </td>
+                  <td data-label="Actions">
+                    <Button color="primary" onClick={() => setDetailsOrder(order)} style={{marginRight:8}}>View Details</Button>
+                    <Button color="error" onClick={() => handleDelete(order._id)} disabled={deleting === order._id}>Delete</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <Dialog open={dialog.open} onClose={cancelDialog}>
+          <DialogTitle>{dialog.type === 'delete' ? 'Delete Order' : 'Update Order Status'}</DialogTitle>
+          <DialogContent>
+            {dialog.type === 'delete' ? 'Are you sure you want to delete this order? This action cannot be undone.' : `Are you sure you want to mark this order as "${dialog.status}"? The customer will be notified.`}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={cancelDialog}>Cancel</Button>
+            <Button onClick={confirmAction} color={dialog.type === 'delete' ? 'error' : 'primary'} autoFocus>
+              Confirm
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Order Details Modal */}
+        <Dialog open={!!detailsOrder} onClose={() => setDetailsOrder(null)} maxWidth="md" fullWidth>
+          <DialogTitle>Order Details</DialogTitle>
+          <DialogContent dividers>
+            {detailsOrder && (
+              <div style={{fontSize:15, lineHeight:1.7}}>
+                <b>Order ID:</b> {detailsOrder._id}<br/>
+                <b>Status:</b> {detailsOrder.status}<br/>
+                <b>Subtotal:</b> ₦{detailsOrder.amount?.toLocaleString()}<br/>
+                <b>Delivery Fee:</b> ₦{detailsOrder.deliveryFee?.toLocaleString?.() ?? detailsOrder.deliveryFee ?? '-'}<br/>
+                <b>Grand Total:</b> ₦{detailsOrder.grandTotal?.toLocaleString?.() ?? detailsOrder.grandTotal ?? '-'}<br/>
+                <b>Paid At:</b> {detailsOrder.paidAt ? new Date(detailsOrder.paidAt).toLocaleString() : '-'}<br/>
+                {detailsOrder.shippedAt && (<><b>Shipped At:</b> {new Date(detailsOrder.shippedAt).toLocaleString()}<br/></>)}
+                {detailsOrder.deliveredAt && (<><b>Delivered At:</b> {new Date(detailsOrder.deliveredAt).toLocaleString()}<br/></>)}
+                {detailsOrder.cancelledAt && (<><b>Cancelled At:</b> <span style={{color:'#b71c1c'}}>{new Date(detailsOrder.cancelledAt).toLocaleString()}</span><br/></>)}
+                <hr style={{margin:'12px 0'}}/>
+                <b>Customer Info:</b><br/>
+                Name: {detailsOrder.customer?.name}<br/>
+                Email: {detailsOrder.customer?.email}<br/>
+                Phone: {detailsOrder.customer?.phone}<br/>
+                Address: {detailsOrder.customer?.address}<br/>
+                State: {detailsOrder.customer?.state}<br/>
+                LGA: {detailsOrder.customer?.lga}<br/>
+                <hr style={{margin:'12px 0'}}/>
+                <b>Items:</b>
+                <ul style={{margin:0, paddingLeft:18}}>
+                  {detailsOrder.cart.map(item => (
+                    <li key={item._id}>
+                      {item.name} x{item.quantity} (₦{item.price.toLocaleString()} each)
+                    </li>
+                  ))}
+                </ul>
+                <hr style={{margin:'12px 0'}}/>
+                <b>Payment Ref:</b> {detailsOrder.paystackRef || '-'}<br/>
+                <b>Notes:</b> {detailsOrder.notes || '-'}
+              </div>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDetailsOrder(null)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+      </div>
+    </>
+  );
+}
+
+export default AdminOrders;

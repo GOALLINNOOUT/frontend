@@ -1,0 +1,74 @@
+/*
+  NOTE: All color, background, and shadow styles are now handled dynamically in the FashionGrid React component using the MUI theme (light/dark mode).
+  Only layout, spacing, and responsive rules remain here.
+*/
+.fashion-grid {
+  padding: 24px 0 32px 0;
+  border-radius: 18px;
+  margin-bottom: 32px;
+}
+
+.fashion-grid-item {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 18px;
+}
+
+.fashion-card {
+  width: 100%;
+  max-width: 220px;
+  min-width: 160px;
+  margin: 0 auto;
+  border-radius: 20px !important;
+  transition: box-shadow 0.2s, transform 0.2s;
+  overflow: hidden;
+}
+
+.fashion-card:hover, .fashion-card:focus {
+  transform: translateY(-4px) scale(1.03);
+  z-index: 2;
+}
+
+.fashion-card img {
+  object-fit: cover;
+  width: 100%;
+  height: 220px;
+  border-radius: 0 0 16px 16px;
+}
+
+@media (max-width: 400px) {
+  .fashion-card {
+    max-width: 150px;
+    min-width: 120px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 599px) {
+  .fashion-card {
+    max-width: 170px;
+    min-width: 120px;
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+  .fashion-card {
+    max-width: 200px;
+    min-width: 160px;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1199px) {
+  .fashion-card {
+    max-width: 220px;
+    min-width: 180px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .fashion-card {
+    max-width: 240px;
+    min-width: 200px;
+  }
+}
