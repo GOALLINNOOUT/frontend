@@ -10,10 +10,19 @@ import { useTheme } from '@mui/material/styles';
 
 const categories = ["all", "men", "women", "luxury", "arab", "designer", "affordable"];
 
-const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'https://jcserver.onrender.com/api';
+// Ensure BACKEND_URL does not end with /api and always points to backend root
+const BACKEND_URL = (import.meta.env.VITE_API_BASE_URL || 'https://jcserver.onrender.com').replace(/\/?api\/?$/, '');
 const getImageUrl = (imgPath) => {
-  if (imgPath && imgPath.startsWith('/uploads/')) {
+  if (!imgPath) return imgPath;
+  // If already absolute URL, return as is
+  if (/^https?:\/\//.test(imgPath)) return imgPath;
+  // If starts with /uploads/, always prefix with backend root
+  if (imgPath.startsWith('/uploads/')) {
     return BACKEND_URL + imgPath;
+  }
+  // If starts with /perfumes/uploads/, strip /perfumes and prefix backend
+  if (imgPath.startsWith('/perfumes/uploads/')) {
+    return BACKEND_URL + imgPath.replace('/perfumes', '');
   }
   return imgPath;
 };
