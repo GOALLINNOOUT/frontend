@@ -103,11 +103,10 @@ const PerfumeCollection = () => {
     try {
       // Send search, category, and limit as query params
       const params = new URLSearchParams({ page, search, category, limit: ITEMS_PER_PAGE });
-      const response = await fetch(`/api/perfumes?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch perfumes');
-      const result = await response.json();
-      // Expecting result: { data: [...], hasMore: true/false }
-      return result;
+      const res = await api.get(`/perfumes?${params.toString()}`);
+      if (!res.ok) throw new Error('Failed to fetch perfumes');
+      // Expecting res.data: { data: [...], hasMore: true/false }
+      return res.data;
     } catch (error) {
       console.error('API error:', error);
       setError("Unable to load perfumes. Please check your internet connection and try again.");
@@ -215,7 +214,7 @@ const PerfumeCollection = () => {
     setSelectedPerfume(perfume);
     setQuantity(1);
     // Increment view count in backend
-    fetch(`/api/perfumes/${perfumeId}/view`, { method: 'POST' });
+    api.post(`/perfumes/${perfumeId}/view`);
   };
 
   const closeModal = () => {
@@ -261,15 +260,11 @@ const PerfumeCollection = () => {
     // Log add-to-cart action to backend for analytics
     const sessionId = getSessionId();
     if (sessionId) {
-      fetch('/api/v1/cart-actions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId,
-          productId: selectedPerfume._id,
-          action: 'add',
-          quantity
-        })
+      api.post('/v1/cart-actions', {
+        sessionId,
+        productId: selectedPerfume._id,
+        action: 'add',
+        quantity
       });
     }
     window.dispatchEvent(new Event('cart-updated'));
