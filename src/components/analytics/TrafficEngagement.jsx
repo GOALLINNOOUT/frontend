@@ -72,7 +72,7 @@ const TrafficEngagement = ({ dateRange }) => {
       setError(null);
       try {
         const token = localStorage.getItem('token');
-        const res = await get('/api/v1/analytics/traffic', {
+        const res = await get('/v1/analytics/traffic', {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
           params: dateRange,
         });
