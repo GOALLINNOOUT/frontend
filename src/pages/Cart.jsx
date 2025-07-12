@@ -1,5 +1,28 @@
 import * as api from '../utils/api';
 import React, { useEffect, useState } from 'react';
+// Ensure BACKEND_URL does not end with /api and always points to backend root
+const BACKEND_URL = (import.meta.env.VITE_API_BASE_URL || 'https://jcserver.onrender.com').replace(/\/?api\/?$/, '');
+const getImageUrl = (imgPath) => {
+  if (!imgPath) return imgPath;
+  // If already absolute URL, return as is
+  if (/^https?:\/\//.test(imgPath)) return imgPath;
+  // If starts with /api/perfumes/uploads/ or /perfumes/uploads/, strip /api/perfumes or /perfumes and prefix backend
+  if (imgPath.startsWith('/api/perfumes/uploads/')) {
+    return BACKEND_URL + imgPath.replace('/api/perfumes', '');
+  }
+  if (imgPath.startsWith('/perfumes/uploads/')) {
+    return BACKEND_URL + imgPath.replace('/perfumes', '');
+  }
+  // If starts with /api/uploads/, strip /api and prefix backend
+  if (imgPath.startsWith('/api/uploads/')) {
+    return BACKEND_URL + imgPath.replace('/api', '');
+  }
+  // If starts with /uploads/, always prefix with backend root
+  if (imgPath.startsWith('/uploads/')) {
+    return BACKEND_URL + imgPath;
+  }
+  return imgPath;
+};
 import { Box, Typography, Button, IconButton, Stack, TextField, Divider, Dialog, DialogTitle, DialogContent, useMediaQuery, CircularProgress } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -212,7 +235,7 @@ const Cart = () => {
                         >
                           <Box sx={{ display: 'flex', justifyContent: 'center', width: isMobile ? '100%' : 'auto' }}>
                             <motion.img
-                              src={item.img || item.image}
+                              src={getImageUrl(item.img || item.image)}
                               alt={item.title || item.name}
                               whileHover={{ scale: 1.07, boxShadow: theme.palette.grey.cartShadow }}
                               whileTap={{ scale: 0.97 }}
@@ -324,7 +347,7 @@ const Cart = () => {
                             <Box flexShrink={0} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: { md: 240 } }}>
                               {selected.images && selected.images[selectedImageIndex] && (
                                 <motion.img
-                                  src={selected.images[selectedImageIndex]}
+                                  src={getImageUrl(selected.images[selectedImageIndex])}
                                   alt={selected.name}
                                   initial={{ opacity: 0, scale: 0.95 }}
                                   animate={{ opacity: 1, scale: 1 }}
@@ -337,7 +360,7 @@ const Cart = () => {
                                 {selected.images && selected.images.map((img, idx) => (
                                   <Box key={idx} sx={{ border: idx === selectedImageIndex ? `2px solid ${theme.palette.grey.cartThumbBorderActive}` : `1px solid ${theme.palette.grey.cartThumbBorder}`, borderRadius: 2, p: 0.5, cursor: 'pointer', background: theme.palette.grey.cartCard, '&:hover': { background: theme.palette.grey.cartCardHover } }} onClick={() => setSelectedImageIndex(idx)}>
                                     <motion.img
-                                      src={img}
+                                      src={getImageUrl(img)}
                                       alt={selected.name + '-' + idx}
                                       whileHover={{ scale: 1.1 }}
                                       style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, opacity: idx === selectedImageIndex ? 1 : 0.7 }}
