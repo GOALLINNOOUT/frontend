@@ -14,7 +14,7 @@ export async function logPageView({ page, referrer, sessionId, timestamp }) {
   try {
     const token = localStorage.getItem('token');
     await post(
-      '/api/v1/page-views',
+      '/v1/page-views',
       {
         page,
         referrer,
