@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import api from '../../utils/api';
+import { post } from '../../utils/api';
 
 const LogoutButton = () => {
   const [open, setOpen] = useState(false);
@@ -13,14 +13,14 @@ const LogoutButton = () => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await api.post('/api/users/logout', {}, {
+        await post('/api/users/logout', {}, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
       // --- SESSION LOGGING: End session on logout ---
       const sessionId = localStorage.getItem('sessionId');
       if (sessionId) {
-        await api.post('/api/session/end', { sessionId });
+        await post('/api/session/end', { sessionId });
         // Remove sessionId for next visit; backend will set new one
         localStorage.removeItem('sessionId');
       }
