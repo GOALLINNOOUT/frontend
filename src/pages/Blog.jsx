@@ -33,7 +33,9 @@ function Blog() {
 
   // Helper: filter latest posts (created in last 3 days)
   const now = new Date();
-  const filteredArticles = articles.filter(a => {
+  // Defensive: ensure articles is always an array
+  const safeArticles = Array.isArray(articles) ? articles : [];
+  const filteredArticles = safeArticles.filter(a => {
     if (!search.trim()) return true;
     const q = search.trim().toLowerCase();
     if (searchField === 'title') {
