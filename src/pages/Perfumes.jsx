@@ -107,8 +107,7 @@ const PerfumeCollection = () => {
       if (!res.ok) throw new Error('Failed to fetch perfumes');
       // Expecting res.data: { data: [...], hasMore: true/false }
       return res.data;
-    } catch (error) {
-      console.error('API error:', error);
+    } catch {
       setError("Unable to load perfumes. Please check your internet connection and try again.");
       return { data: [], hasMore: false };
     }
@@ -135,7 +134,7 @@ const PerfumeCollection = () => {
         }
       });
       setHasMore(result.hasMore);
-    } catch (error) {
+    } catch {
       // Error is handled in fetchPerfumes
     } finally {
       setLoading(false);
