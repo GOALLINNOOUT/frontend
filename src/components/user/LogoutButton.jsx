@@ -13,14 +13,14 @@ const LogoutButton = () => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await post('/api/users/logout', {}, {
+        await post('/users/logout', {}, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
       // --- SESSION LOGGING: End session on logout ---
       const sessionId = localStorage.getItem('sessionId');
       if (sessionId) {
-        await post('/api/session/end', { sessionId });
+        await post('/session/end', { sessionId });
         // Remove sessionId for next visit; backend will set new one
         localStorage.removeItem('sessionId');
       }
