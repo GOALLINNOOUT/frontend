@@ -10,6 +10,14 @@ import { useTheme } from '@mui/material/styles';
 
 const categories = ["all", "men", "women", "luxury", "arab", "designer", "affordable"];
 
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'https://jcserver.onrender.com/api';
+const getImageUrl = (imgPath) => {
+  if (imgPath && imgPath.startsWith('/uploads/')) {
+    return BACKEND_URL + imgPath;
+  }
+  return imgPath;
+};
+
 const PerfumeImage = ({ src, alt, className, style, modal }) => {
   const theme = useTheme();
   const [loaded, setLoaded] = React.useState(false);
@@ -52,7 +60,7 @@ const PerfumeImage = ({ src, alt, className, style, modal }) => {
         </div>
       )}
       <img
-        src={src}
+        src={getImageUrl(src)}
         alt={alt}
         className={className}
         loading="lazy"
@@ -916,7 +924,7 @@ const PerfumeCollection = () => {
                   {selectedPerfume.images.map((img, idx) => (
                     <img
                       key={idx}
-                      src={img}
+                      src={getImageUrl(img)}
                       alt={`Thumbnail ${idx + 1}`}
                       style={{
                         width: 48,
