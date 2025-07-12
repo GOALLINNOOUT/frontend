@@ -16,13 +16,20 @@ const getImageUrl = (imgPath) => {
   if (!imgPath) return imgPath;
   // If already absolute URL, return as is
   if (/^https?:\/\//.test(imgPath)) return imgPath;
+  // If starts with /api/perfumes/uploads/ or /perfumes/uploads/, strip /api/perfumes or /perfumes and prefix backend
+  if (imgPath.startsWith('/api/perfumes/uploads/')) {
+    return BACKEND_URL + imgPath.replace('/api/perfumes', '');
+  }
+  if (imgPath.startsWith('/perfumes/uploads/')) {
+    return BACKEND_URL + imgPath.replace('/perfumes', '');
+  }
+  // If starts with /api/uploads/, strip /api and prefix backend
+  if (imgPath.startsWith('/api/uploads/')) {
+    return BACKEND_URL + imgPath.replace('/api', '');
+  }
   // If starts with /uploads/, always prefix with backend root
   if (imgPath.startsWith('/uploads/')) {
     return BACKEND_URL + imgPath;
-  }
-  // If starts with /perfumes/uploads/, strip /perfumes and prefix backend
-  if (imgPath.startsWith('/perfumes/uploads/')) {
-    return BACKEND_URL + imgPath.replace('/perfumes', '');
   }
   return imgPath;
 };
