@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {
   Card, CardContent, Typography, Grid, Box, CircularProgress, List, ListItem, ListItemText, Chip, Stack, Divider, Avatar, useTheme
 } from '@mui/material';
-import axios from 'axios';
+import * as api from '../../utils/api';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, Cell, LabelList
 } from 'recharts';
@@ -79,25 +79,16 @@ const CustomerBehavior = ({ dateRange }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('token');
-        // Fetch customer behavior analytics
-        const res = await axios.get('/api/v1/analytics/customers', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          params: {
-            startDate: dateRange.startDate,
-            endDate: dateRange.endDate,
-          },
-        });
-        setData(res.data);
-        // Fetch funnel and cart analytics
-        const funnelRes = await axios.get('/api/v1/analytics/funnel', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          params: {
-            startDate: dateRange.startDate,
-            endDate: dateRange.endDate,
-          },
-        });
-        setFunnelData(funnelRes.data);
+        const params = new URLSearchParams({
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+        }).toString();
+        const { data: customersData, ok: ok1 } = await api.get(`/v1/analytics/customers?${params}`);
+        if (!ok1) throw new Error();
+        setData(customersData);
+        const { data: funnelDataRes, ok: ok2 } = await api.get(`/v1/analytics/funnel?${params}`);
+        if (!ok2) throw new Error();
+        setFunnelData(funnelDataRes);
       } catch {
         setError('Failed to load customer behavior analytics');
       } finally {

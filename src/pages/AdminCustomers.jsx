@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import * as api from '../utils/api';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -11,21 +11,11 @@ import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
 import './AdminDashboard.css';
 
-const API_USERS = '/api/admin/customers';
-const API_ORDERS = '/api/admin/customer-orders';
-const API_REVIEWS = '/api/reviews';
+const API_USERS = '/admin/customers';
+const API_ORDERS = '/admin/customer-orders';
+const API_REVIEWS = '/reviews';
 
-// Axios interceptor to add JWT token to all requests if present
-axios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token'); // or use your auth context
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+
 
 function AdminCustomers() {
   const theme = useTheme();
@@ -57,7 +47,7 @@ function AdminCustomers() {
   const fetchCustomers = async (query = "") => {
     let url = API_USERS;
     if (query && query.trim()) url += `?search=${encodeURIComponent(query.trim())}`;
-    const res = await axios.get(url);
+    const res = await api.get(url);
     setCustomers(res.data);
   };
 
@@ -66,7 +56,7 @@ function AdminCustomers() {
     setLoadingOrders(true);
     setViewOrdersModal(true);
     try {
-      const res = await axios.get(`${API_ORDERS}?email=${encodeURIComponent(user.email)}`);
+      const res = await api.get(`${API_ORDERS}?email=${encodeURIComponent(user.email)}`);
       setOrderHistory(res.data);
     } finally {
       setLoadingOrders(false);
@@ -85,9 +75,9 @@ function AdminCustomers() {
     setActionLoading(true);
     try {
       if (dialog.unsuspend) {
-        await axios.patch(`/api/admin/unsuspend-user`, { email: dialog.user.email });
+        await api.patch(`/admin/unsuspend-user`, { email: dialog.user.email });
       } else {
-        await axios.patch(`/api/admin/blacklist-user`, { email: dialog.user.email });
+        await api.patch(`/admin/blacklist-user`, { email: dialog.user.email });
       }
       await fetchCustomers();
     } finally {
@@ -105,7 +95,7 @@ function AdminCustomers() {
     if (value.trim().length > 0) {
       suggestionTimeout.current = setTimeout(async () => {
         try {
-          const res = await axios.get(`${API_USERS}/suggestions?query=${encodeURIComponent(value)}`);
+          const res = await api.get(`${API_USERS}/suggestions?query=${encodeURIComponent(value)}`);
           setSuggestions(res.data || []);
         } catch {
           setSuggestions([]);
@@ -145,7 +135,7 @@ function AdminCustomers() {
     e.preventDefault();
     setEditLoading(true);
     try {
-      await axios.patch('/api/admin/update-customer', {
+      await api.patch('/admin/update-customer', {
         _id: editCustomer._id,
         ...editForm,
       });
@@ -162,10 +152,10 @@ function AdminCustomers() {
   const fetchReviews = async () => {
     setLoadingReviews(true);
     try {
-      const res = await axios.get(API_REVIEWS);
+      const res = await api.get(API_REVIEWS);
       setReviews(res.data);
       setReviewError(null);
-    } catch (err) {
+    } catch {
       setReviewError('Failed to load reviews');
     } finally {
       setLoadingReviews(false);
@@ -175,7 +165,7 @@ function AdminCustomers() {
   const handleApproveReview = async (id) => {
     setReviewActionLoading(true);
     try {
-      await axios.patch(`${API_REVIEWS}/${id}/approve`);
+      await api.patch(`${API_REVIEWS}/${id}/approve`);
       await fetchReviews();
       setSnackbar({ open: true, message: 'Review approved!', severity: 'success' });
     } catch {
@@ -188,7 +178,7 @@ function AdminCustomers() {
   const handleDeleteReview = async (id) => {
     setReviewActionLoading(true);
     try {
-      await axios.delete(`${API_REVIEWS}/${id}`);
+      await api.del(`${API_REVIEWS}/${id}`);
       await fetchReviews();
       setSnackbar({ open: true, message: 'Review deleted!', severity: 'success' });
     } catch {

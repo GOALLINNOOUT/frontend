@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import * as api from '../utils/api';
 import './AdminDashboard.css';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -8,9 +8,9 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import dayjs from 'dayjs';
 import { Helmet } from 'react-helmet-async';
-import { useThemeMode } from '../context/ThemeModeContext';
 
-const API_BASE = 'http://localhost:5000/api/admin';
+
+const API_BASE = '/admin';
 
 const AdminDashboard = () => {
   const [salesSummary, setSalesSummary] = useState(null);
@@ -23,19 +23,20 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMsg, setDialogMsg] = useState('');
-  const [showBlog, setShowBlog] = useState(false);
-  const { mode } = useThemeMode(); // Use context for mode
+  // const [showBlog, setShowBlog] = useState(false); // Removed unused
+  // const { mode } = useThemeMode(); // Removed unused
 
   useEffect(() => {
     fetchDashboardData();
     fetchSecurityLog();
-    // eslint-disable-next-line
+    // Intentionally not including fetchDashboardData/fetchSecurityLog in deps to avoid infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     // Remove recalculation of summary stats from latestOrders
     // Only use backend API responses for summary cards
-    // eslint-disable-next-line
+    
   }, [latestOrders]);
 
   const fetchDashboardData = async (range = dateRange) => {
@@ -44,18 +45,18 @@ const AdminDashboard = () => {
       // Pass date range to all endpoints that support filtering
       const params = range && (range.start || range.end) ? { params: range } : {};
       const [sales, orders, users, stock, latest] = await Promise.all([
-        axios.get(`${API_BASE}/sales-summary`, params),
-        axios.get(`${API_BASE}/order-summary`, params),
-        axios.get(`${API_BASE}/total-users`, params),
-        axios.get(`${API_BASE}/low-stock`, params),
-        axios.get(`${API_BASE}/latest-orders`, params),
+        api.get(`/admin/sales-summary`, params),
+        api.get(`/admin/order-summary`, params),
+        api.get(`/admin/total-users`, params),
+        api.get(`/admin/low-stock`, params),
+        api.get(`/admin/latest-orders`, params),
       ]);
       setSalesSummary(sales.data);
       setOrderSummary(orders.data);
       setTotalUsers(users.data.totalUsers);
       setLowStock(stock.data);
       setLatestOrders(latest.data);
-    } catch (err) {
+    } catch {
       // handle error
     }
     setLoading(false);
@@ -63,9 +64,9 @@ const AdminDashboard = () => {
 
   const fetchSecurityLog = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/security-log`);
+      const res = await api.get(`/admin/security-log`);
       setSecurityLog(res.data);
-    } catch (err) {
+    } catch {
       // Optionally handle error
     }
   };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import * as api from '../utils/api';
 import { Box, Paper, Typography, Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, CircularProgress, Alert, Stack } from '@mui/material';
 import dayjs from 'dayjs';
 import Avatar from '@mui/material/Avatar';
@@ -8,7 +8,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
 import { useTheme } from '@mui/material/styles';
 
-const API_BASE =  '/api/newsletter';
+
 
 const AdminNewsletter = () => {
   const theme = useTheme();
@@ -24,7 +24,7 @@ const AdminNewsletter = () => {
   const fetchSubscribers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE}/subscribers`);
+      const res = await api.get('/newsletter/subscribers');
       setSubscribers(res.data);
     } catch {
       setError('Failed to fetch subscribers.');
@@ -40,7 +40,7 @@ const AdminNewsletter = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this subscriber?')) return;
     try {
-      await axios.delete(`${API_BASE}/subscribers/${id}`);
+      await api.del(`/newsletter/subscribers/${id}`);
       setSubscribers(subscribers.filter(s => s._id !== id));
     } catch {
       setError('Failed to delete subscriber.');
@@ -64,7 +64,7 @@ const AdminNewsletter = () => {
       return;
     }
     try {
-      const res = await axios.post(`${API_BASE}/notify`, {
+      const res = await api.post('/newsletter/notify', {
         subject,
         message,
         subscriberIds: selected.length ? selected : undefined,

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Paper, Typography, Box, CircularProgress } from '@mui/material';
-import axios from 'axios';
+import * as api from '../../utils/api';
 import PropTypes from 'prop-types';
 
  /**
@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
  * @param {Object} props
  * @param {{startDate: string, endDate: string}} props.dateRange - Date range filter
  */
-const MarketingPerformance = ({ dateRange }) => {
+const MarketingPerformance = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -17,12 +17,10 @@ const MarketingPerformance = ({ dateRange }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('/api/v1/analytics/marketing', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        setData(res.data);
-      } catch (err) {
+        const { data, ok } = await api.get('/v1/analytics/marketing');
+        if (!ok) throw new Error();
+        setData(data);
+      } catch {
         setError('Failed to load marketing performance analytics');
       } finally {
         setLoading(false);
@@ -45,11 +43,6 @@ const MarketingPerformance = ({ dateRange }) => {
   );
 };
 
-MarketingPerformance.propTypes = {
-  dateRange: PropTypes.shape({
-    startDate: PropTypes.string,
-    endDate: PropTypes.string,
-  }),
-};
+
 
 export default MarketingPerformance;

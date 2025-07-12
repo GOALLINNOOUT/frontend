@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Paper, Typography, Box, CircularProgress, Grid, Chip, Divider, useTheme } from '@mui/material';
-import axios from 'axios';
+import * as api from '../../utils/api';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, LineChart, Line, LabelList } from 'recharts';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import IconButton from '@mui/material/IconButton';
@@ -34,13 +34,11 @@ const OrdersOverview = ({ dateRange }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('/api/v1/analytics/orders', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          params: dateRange,
-        });
-        setData(res.data);
-      } catch (err) {
+        const params = new URLSearchParams(dateRange).toString();
+        const { data, ok } = await api.get(`/v1/analytics/orders?${params}`);
+        if (!ok) throw new Error();
+        setData(data);
+      } catch {
         setError('Failed to load orders overview analytics');
       } finally {
         setLoading(false);

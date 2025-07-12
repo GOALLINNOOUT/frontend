@@ -1,3 +1,4 @@
+import * as api from '../utils/api';
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Button, IconButton, Stack, TextField, Divider, Dialog, DialogTitle, DialogContent, useMediaQuery, CircularProgress } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -68,15 +69,11 @@ const Cart = () => {
           // Log update action to backend
           const sessionId = getSessionId();
           if (sessionId) {
-            fetch('/api/v1/cart-actions', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                sessionId,
-                productId: item._id,
-                action: 'update',
-                quantity: qty
-              })
+            api.post('/v1/cart-actions', {
+              sessionId,
+              productId: item._id,
+              action: 'update',
+              quantity: qty
             });
           }
           return { ...item, quantity: qty };
@@ -98,15 +95,11 @@ const Cart = () => {
       // Log remove action to backend
       const sessionId = getSessionId();
       if (sessionId && item) {
-        fetch('/api/v1/cart-actions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId,
-            productId: item._id,
-            action: 'remove',
-            quantity: item.quantity
-          })
+        api.post('/v1/cart-actions', {
+          sessionId,
+          productId: item._id,
+          action: 'remove',
+          quantity: item.quantity
         });
       }
     });
@@ -116,17 +109,12 @@ const Cart = () => {
     setLoading(true);
     // Check stock for all cart items before proceeding
     try {
-      const response = await fetch('/api/cart/check-stock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: cartItems.map(item => ({ _id: item._id, quantity: item.quantity })) })
-      });
-      const result = await response.json();
-      if (response.ok && result.success) {
+      const res = await api.post('/cart/check-stock', { items: cartItems.map(item => ({ _id: item._id, quantity: item.quantity })) });
+      if (res.data && res.data.success) {
         setLoading(false);
         navigate('/checkout');
       } else {
-        setErrorDialogMessage(result.message || 'Some items are out of stock or unavailable. Please review your cart.');
+        setErrorDialogMessage(res.data?.message || 'Some items are out of stock or unavailable. Please review your cart.');
         setErrorDialogOpen(true);
         setLoading(false);
       }

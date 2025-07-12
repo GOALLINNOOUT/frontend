@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, Typography, Box, CircularProgress, Grid, useTheme, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
-import axios from 'axios';
+import * as api from '../../utils/api';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, LineChart, Line } from 'recharts';
 import PropTypes from 'prop-types';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
@@ -41,18 +41,16 @@ const PageVisitsTrendChart = ({ dateRange }) => {
       setLoading(true);
       setError(null);
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('/api/v1/analytics/page-visits-trend', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          params: dateRange,
-        });
-        setData(res.data.pageVisitsTrends || {});
+        const params = new URLSearchParams(dateRange).toString();
+        const { data, ok } = await api.get(`/v1/analytics/page-visits-trend?${params}`);
+        if (!ok) throw new Error();
+        setData(data.pageVisitsTrends || {});
         // Default to first page if not set
-        if (!selectedPage && Object.keys(res.data.pageVisitsTrends || {}).length > 0) {
-          setSelectedPage(Object.keys(res.data.pageVisitsTrends)[0]);
+        if (!selectedPage && Object.keys(data.pageVisitsTrends || {}).length > 0) {
+          setSelectedPage(Object.keys(data.pageVisitsTrends)[0]);
         }
-      } catch (err) {
-        setError(err?.response?.data?.error || 'Failed to load page visits trend');
+      } catch {
+        setError('Failed to load page visits trend');
       } finally {
         setLoading(false);
       }

@@ -1,3 +1,4 @@
+import * as api from '../utils/api';
 import React, { useEffect, useState, useContext } from 'react';
 import { Box, Typography, Button, TextField, Stack, Divider, Alert, Checkbox, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -105,22 +106,22 @@ function Checkout() {
   // Improved auto-fill: fetch info only when email changes and is valid
   useEffect(() => {
     if (customer.email && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customer.email)) {
-      fetch(`/api/users/save-info?email=${encodeURIComponent(customer.email)}`)
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
+      api.get(`/users/save-info?email=${encodeURIComponent(customer.email)}`)
+        .then(res => {
+          const data = res.data;
           if (data && data.name) {
             setCustomer(prev => ({
               name: prev.name || data.name || '',
               email: data.email || prev.email,
               phone: prev.phone || data.phone || '',
-              address: prev.address || data.address || '',
-              state: prev.state || data.state || '',
-              lga: prev.lga || data.lga || ''
+              address: data.address || prev.address,
+              state: data.state || prev.state,
+              lga: data.lga || prev.lga
             }));
           }
         });
     }
-    // eslint-disable-next-line
+    
   }, [customer.email]);
 
   // On mount, check for localStorage autofill info
@@ -139,11 +140,9 @@ function Checkout() {
       // If signed in, fetch backend autofill info with JWT
       const token = localStorage.getItem('token');
       if (token) {
-        fetch('/api/users/me', {
-          headers: { 'Authorization': 'Bearer ' + token }
-        })
-          .then(res => res.ok ? res.json() : null)
-          .then(data => {
+        api.get('/users/me', { headers: { 'Authorization': 'Bearer ' + token } })
+          .then(res => {
+            const data = res.data;
             if (data && (data.name || data.phone || data.address)) {
               setAutofillData(data);
               setShowAutofillDialog(true);
@@ -234,14 +233,9 @@ function Checkout() {
     setLoading(true);
     // Check stock before payment
     try {
-      const response = await fetch('/api/cart/check-stock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: cart.map(item => ({ _id: item._id, quantity: item.quantity })) })
-      });
-      const result = await response.json();
-      if (!response.ok || !result.success) {
-        setError(result.message || 'Some items are out of stock or unavailable. Please review your cart.');
+      const res = await api.post('/cart/check-stock', { items: cart.map(item => ({ _id: item._id, quantity: item.quantity })) });
+      if (!res.data?.success) {
+        setError(res.data?.message || 'Some items are out of stock or unavailable. Please review your cart.');
         setLoading(false);
         return;
       }
@@ -258,14 +252,7 @@ function Checkout() {
       // Only send to backend if user is signed in
       if (user) {
         const token = localStorage.getItem('token');
-        fetch('/api/users/save-info', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': 'Bearer ' + token } : {})
-          },
-          body: JSON.stringify(customer)
-        });
+        api.post('/users/save-info', customer, { headers: { 'Authorization': 'Bearer ' + token } });
       }
     }
     // Only retrieve sessionId, do not generate if missing
@@ -290,31 +277,22 @@ function Checkout() {
       },
       callback: function(response) {
         // Save order to backend
-        fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            cart,
-            customer,
-            paystackRef: response.reference,
-            amount: total,
-            deliveryFee,
-            grandTotal,
-            status: 'paid',
-            paidAt: new Date().toISOString(),
-            ...(sessionId ? { sessionId } : {}) // Only include if available
-          })
+        api.post('/orders', {
+          cart,
+          customer,
+          paystackRef: response.reference,
+          amount: total,
+          deliveryFee,
+          grandTotal,
+          status: 'paid',
+          paidAt: new Date().toISOString(),
+          ...(sessionId ? { sessionId } : {})
         })
-        .then(res => res.ok ? res.json() : Promise.reject(res))
-        .then(orderRes => {
-          // orderRes contains { message, orderId, wasAutoCreated, email }
+        .then(res => {
+          const orderRes = res.data;
           Promise.all(
             cart.map(item =>
-              fetch(`/api/perfumes/${item._id}/decrement-stock`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ quantity: item.quantity })
-              })
+              api.post(`/perfumes/${item._id}/decrement-stock`, { quantity: item.quantity })
             )
           ).finally(() => {
             setSuccess(true);
@@ -346,11 +324,7 @@ function Checkout() {
   useEffect(() => {
     const sessionId = getSessionId();
     if (sessionId) {
-      fetch('/api/v1/checkout-events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, user: user?._id })
-      });
+      api.post('/v1/checkout-events', { sessionId, user: user?._id });
     }
     // eslint-disable-next-line
   }, []);

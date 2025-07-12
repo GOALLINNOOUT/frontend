@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
+import * as api from '../utils/api';
 import { format } from 'date-fns';
 import './AdminDashboard.css';
 import { Helmet } from 'react-helmet-async';
@@ -111,10 +111,11 @@ const AdminBlog = () => {
         params.append('searchField', searchField);
         params.append('searchQuery', query.trim());
       }
-      const res = await axios.get(`/api/articles?${params.toString()}`);
-      const data = res.data.articles ? res.data : { articles: res.data, total: res.data.length };
-      setArticles(prev => opts.reset ? data.articles : [...prev, ...data.articles]);
-      setHasMore(articles.length + data.articles.length < data.total);
+      const { data, ok } = await api.get(`/articles?${params.toString()}`);
+      if (!ok) throw new Error();
+      const articlesData = data.articles ? data : { articles: data, total: data.length };
+      setArticles(prev => opts.reset ? articlesData.articles : [...prev, ...articlesData.articles]);
+      setHasMore(articles.length + articlesData.articles.length < articlesData.total);
     } catch {
       setError('Failed to load articles.');
     } finally {
@@ -200,7 +201,8 @@ const AdminBlog = () => {
       onConfirm: async () => {
         closeDialog();
         try {
-          await axios.delete(`/api/articles/${id}`);
+          const { ok } = await api.del(`/articles/${id}`);
+          if (!ok) throw new Error();
           setArticles((prev) => prev.filter((a) => a._id !== id));
           setDialog({
             open: true,
@@ -249,21 +251,21 @@ const AdminBlog = () => {
       } else if (form.image) {
         data.append('image', form.image);
       }
-      let res;
       // Attach JWT token for admin-protected endpoints
       const token = localStorage.getItem('token');
       const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      let res;
       if (editingId) {
-        res = await fetch(`/api/articles/${editingId}`, {
+        res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/articles/${editingId}`, {
           method: 'PUT',
           body: data,
-          headers
+          headers,
         });
       } else {
-        res = await fetch('/api/articles', {
+        res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/articles`, {
           method: 'POST',
           body: data,
-          headers
+          headers,
         });
       }
       if (!res.ok) throw new Error('Failed to save article.');
@@ -307,8 +309,8 @@ const AdminBlog = () => {
     if (value.trim().length > 0) {
       suggestionTimeout.current = setTimeout(async () => {
         try {
-          const res = await axios.get(`/api/articles/suggestions?query=${encodeURIComponent(value)}&field=${searchField}`);
-          setSuggestions(res.data || []);
+          const { data, ok } = await api.get(`/articles/suggestions?query=${encodeURIComponent(value)}&field=${searchField}`);
+          setSuggestions(ok ? data : []);
         } catch {
           setSuggestions([]);
         }

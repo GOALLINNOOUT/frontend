@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import * as api from '../utils/api';
 import './AdminDashboard.css';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
-import dayjs from 'dayjs';
+
 import { Helmet } from 'react-helmet-async';
-const API_BASE = '/api/orders';
+
 
 function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -26,12 +26,12 @@ function AdminOrders() {
   const fetchOrders = async (emailTerm = '', stateTerm = '', isInitial = false) => {
     if (isInitial) setInitialLoading(true);
     try {
-      let url = API_BASE;
+      let url = '/orders';
       const params = [];
       if (emailTerm && emailTerm.trim()) params.push(`email=${encodeURIComponent(emailTerm.trim())}`);
       if (stateTerm && stateTerm.trim()) params.push(`state=${encodeURIComponent(stateTerm.trim())}`);
       if (params.length) url += `?${params.join('&')}`;
-      const res = await axios.get(url);
+      const res = await api.get(url);
       setOrders(res.data);
     } finally {
       if (isInitial) setInitialLoading(false);
@@ -40,7 +40,7 @@ function AdminOrders() {
 
   // Fetch available states for dropdown
   useEffect(() => {
-    axios.get(`${API_BASE}/states`).then(res => setStates(res.data || []));
+    api.get('/orders/states').then(res => setStates(res.data || []));
   }, []);
 
   useEffect(() => {
@@ -57,7 +57,7 @@ function AdminOrders() {
     if (value.trim().length > 0) {
       suggestionTimeout.current = setTimeout(async () => {
         try {
-          const res = await axios.get(`${API_BASE}/suggestions?query=${encodeURIComponent(value)}`);
+          const res = await api.get(`/orders/suggestions?query=${encodeURIComponent(value)}`);
           setSuggestions(res.data || []);
         } catch {
           setSuggestions([]);
@@ -90,13 +90,13 @@ function AdminOrders() {
   const confirmAction = async () => {
     if (dialog.type === 'delete') {
       setDeleting(dialog.orderId);
-      await axios.delete(`${API_BASE}/${dialog.orderId}`);
+      await api.del(`/orders/${dialog.orderId}`);
       await fetchOrders();
       setDeleting('');
       setDialog({ open: false, type: '', orderId: '', status: '' });
     } else if (dialog.type === 'status') {
       setUpdating(dialog.orderId);
-      await axios.patch(`${API_BASE}/${dialog.orderId}`, { status: dialog.status });
+      await api.patch(`/orders/${dialog.orderId}`, { status: dialog.status });
       await fetchOrders();
       setUpdating('');
       setDialog({ open: false, type: '', orderId: '', status: '' });
