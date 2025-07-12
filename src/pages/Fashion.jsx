@@ -1,4 +1,21 @@
 import React from 'react';
+// Ensure BACKEND_URL does not end with /api and always points to backend root
+const BACKEND_URL = (import.meta.env.VITE_API_BASE_URL || 'https://jcserver.onrender.com').replace(/\/?api\/?$/, '');
+const getImageUrl = (imgPath) => {
+  if (!imgPath) return imgPath;
+  if (/^https?:\/\//.test(imgPath)) return imgPath;
+  if (imgPath.startsWith('/api/designs/uploads/')) {
+    return BACKEND_URL + imgPath.replace('/api', '');
+  }
+  if (imgPath.startsWith('/uploads/')) {
+    return BACKEND_URL + imgPath;
+  }
+  // If it's just a filename (no slashes), treat as /uploads/filename
+  if (!imgPath.includes('/')) {
+    return BACKEND_URL + '/uploads/' + imgPath;
+  }
+  return imgPath;
+};
 import * as api from '../utils/api';
 import { Container, Grid, Typography, Card, CardContent, CardMedia, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, CircularProgress, TextField } from '@mui/material';
 import { motion } from 'framer-motion';
@@ -342,7 +359,7 @@ function Fashion() {
                         <CardMedia
                           component="img"
                           height="220"
-                          image={look.imgs && look.imgs[0]}
+                          image={getImageUrl(look.imgs && look.imgs[0])}
                           alt={look.title}
                           sx={{
                             objectFit: 'cover',
@@ -394,37 +411,37 @@ function Fashion() {
               {designs.slice(0, 4).map((look) => (
                 <Grid item xs={12} sm={6} md={3} key={look.title + '-gallery'}>
                   <motion.div whileHover={{ scale: 1.03 }}>
-                    <Box
-                      component="img"
-                      src={look.imgs && look.imgs[0]}
-                      alt={look.title}
-                      sx={{
-                        width: '100%',
-                        height: { xs: 160, md: 180 },
-                        objectFit: 'cover',
-                        borderRadius: 3,
-                        boxShadow: theme.palette.mode === 'dark' ? 8 : 2,
-                        border: theme.palette.mode === 'dark' ? '1.5px solid #333a48' : '1.5px solid #e0e7ef',
-                      }}
-                      title={look.title}
-                      loading="lazy"
-                    />
+                  <Box
+                    component="img"
+                    src={getImageUrl(look.imgs && look.imgs[0])}
+                    alt={look.title}
+                    sx={{
+                      width: '100%',
+                      height: { xs: 160, md: 180 },
+                      objectFit: 'cover',
+                      borderRadius: 3,
+                      boxShadow: theme.palette.mode === 'dark' ? 8 : 2,
+                      border: theme.palette.mode === 'dark' ? '1.5px solid #333a48' : '1.5px solid #e0e7ef',
+                    }}
+                    title={look.title}
+                    loading="lazy"
+                  />
                   </motion.div>
                 </Grid>
-              ))}
-            </Grid>
-          </motion.div>
-        </Box>
-
-        <Box mt={8} textAlign="center">
-          <motion.div initial={{ scale: 0.95, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-            <Typography variant="h5" fontWeight={600} mb={2} sx={{ color: theme.palette.mode === 'dark' ? '#fff' : '#222' }}>
-              Want a custom look?
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
+                  <Box
+                    component="img"
+                    src={getImageUrl(selectedLook.imgs[modalImgIdx])}
+                    alt={selectedLook.title + ' main'}
+                    sx={{
+                      width: { xs: '100%', sm: 340, md: 400 },
+                      height: 240,
+                      objectFit: 'cover',
+                      borderRadius: 3,
+                      boxShadow: theme.palette.mode === 'dark' ? 8 : 2,
+                      border: theme.palette.mode === 'dark' ? '2px solid #333a48' : '2px solid #e0e7ef',
+                    }}
+                    loading="lazy"
+                  />
               href="/appointments"
               sx={{
                 borderRadius: 3,
@@ -556,7 +573,7 @@ function Fashion() {
                     <Box
                       key={idx}
                       component="img"
-                      src={img}
+                      src={getImageUrl(img)}
                       alt={selectedLook.title + ' thumb ' + idx}
                       onClick={() => setModalImgIdx(idx)}
                       sx={{
