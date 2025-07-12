@@ -4,15 +4,20 @@ const BACKEND_URL = (import.meta.env.VITE_API_BASE_URL || 'https://jcserver.onre
 const getImageUrl = (imgPath) => {
   if (!imgPath) return imgPath;
   if (/^https?:\/\//.test(imgPath)) return imgPath;
+  // If starts with /api/designs/uploads/ or /designs/uploads/, strip /api and prefix backend
   if (imgPath.startsWith('/api/designs/uploads/')) {
     return BACKEND_URL + imgPath.replace('/api', '');
   }
+  if (imgPath.startsWith('/designs/uploads/')) {
+    return BACKEND_URL + imgPath;
+  }
+  // If starts with /uploads/, prefix backend (legacy fallback)
   if (imgPath.startsWith('/uploads/')) {
     return BACKEND_URL + imgPath;
   }
-  // If it's just a filename (no slashes), treat as /uploads/filename
+  // If it's just a filename (no slashes), treat as /designs/uploads/filename
   if (!imgPath.includes('/')) {
-    return BACKEND_URL + '/uploads/' + imgPath;
+    return BACKEND_URL + '/designs/uploads/' + imgPath;
   }
   return imgPath;
 };
