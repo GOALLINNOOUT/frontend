@@ -75,9 +75,11 @@ function Blog() {
       const api = await import('../utils/api');
       const res = await api.get(`/articles?${params.toString()}`);
       if (res.ok) {
-        setArticles(articles => opts.reset ? res.data : [...articles, ...res.data]);
-        setHasMore(res.data.length === PAGE_SIZE);
-        setTotal(total => opts.reset ? res.data.length : total + res.data.length);
+        // Backend returns { articles: [...], total: N }
+        const newArticles = Array.isArray(res.data.articles) ? res.data.articles : [];
+        setArticles(articles => opts.reset ? newArticles : [...articles, ...newArticles]);
+        setHasMore(newArticles.length === PAGE_SIZE);
+        setTotal(total => opts.reset ? newArticles.length : total + newArticles.length);
       } else {
         throw new Error('Failed to load articles');
       }
