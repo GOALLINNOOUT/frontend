@@ -22,7 +22,7 @@ const usePageViewLogger = () => {
 
     // If no sessionId, request from backend
     if (!sessionId) {
-      fetch('/api/session/start', {
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/session/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })

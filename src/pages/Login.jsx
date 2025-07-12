@@ -65,7 +65,7 @@ export default function Login({ onLogin }) {
       localStorage.removeItem('sessionId');
       // --- START NEW SESSION FOR LOGGED-IN USER ---
       try {
-        const res = await fetch('/api/session/start', {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/session/start`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
         });

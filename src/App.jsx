@@ -70,7 +70,7 @@ function useSessionStart() {
   useEffect(() => {
     // Only start a session if one does not exist
     if (!localStorage.getItem('sessionId')) {
-      fetch('/api/session/start', {
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/session/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })
