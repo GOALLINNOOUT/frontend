@@ -32,7 +32,7 @@ function Footer() {
       transition={{ duration: 0.5 }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
-        <img src={logoImg} alt="JC's Closet Logo" style={{ height: 80, width: 'auto', borderRadius: 8, objectFit: 'cover', boxShadow: 'none' }} />
+        <img src={logoImg} alt="JC's Closet Logo" style={{ height: 80, width: '100vh', borderRadius: 8, objectFit: 'cover', boxShadow: 'none' }} />
       </Box>
       <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main', mb: 0.5 }}>
         JC's Closet
