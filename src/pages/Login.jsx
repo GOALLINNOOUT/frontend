@@ -56,11 +56,7 @@ export default function Login({ onLogin }) {
       // --- SESSION LOGGING: End previous session on login ---
       const oldSessionId = localStorage.getItem('sessionId');
       if (oldSessionId) {
-        await fetch('/api/session/end', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId: oldSessionId })
-        });
+        await post('/session/end', { sessionId: oldSessionId });
       }
       localStorage.removeItem('sessionId');
       // --- START NEW SESSION FOR LOGGED-IN USER ---

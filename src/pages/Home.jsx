@@ -18,7 +18,7 @@ import HandshakeIcon from '@mui/icons-material/Handshake';
 import NewsletterForm from '../components/NewsletterForm';
 import { Helmet } from 'react-helmet-async';
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { get, post } from '../utils/api';
 
 
 
@@ -40,8 +40,8 @@ function Home() {
       setLoadingReviews(true);
       try {
         // Fetch only the last 6 approved reviews, sorted by most recent
-        const res = await axios.get('/api/reviews?approved=true&limit=6&sort=-createdAt');
-        setReviews(res.data);
+        const res = await get('/reviews?approved=true&limit=6&sort=-createdAt');
+        if (res.ok) setReviews(res.data);
         setReviewError(null);
       } catch (err) {
         setReviewError('Could not load reviews.');
@@ -61,13 +61,13 @@ function Home() {
     setSubmitting(true);
     setSubmitMsg('');
     try {
-      await axios.post('/api/reviews', reviewForm);
+      await post('/reviews', reviewForm);
       setReviewForm({ name: '', review: '' });
       setSubmitMsg('Thank you for your review!');
       // Refetch reviews to ensure only approved reviews are shown
       try {
-        const res = await axios.get('/api/reviews?approved=true');
-        setReviews(res.data);
+        const res = await get('/reviews?approved=true');
+        if (res.ok) setReviews(res.data);
         setReviewError(null);
       } catch {
         // ignore error here, user just submitted

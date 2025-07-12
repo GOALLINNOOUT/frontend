@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { post } from '../utils/api';
 import { Box, Button, TextField, Typography, Alert, CircularProgress, Paper } from '@mui/material';
 
 const SetupPasswordPage = () => {
@@ -19,11 +19,15 @@ const SetupPasswordPage = () => {
     if (password !== confirm) return setError('Passwords do not match.');
     setLoading(true);
     try {
-      const res = await axios.post('/api/auth/setup-password', { token, password });
-      setSuccess(res.data.message || 'Password set successfully!');
-      setTimeout(() => navigate('/login'), 2000);
+      const res = await post('/auth/setup-password', { token, password });
+      if (res.ok) {
+        setSuccess(res.data.message || 'Password set successfully!');
+        setTimeout(() => navigate('/login'), 2000);
+      } else {
+        setError(res.data?.error || 'Failed to set password.');
+      }
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to set password.');
+      setError('Failed to set password.');
     } finally {
       setLoading(false);
     }

@@ -19,10 +19,9 @@ function BlogPost() {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch(`/api/articles/${id}`);
-        if (!res.ok) throw new Error('Failed to load article');
-        const data = await res.json();
-        setArticle(data);
+        const res = await import('../utils/api').then(api => api.get(`/articles/${id}`));
+        if (res.ok) setArticle(res.data);
+        else setError('Could not load this blog post.');
       } catch {
         setError('Could not load this blog post.');
       } finally {

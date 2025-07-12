@@ -4,7 +4,7 @@ import { Send as SendIcon } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@mui/material/styles';
 import { Helmet } from 'react-helmet-async';
-import axios from 'axios';
+import { get } from '../utils/api';
 
 // Replace with your actual Cohere API key
 const COHERE_API_KEY = 'NS32G7UwwRpuz5tqIHFQI0PaKIn4PjREwelxKAm4';
@@ -29,8 +29,12 @@ function StyleGuide() {
   useEffect(() => {
     const fetchPerfumes = async () => {
       try {
-        const response = await axios.get('/api/ai-recommendations/perfumes');
-        setPerfumes(response.data);
+        const res = await get('/ai-recommendations/perfumes');
+        if (res.ok) {
+          setPerfumes(res.data);
+        } else {
+          setError('Failed to load perfume collection');
+        }
       } catch (error) {
         console.error('Error fetching perfumes:', error);
         setError('Failed to load perfume collection');

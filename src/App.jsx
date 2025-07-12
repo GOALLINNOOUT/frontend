@@ -45,7 +45,7 @@ function useSessionLogger() {
     const endSession = () => {
       const sessionId = localStorage.getItem('sessionId');
       if (sessionId) {
-        const url = '/api/session/end';
+        const url = `${import.meta.env.VITE_API_BASE_URL}/session/end`;
         const data = JSON.stringify({ sessionId });
         if (navigator.sendBeacon) {
           const blob = new Blob([data], { type: 'application/json' });

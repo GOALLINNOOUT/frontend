@@ -57,12 +57,15 @@ function Blog() {
         params.append('searchField', searchField);
         params.append('searchQuery', search.trim());
       }
-      const res = await fetch(`/api/articles?${params.toString()}`);
-      if (!res.ok) throw new Error('Failed to load articles');
-      const data = await res.json();
-      setArticles(prev => opts.reset ? data.articles : [...prev, ...data.articles]);
-      setTotal(data.total);
-      setHasMore((opts.reset ? 0 : articles.length) + data.articles.length < data.total);
+      const api = await import('../utils/api');
+      const res = await api.get(`/articles?${params.toString()}`);
+      if (res.ok) {
+        setArticles(articles => opts.reset ? res.data : [...articles, ...res.data]);
+        setHasMore(res.data.length === PAGE_SIZE);
+        setTotal(total => opts.reset ? res.data.length : total + res.data.length);
+      } else {
+        throw new Error('Failed to load articles');
+      }
     } catch (err) {
       setError('Could not load blog posts.');
     } finally {
