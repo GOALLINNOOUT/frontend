@@ -1,3 +1,16 @@
+// Ensure BACKEND_URL does not end with /api and always points to backend root
+const BACKEND_URL = (import.meta.env.VITE_API_BASE_URL || 'https://jcserver.onrender.com').replace(/\/?api\/?$/, '');
+const getImageUrl = (imgPath) => {
+  if (!imgPath) return imgPath;
+  if (/^https?:\/\//.test(imgPath)) return imgPath;
+  if (imgPath.startsWith('/api/articles/uploads/')) {
+    return BACKEND_URL + imgPath.replace('/api', '');
+  }
+  if (imgPath.startsWith('/uploads/')) {
+    return BACKEND_URL + imgPath;
+  }
+  return imgPath;
+};
 import { Box, Paper, Typography, Link, useTheme, CircularProgress, Card, CardMedia, CardContent, CardActionArea, Stack, Chip, TextField, InputAdornment, IconButton, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { useEffect, useState } from 'react';
@@ -281,7 +294,7 @@ function Blog() {
                     {article.image && (
                       <CardMedia
                         component="img"
-                        image={article.image.startsWith('http') ? article.image : `/api/articles/uploads/${article.image}`}
+                        image={getImageUrl(article.image)}
                         alt={article.title}
                         loading="lazy"
                         sx={{ width: '100%', height: 180, objectFit: 'cover', borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
@@ -358,7 +371,7 @@ function Blog() {
                       {article.image && (
                         <CardMedia
                           component="img"
-                          image={article.image.startsWith('http') ? article.image : `/api/articles/uploads/${article.image}`}
+                          image={getImageUrl(article.image)}
                           alt={article.title}
                           loading="lazy"
                           sx={{ width: '100%', height: 180, objectFit: 'cover', borderTopLeftRadius: 16, borderTopRightRadius: 16 }}

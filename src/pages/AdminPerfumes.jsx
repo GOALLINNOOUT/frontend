@@ -1,3 +1,16 @@
+// Ensure BACKEND_URL does not end with /api and always points to backend root
+const BACKEND_URL = (import.meta.env.VITE_API_BASE_URL || 'https://jcserver.onrender.com').replace(/\/?api\/?$/, '');
+const getImageUrl = (imgPath) => {
+  if (!imgPath) return imgPath;
+  if (/^https?:\/\//.test(imgPath)) return imgPath;
+  if (imgPath.startsWith('/api/uploads/')) {
+    return BACKEND_URL + imgPath.replace('/api', '');
+  }
+  if (imgPath.startsWith('/uploads/')) {
+    return BACKEND_URL + imgPath;
+  }
+  return imgPath;
+};
 import React, { useEffect, useState } from 'react';
 import * as api from '../utils/api';
 import { Box, Typography, Paper, TextField, Button, Grid, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Stack, Radio, RadioGroup, FormControlLabel } from '@mui/material';
@@ -296,7 +309,7 @@ const AdminPerfumes = () => {
           </Box>
         )}
         <img
-          src={src}
+          src={getImageUrl(src)}
           alt={alt}
           style={{ ...style, opacity: loaded ? 1 : 0, transition: 'opacity 0.2s' }}
           loading="lazy"
@@ -501,7 +514,7 @@ const AdminPerfumes = () => {
                       <span key={idx} className="perfume-file-chip">{file.name} <button type="button" onClick={() => handleRemoveFile(idx)}>&times;</button></span>
                     ))}
                     {form.images.length > 0 && form.images.map((img, idx) => (
-                      <span key={idx} className="perfume-file-chip"><img src={img} alt="" style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, marginRight: 4 }} /><button type="button" onClick={() => handleRemoveImg(idx)}>&times;</button></span>
+                      <span key={idx} className="perfume-file-chip"><img src={getImageUrl(img)} alt="" style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, marginRight: 4 }} /><button type="button" onClick={() => handleRemoveImg(idx)}>&times;</button></span>
                     ))}
                   </div>
                   {(imageFiles.length > 0 || form.images.length > 0) && (
@@ -513,7 +526,7 @@ const AdminPerfumes = () => {
                             key={img}
                             value={idx}
                             control={<Radio />}
-                            label={<img src={img} alt="main" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4 }} />}
+                            label={<img src={getImageUrl(img)} alt="main" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4 }} />}
                           />
                         ))}
                         {imageFiles.map((file, idx) => (
@@ -742,7 +755,7 @@ const AdminPerfumes = () => {
                           {perfume.images && perfume.images.slice(0, 2).map((img, i) => (
                             <ImageWithLoader
                               key={i}
-                              src={img}
+                              src={getImageUrl(img)}
                               alt=""
                               style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4 }}
                             />
@@ -755,7 +768,7 @@ const AdminPerfumes = () => {
                       <td>
                         {perfume.images && perfume.images[perfume.mainImageIndex] && (
                           <ImageWithLoader
-                            src={perfume.images[perfume.mainImageIndex]}
+                            src={getImageUrl(perfume.images[perfume.mainImageIndex])}
                             alt="main"
                             style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4, border: '2px solid #1976d2' }}
                           />

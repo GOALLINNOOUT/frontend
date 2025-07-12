@@ -1,3 +1,16 @@
+// Ensure BACKEND_URL does not end with /api and always points to backend root
+const BACKEND_URL = (import.meta.env.VITE_API_BASE_URL || 'https://jcserver.onrender.com').replace(/\/?api\/?$/, '');
+const getImageUrl = (imgPath) => {
+  if (!imgPath) return imgPath;
+  if (/^https?:\/\//.test(imgPath)) return imgPath;
+  if (imgPath.startsWith('/api/uploads/')) {
+    return BACKEND_URL + imgPath.replace('/api', '');
+  }
+  if (imgPath.startsWith('/uploads/')) {
+    return BACKEND_URL + imgPath;
+  }
+  return imgPath;
+};
 import React from 'react';
 import * as api from '../utils/api';
 import { Box, Paper, Typography, TextField, Button, Grid, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Stack, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
@@ -297,7 +310,7 @@ function Admin() {
           </div>
         )}
         <img
-          src={src}
+          src={getImageUrl(src)}
           alt={alt}
           style={{ ...style, opacity: loaded ? 1 : 0, transition: 'opacity 0.2s' }}
           loading="lazy"
@@ -483,7 +496,7 @@ function Admin() {
                       <span key={idx} className="file-chip">{file.name} <button type="button" onClick={() => handleRemoveFile(idx)}>&times;</button></span>
                     ))}
                     {form.imgs.length > 0 && form.imgs.map((img, idx) => (
-                      <span key={idx} className="file-chip"><img src={img} alt="" style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, marginRight: 4 }} /><button type="button" onClick={() => handleRemoveImg(idx)}>&times;</button></span>
+                      <span key={idx} className="file-chip"><img src={getImageUrl(img)} alt="" style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, marginRight: 4 }} /><button type="button" onClick={() => handleRemoveImg(idx)}>&times;</button></span>
                     ))}
                   </div>
                 </div>
@@ -529,7 +542,7 @@ function Admin() {
                           {design.imgs && design.imgs.slice(0, 2).map((img, i) => (
                             <ImageWithLoader
                               key={i}
-                              src={img}
+                              src={getImageUrl(img)}
                               alt=""
                               style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4, boxShadow: '0 1px 4px #e3eafc' }}
                             />

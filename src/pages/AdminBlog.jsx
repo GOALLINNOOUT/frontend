@@ -1,3 +1,16 @@
+// Ensure BACKEND_URL does not end with /api and always points to backend root
+const BACKEND_URL = (import.meta.env.VITE_API_BASE_URL || 'https://jcserver.onrender.com').replace(/\/?api\/?$/, '');
+const getImageUrl = (imgPath) => {
+  if (!imgPath) return imgPath;
+  if (/^https?:\/\//.test(imgPath)) return imgPath;
+  if (imgPath.startsWith('/api/articles/uploads/')) {
+    return BACKEND_URL + imgPath.replace('/api', '');
+  }
+  if (imgPath.startsWith('/uploads/')) {
+    return BACKEND_URL + imgPath;
+  }
+  return imgPath;
+};
 import React, { useEffect, useRef, useState } from 'react';
 import * as api from '../utils/api';
 import { format } from 'date-fns';
@@ -170,7 +183,7 @@ const AdminBlog = () => {
     if (article.image) {
       previewUrl = article.image.startsWith('http')
         ? article.image
-        : `/api/articles/uploads/${article.image}`;
+        : getImageUrl(article.image);
     }
     setImagePreview(previewUrl);
     // Scroll to the form after state updates
@@ -383,7 +396,7 @@ const AdminBlog = () => {
               {formErrors.image && <div className="error-text" style={{ color: theme.palette.custom.dialogError }}>{formErrors.image}</div>}
               {imagePreview && (
                 <span className="file-chip">
-                  <img src={imagePreview} alt="preview" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4, marginRight: 6 }} loading="lazy" />
+                  <img src={getImageUrl(imagePreview)} alt="preview" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4, marginRight: 6 }} loading="lazy" />
                   <button type="button" onClick={handleRemoveImage}>&times;</button>
                 </span>
               )}

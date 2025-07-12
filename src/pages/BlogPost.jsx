@@ -1,3 +1,16 @@
+// Ensure BACKEND_URL does not end with /api and always points to backend root
+const BACKEND_URL = (import.meta.env.VITE_API_BASE_URL || 'https://jcserver.onrender.com').replace(/\/?api\/?$/, '');
+const getImageUrl = (imgPath) => {
+  if (!imgPath) return imgPath;
+  if (/^https?:\/\//.test(imgPath)) return imgPath;
+  if (imgPath.startsWith('/api/articles/uploads/')) {
+    return BACKEND_URL + imgPath.replace('/api', '');
+  }
+  if (imgPath.startsWith('/uploads/')) {
+    return BACKEND_URL + imgPath;
+  }
+  return imgPath;
+};
 import { useParams, Link as RouterLink } from 'react-router-dom';
 import { Box, Paper, Typography, Link, CircularProgress, Button, Chip, Stack } from '@mui/material';
 import { useEffect, useState } from 'react';
@@ -58,7 +71,7 @@ function BlogPost() {
 
   // Compute Open Graph image URL
   const ogImage = article.image
-    ? (article.image.startsWith('http') ? article.image : `${window.location.origin}/api/articles/uploads/${article.image}`)
+    ? getImageUrl(article.image)
     : undefined;
 
   return (
@@ -78,7 +91,7 @@ function BlogPost() {
           {article.image && (
             <Box sx={{ mb: 3, borderRadius: 3, overflow: 'hidden', boxShadow: theme.palette.grey._boxShadowBlog16 }}>
               <img
-                src={article.image.startsWith('http') ? article.image : `/api/articles/uploads/${article.image}`}
+                src={getImageUrl(article.image)}
                 alt={article.title}
                 style={{ width: '100%', maxHeight: 380, objectFit: 'cover', display: 'block' }}
               />
