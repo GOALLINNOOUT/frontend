@@ -9,6 +9,10 @@ const getImageUrl = (imgPath) => {
   if (imgPath.startsWith('/uploads/')) {
     return BACKEND_URL + imgPath;
   }
+  // If it's just a filename (no slashes), treat as /uploads/filename
+  if (!imgPath.includes('/')) {
+    return BACKEND_URL + '/uploads/' + imgPath;
+  }
   return imgPath;
 };
 import { Box, Paper, Typography, Link, useTheme, CircularProgress, Card, CardMedia, CardContent, CardActionArea, Stack, Chip, TextField, InputAdornment, IconButton, ToggleButtonGroup, ToggleButton } from '@mui/material';
