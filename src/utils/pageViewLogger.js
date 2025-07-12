@@ -1,5 +1,5 @@
 // Utility to log page views to backend
-import axios from 'axios';
+import api from './api';
 import { handleInvalidSession } from '../App';
 
 /**
@@ -13,7 +13,7 @@ import { handleInvalidSession } from '../App';
 export async function logPageView({ page, referrer, sessionId, timestamp }) {
   try {
     const token = localStorage.getItem('token');
-    await axios.post(
+    await api.post(
       '/api/v1/page-views',
       {
         page,

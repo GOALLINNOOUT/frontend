@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Paper, Typography, Grid, Box, CircularProgress, Stack, useTheme } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
-import axios from 'axios';
+import * as api from '../../utils/api';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import IconButton from '@mui/material/IconButton';
 import Popover from '@mui/material/Popover';
@@ -67,11 +67,9 @@ const SalesAnalytics = ({ dateRange }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('/api/v1/analytics/sales', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        setData(res.data);
+        const { data, ok } = await api.get('/v1/analytics/sales');
+        if (!ok) throw new Error();
+        setData(data);
       } catch {
         setError('Failed to load sales analytics');
       } finally {
@@ -85,10 +83,18 @@ const SalesAnalytics = ({ dateRange }) => {
     if (!dateRange.startDate || !dateRange.endDate) return;
     setLoading(true);
     setError(null);
-    axios.get('/api/v1/analytics/sales', { params: dateRange })
-      .then(res => setData(res.data))
-      .catch(err => setError(err?.response?.data?.error || 'Failed to fetch sales analytics'))
-      .finally(() => setLoading(false));
+    (async () => {
+      try {
+        const params = new URLSearchParams(dateRange).toString();
+        const { data, ok } = await api.get(`/v1/analytics/sales?${params}`);
+        if (!ok) throw new Error();
+        setData(data);
+      } catch {
+        setError('Failed to fetch sales analytics');
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [dateRange]);
 
   if (loading) return <Box display="flex" justifyContent="center" alignItems="center" minHeight={220}><CircularProgress /></Box>;

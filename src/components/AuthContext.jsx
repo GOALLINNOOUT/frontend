@@ -1,6 +1,9 @@
-import React, { createContext, useState, useEffect } from 'react';
 
-export const AuthContext = createContext({ user: null, setUser: () => {} });
+
+import React, { useState, useEffect } from 'react';
+import { AuthContext } from './AuthContext';
+import api from '../utils/api';
+
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -9,10 +12,9 @@ export const AuthProvider = ({ children }) => {
     // Try to fetch user from backend session or localStorage
     const token = localStorage.getItem('token');
     if (token) {
-      fetch('/api/users/me', { headers: { 'Authorization': `Bearer ${token}` } })
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (data && data.email) setUser(data);
+      api.get('/api/users/me', { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(res => {
+          if (res && res.email) setUser(res);
           else setUser(null);
         })
         .catch(() => setUser(null));

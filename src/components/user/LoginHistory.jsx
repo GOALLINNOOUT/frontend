@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Alert, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const LoginHistory = () => {
   const [history, setHistory] = useState([]);
@@ -15,7 +15,7 @@ const LoginHistory = () => {
       setError('');
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('/api/users/login-history', {
+        const res = await api.get('/api/users/login-history', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setHistory(res.data);
@@ -34,7 +34,7 @@ const LoginHistory = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.delete('/api/users/login-history', {
+      await api.del('/api/users/login-history', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setHistory([]);

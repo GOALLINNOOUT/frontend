@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Paper, Typography, TextField, Button, Stack, Alert } from '@mui/material';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const ChangePassword = () => {
   const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirm: '' });
@@ -25,7 +25,7 @@ const ChangePassword = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/users/change-password', {
+      await api.post('/api/users/change-password', {
         currentPassword: form.currentPassword,
         newPassword: form.newPassword,
       }, {

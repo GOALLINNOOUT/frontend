@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Paper, Typography, TextField, Button, Stack, CircularProgress, Alert } from '@mui/material';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const UserProfile = () => {
   const [user, setUser] = useState(null);
@@ -18,7 +18,7 @@ const UserProfile = () => {
       setError('');
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('/api/users/me', {
+        const res = await api.get('/api/users/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(res.data);
@@ -47,7 +47,7 @@ const UserProfile = () => {
     setSuccess('');
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.put('/api/users/me', form, {
+      const res = await api.put('/api/users/me', form, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(res.data);

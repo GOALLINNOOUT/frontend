@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const LogoutButton = () => {
   const [open, setOpen] = useState(false);
@@ -13,18 +13,14 @@ const LogoutButton = () => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await axios.post('/api/users/logout', {}, {
+        await api.post('/api/users/logout', {}, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
       // --- SESSION LOGGING: End session on logout ---
       const sessionId = localStorage.getItem('sessionId');
       if (sessionId) {
-        await fetch('/api/session/end', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId })
-        });
+        await api.post('/api/session/end', { sessionId });
         // Remove sessionId for next visit; backend will set new one
         localStorage.removeItem('sessionId');
       }

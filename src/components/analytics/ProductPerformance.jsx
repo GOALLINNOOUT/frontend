@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Paper, Typography, Grid, Box, CircularProgress, Chip, List, ListItem, ListItemText, Card, CardContent, Divider, Tooltip as MuiTooltip } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import axios from 'axios';
+import * as api from '../../utils/api';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, LabelList, Cell } from 'recharts';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import IconButton from '@mui/material/IconButton';
@@ -46,7 +46,7 @@ const ProductPerformance = ({ dateRange }) => {
   const [error, setError] = useState(null);
   const [infoAnchor, setInfoAnchor] = useState({});
   const [highlightedBar, setHighlightedBar] = useState(null);
-  const cartRef = React.useRef(null);
+
 
   // Refs for each chart section
   const chartRefs = {
@@ -60,15 +60,13 @@ const ProductPerformance = ({ dateRange }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('/api/v1/analytics/products', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          params: {
-            startDate: dateRange.startDate,
-            endDate: dateRange.endDate,
-          },
-        });
-        setData(res.data);
+        const params = new URLSearchParams({
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+        }).toString();
+        const { data, ok } = await api.get(`/v1/analytics/products?${params}`);
+        if (!ok) throw new Error();
+        setData(data);
       } catch {
         setError('Failed to load product performance analytics');
       } finally {
@@ -172,7 +170,7 @@ const ProductPerformance = ({ dateRange }) => {
                   <Legend wrapperStyle={{ fontSize: 18, fontWeight: 700 }} />
                   <Bar dataKey="quantity" fill={theme.palette.productAnalytics.blue} name="Sold" radius={[10,10,0,0]} barSize={50} >
                     <LabelList dataKey="quantity" position="top" style={{ fontSize: 16, fontWeight: 700 }} />
-                    {data.topSelling?.map((entry, idx) => (
+                    {data.topSelling?.map((entry) => (
                       <Cell key={entry._id} fill={getBarFill('topSelling', entry._id, theme.palette.productAnalytics.blue)} />
                     ))}
                   </Bar>
@@ -226,7 +224,7 @@ const ProductPerformance = ({ dateRange }) => {
                   <Legend wrapperStyle={{ fontSize: 18, fontWeight: 700 }} />
                   <Bar dataKey="quantity" fill={theme.palette.productAnalytics.red} name="Sold" radius={[10,10,0,0]} barSize={50} >
                     <LabelList dataKey="quantity" position="top" style={{ fontSize: 16, fontWeight: 700 }} />
-                    {data.leastPerforming?.map((entry, idx) => (
+                    {data.leastPerforming?.map((entry) => (
                       <Cell key={entry._id} fill={getBarFill('leastPerforming', entry._id, theme.palette.productAnalytics.red)} />
                     ))}
                   </Bar>
@@ -276,7 +274,7 @@ const ProductPerformance = ({ dateRange }) => {
                   <Legend wrapperStyle={{ fontSize: 18, fontWeight: 700 }} />
                   <Bar dataKey="views" fill={theme.palette.productAnalytics.yellow} name="Views" radius={[10,10,0,0]} barSize={50} >
                     <LabelList dataKey="views" position="top" style={{ fontSize: 16, fontWeight: 700 }} />
-                    {data.mostViewed?.map((entry, idx) => (
+                    {data.mostViewed?.map((entry) => (
                       <Cell key={entry._id} fill={getBarFill('mostViewed', entry._id, theme.palette.productAnalytics.yellow)} />
                     ))}
                   </Bar>
