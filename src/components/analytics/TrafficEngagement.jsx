@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, Typography, Box, CircularProgress, Grid, Chip, Divider, useTheme } from '@mui/material';
-import api from '../../utils/api';
+import { get } from '../../utils/api';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, LineChart, Line, BarChart, Bar, LabelList } from 'recharts';
 import PropTypes from 'prop-types';
 import PageVisitsTrendChart from './PageVisitsTrendChart';
@@ -72,7 +72,7 @@ const TrafficEngagement = ({ dateRange }) => {
       setError(null);
       try {
         const token = localStorage.getItem('token');
-        const res = await api.get('/api/v1/analytics/traffic', {
+        const res = await get('/api/v1/analytics/traffic', {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
           params: dateRange,
         });
