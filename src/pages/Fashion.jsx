@@ -411,64 +411,57 @@ function Fashion() {
               {designs.slice(0, 4).map((look) => (
                 <Grid item xs={12} sm={6} md={3} key={look.title + '-gallery'}>
                   <motion.div whileHover={{ scale: 1.03 }}>
-                  <Box
-                    component="img"
-                    src={getImageUrl(look.imgs && look.imgs[0])}
-                    alt={look.title}
-                    sx={{
-                      width: '100%',
-                      height: { xs: 160, md: 180 },
-                      objectFit: 'cover',
-                      borderRadius: 3,
-                      boxShadow: theme.palette.mode === 'dark' ? 8 : 2,
-                      border: theme.palette.mode === 'dark' ? '1.5px solid #333a48' : '1.5px solid #e0e7ef',
-                    }}
-                    title={look.title}
-                    loading="lazy"
-                  />
+                    <Box
+                      component="img"
+                      src={getImageUrl(look.imgs && look.imgs[0])}
+                      alt={look.title}
+                      sx={{
+                        width: '100%',
+                        height: { xs: 160, md: 180 },
+                        objectFit: 'cover',
+                        borderRadius: 3,
+                        boxShadow: theme.palette.mode === 'dark' ? 8 : 2,
+                        border: theme.palette.mode === 'dark' ? '1.5px solid #333a48' : '1.5px solid #e0e7ef',
+                      }}
+                      title={look.title}
+                      loading="lazy"
+                    />
                   </motion.div>
                 </Grid>
-                  <Box
-                    component="img"
-                    src={getImageUrl(selectedLook.imgs[modalImgIdx])}
-                    alt={selectedLook.title + ' main'}
-                    sx={{
-                      width: { xs: '100%', sm: 340, md: 400 },
-                      height: 240,
-                      objectFit: 'cover',
-                      borderRadius: 3,
-                      boxShadow: theme.palette.mode === 'dark' ? 8 : 2,
-                      border: theme.palette.mode === 'dark' ? '2px solid #333a48' : '2px solid #e0e7ef',
-                    }}
-                    loading="lazy"
-                  />
-              href="/appointments"
-              sx={{
-                borderRadius: 3,
-                px: 4,
-                py: 1.5,
-                fontWeight: 700,
-                fontSize: 18,
-                background: theme.palette.mode === 'dark'
-                  ? 'linear-gradient(90deg, #ffb347 0%, #ffcc33 100%)'
-                  : 'linear-gradient(90deg, #1976d2 0%, #64b5f6 100%)',
-                color: theme.palette.mode === 'dark' ? '#222' : '#fff',
-                boxShadow: theme.palette.mode === 'dark' ? 8 : 4,
-                '&:hover': {
-                  background: theme.palette.mode === 'dark'
-                    ? 'linear-gradient(90deg, #ffcc33 0%, #ffb347 100%)'
-                    : 'linear-gradient(90deg, #1565c0 0%, #1976d2 100%)',
-                  boxShadow: theme.palette.mode === 'dark' ? 12 : 6,
-                  transform: 'scale(1.05)',
-                },
-              }}
-              component={motion.a}
-              whileHover={{ scale: 1.05 }}
-              title="Book a styling session"
-            >
-              Book a Styling Session
-            </Button>
+              ))}
+            </Grid>
           </motion.div>
+        </Box>
+
+        {/* Book a Styling Session Button (moved outside Gallery Grid) */}
+        <Box mt={4} textAlign="center">
+          <Button
+            href="/appointments"
+            sx={{
+              borderRadius: 3,
+              px: 4,
+              py: 1.5,
+              fontWeight: 700,
+              fontSize: 18,
+              background: theme.palette.mode === 'dark'
+                ? 'linear-gradient(90deg, #ffb347 0%, #ffcc33 100%)'
+                : 'linear-gradient(90deg, #1976d2 0%, #64b5f6 100%)',
+              color: theme.palette.mode === 'dark' ? '#222' : '#fff',
+              boxShadow: theme.palette.mode === 'dark' ? 8 : 4,
+              '&:hover': {
+                background: theme.palette.mode === 'dark'
+                  ? 'linear-gradient(90deg, #ffcc33 0%, #ffb347 100%)'
+                  : 'linear-gradient(90deg, #1565c0 0%, #1976d2 100%)',
+                boxShadow: theme.palette.mode === 'dark' ? 12 : 6,
+                transform: 'scale(1.05)',
+              },
+            }}
+            component={motion.a}
+            whileHover={{ scale: 1.05 }}
+            title="Book a styling session"
+          >
+            Book a Styling Session
+          </Button>
         </Box>
 
         {/* Modal for design details */}
