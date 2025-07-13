@@ -15,6 +15,7 @@ const getImageUrl = (imgPath) => {
   }
   return imgPath;
 };
+import * as api from '../utils/api';
 import { Box, Paper, Typography, Link, useTheme, CircularProgress, Card, CardMedia, CardContent, CardActionArea, Stack, Chip, TextField, InputAdornment, IconButton, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { useEffect, useState } from 'react';
@@ -115,9 +116,9 @@ function Blog() {
     if (value.trim().length > 0) {
       suggestionTimeout.current = setTimeout(async () => {
         try {
-          const res = await fetch(`/api/articles/suggestions?query=${encodeURIComponent(value)}&field=${searchField}`);
-          const data = await res.json();
-          setSuggestions(data || []);
+          // Use the api utility for suggestions
+          const res = await api.get(`/articles/suggestions?query=${encodeURIComponent(value)}&field=${searchField}`);
+          setSuggestions(res.data || []);
         } catch {
           setSuggestions([]);
         }
