@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Box, Typography, Paper, Divider, CircularProgress, Stack, Button, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Grid, useMediaQuery, useTheme, Tooltip } from '@mui/material';
 import { Helmet } from 'react-helmet-async';
-import { AuthContext } from '../components/AuthContext.js';
+import { AuthContext } from '../components/AuthContext';
 import { get, del as apiDelete, patch as apiPatch } from '../utils/api';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
