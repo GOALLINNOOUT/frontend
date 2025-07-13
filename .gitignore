@@ -29,7 +29,6 @@ dist-ssr
 
 # Vercel/Render build artifacts
 .vercel
-vercel.json
 render.yaml
 
 # OS-specific files
