@@ -531,7 +531,7 @@ function Fashion() {
                 <Box display="flex" justifyContent="center" mb={1}>
                   <Box
                     component="img"
-                    src={selectedLook.imgs[modalImgIdx]}
+                    src={getImageUrl(selectedLook.imgs[modalImgIdx])}
                     alt={selectedLook.title + ' main'}
                     sx={{
                       width: { xs: '100%', sm: 340, md: 400 },
