@@ -3,11 +3,19 @@ const BACKEND_URL = (import.meta.env.VITE_API_BASE_URL || 'https://jcserver.onre
 const getImageUrl = (imgPath) => {
   if (!imgPath) return imgPath;
   if (/^https?:\/\//.test(imgPath)) return imgPath;
-  if (imgPath.startsWith('/api/uploads/')) {
-    return BACKEND_URL + imgPath.replace('/api', '');
-  }
+  // Always ensure /api/perfumes/uploads/ for perfume images
   if (imgPath.startsWith('/uploads/')) {
+    return BACKEND_URL + '/api/perfumes' + imgPath;
+  }
+  if (imgPath.startsWith('/perfumes/uploads/')) {
+    return BACKEND_URL + '/api' + imgPath;
+  }
+  if (imgPath.startsWith('/api/perfumes/uploads/')) {
     return BACKEND_URL + imgPath;
+  }
+  // If it's just a filename (no slashes), treat as /api/perfumes/uploads/filename
+  if (!imgPath.includes('/')) {
+    return BACKEND_URL + '/api/perfumes/uploads/' + imgPath;
   }
   return imgPath;
 };
