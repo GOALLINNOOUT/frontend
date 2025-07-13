@@ -13,9 +13,9 @@ const getImageUrl = (imgPath) => {
   if (imgPath.startsWith('/api/uploads/') || imgPath.startsWith('/api/articles/uploads/')) {
     return BACKEND_URL + imgPath;
   }
-  // If it's just a filename (no slashes), treat as /api/uploads/filename
+  // If it's just a filename (no slashes), treat as /api/articles/uploads/filename
   if (!imgPath.includes('/')) {
-    return BACKEND_URL + '/api/uploads/' + imgPath;
+    return BACKEND_URL + '/api/articles/uploads/' + imgPath;
   }
   return imgPath;
 };
