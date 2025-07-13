@@ -15,7 +15,7 @@ const LoginHistory = () => {
       setError('');
       try {
         const token = localStorage.getItem('token');
-        const res = await get('/api/users/login-history', {
+        const res = await get('/users/login-history', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setHistory(res.data);
@@ -34,7 +34,7 @@ const LoginHistory = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await del('/api/users/login-history', {
+      await del('/users/login-history', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setHistory([]);

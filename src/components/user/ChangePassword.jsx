@@ -25,7 +25,7 @@ const ChangePassword = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await post('/api/users/change-password', {
+      await post('/users/change-password', {
         currentPassword: form.currentPassword,
         newPassword: form.newPassword,
       }, {

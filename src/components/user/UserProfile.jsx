@@ -18,7 +18,7 @@ const UserProfile = () => {
       setError('');
       try {
         const token = localStorage.getItem('token');
-        const res = await get('/api/users/me', {
+        const res = await get('/users/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(res.data);
@@ -47,7 +47,7 @@ const UserProfile = () => {
     setSuccess('');
     try {
       const token = localStorage.getItem('token');
-      const res = await put('/api/users/me', form, {
+      const res = await put('/users/me', form, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(res.data);
