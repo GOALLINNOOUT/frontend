@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     // Try to fetch user from backend session or localStorage
     const token = localStorage.getItem('token');
     if (token) {
-      get('/api/users/me', { headers: { 'Authorization': `Bearer ${token}` } })
+      get('/users/me', { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => {
           if (res && res.email) setUser(res);
           else setUser(null);
