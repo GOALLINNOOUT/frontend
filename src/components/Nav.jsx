@@ -537,9 +537,7 @@ function Nav() {
                     ))}
                     {/* Logout button for mobile */}
                     <ListItem disablePadding>
-                      <ListItemButton onClick={handleDrawerToggle} sx={{ py: 2, fontWeight: 700, color: theme.palette.error.main, justifyContent: 'center' }}>
-                        <LogoutButton />
-                      </ListItemButton>
+                      <LogoutButton onLogout={() => setDrawerOpen(false)} />
                     </ListItem>
                   </>
                 )}

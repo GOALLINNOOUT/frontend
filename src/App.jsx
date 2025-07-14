@@ -42,27 +42,30 @@ import './App.css'
 
 function useSessionLogger() {
   useEffect(() => {
-    const endSession = () => {
-      const sessionId = localStorage.getItem('sessionId');
-      if (sessionId) {
-        const url = `${import.meta.env.VITE_API_BASE_URL}/session/end`;
-        const data = JSON.stringify({ sessionId });
-        if (navigator.sendBeacon) {
-          const blob = new Blob([data], { type: 'application/json' });
-          navigator.sendBeacon(url, blob);
-        } else {
-          fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: data
-          });
+    const endSession = (event) => {
+      // Only end session if NOT a page reload (refresh)
+      // pagehide with event.persisted === false means tab/browser close or navigation away (not bfcache)
+      if (event.type === 'pagehide' && !event.persisted) {
+        const sessionId = localStorage.getItem('sessionId');
+        if (sessionId) {
+          const url = `${import.meta.env.VITE_API_BASE_URL}/session/end`;
+          const data = JSON.stringify({ sessionId });
+          if (navigator.sendBeacon) {
+            const blob = new Blob([data], { type: 'application/json' });
+            navigator.sendBeacon(url, blob);
+          } else {
+            fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: data
+            });
+          }
+          localStorage.removeItem('sessionId');
         }
-        // Remove sessionId from localStorage after ending session
-        localStorage.removeItem('sessionId');
       }
     };
-    window.addEventListener('beforeunload', endSession);
-    return () => window.removeEventListener('beforeunload', endSession);
+    window.addEventListener('pagehide', endSession);
+    return () => window.removeEventListener('pagehide', endSession);
   }, []);
 }
 
