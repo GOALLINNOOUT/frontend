@@ -507,12 +507,17 @@ const PerfumeCollection = () => {
           gap: 8px;
           margin-bottom: 18px;
           overflow-x: auto;
-          padding: 0 8px;
+          overflow-y: hidden;
+          padding: 0 8px 4px 8px;
           scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          white-space: nowrap;
+          max-width: 100vw;
         }
         .categories::-webkit-scrollbar { display: none; }
         .category-item {
           min-width: 60px;
+          flex: 0 0 auto;
           padding: 8px 18px;
           font-size: 1rem;
           font-weight: 600;
@@ -523,12 +528,24 @@ const PerfumeCollection = () => {
           color: var(--color-text-secondary, #4A4A4A);
           border: 1.5px solid transparent;
           transition: all 0.18s;
+          white-space: nowrap;
         }
         .category-item.active {
           color: var(--color-primary, #4A90E2);
           background: var(--color-paper, #fff);
           border-color: var(--color-primary, #4A90E2);
           box-shadow: 0 2px 8px var(--color-primary, #4A90E2)33;
+        }
+        @media (max-width: 600px) {
+          .categories {
+            padding: 0 2vw 4px 2vw;
+            gap: 6px;
+          }
+          .category-item {
+            min-width: 48px;
+            font-size: 0.95rem;
+            padding: 8px 10px;
+          }
         }
         .perfumes-grid {
           display: block;
@@ -1142,40 +1159,71 @@ const PerfumeCollection = () => {
 
       {/* Floating cart message */}
       {showCartMsg && (
-        <div style={{
-          position: 'fixed',
-          bottom: 32,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'var(--jc-primary)',
-          color: 'var(--jc-primary-contrast)',
-          padding: '18px 36px',
-          borderRadius: 'var(--jc-radius-lg)',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
-          zIndex: 2000,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 18,
-          fontSize: 18,
-          fontWeight: 700,
-          letterSpacing: '-0.5px',
-        }}>
-          <span>{cartMsg}</span>
+        <div
+          className="cart-toast"
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            left: '50%',
+            bottom: 28,
+            transform: 'translateX(-50%)',
+            zIndex: 3000,
+            minWidth: 220,
+            maxWidth: '90vw',
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 4px 24px #000b'
+              : '0 4px 24px #0002',
+            background: theme.palette.mode === 'dark'
+              ? theme.palette.grey[900]
+              : theme.palette.primary.main,
+            color: theme.palette.mode === 'dark'
+              ? theme.palette.primary.light
+              : theme.palette.primary.contrastText,
+            borderRadius: 16,
+            padding: '14px 28px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            fontSize: 17,
+            fontWeight: 700,
+            letterSpacing: '-0.5px',
+            animation: 'cart-toast-fadein 0.3s',
+          }}
+        >
+          <span style={{ fontSize: 22, marginRight: 8, lineHeight: 1 }} aria-hidden="true">🛒</span>
+          <span style={{ flex: 1 }}>{cartMsg}</span>
           <button
             style={{
               background: 'none',
               border: 'none',
-              color: 'var(--jc-primary-contrast)',
-              fontSize: 26,
-              marginLeft: 10,
+              color: theme.palette.mode === 'dark'
+                ? theme.palette.primary.light
+                : theme.palette.primary.contrastText,
+              fontSize: 24,
+              marginLeft: 8,
               cursor: 'pointer',
               fontWeight: 800,
+              lineHeight: 1,
+              borderRadius: 8,
+              padding: 2,
+              transition: 'background 0.18s',
             }}
             onClick={() => setShowCartMsg(false)}
             aria-label="Close notification"
+            tabIndex={0}
           >
             ×
           </button>
+          <style>{`
+            @keyframes cart-toast-fadein {
+              from { opacity: 0; transform: translateY(30px) scale(0.98); }
+              to { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            .cart-toast {
+              transition: background 0.2s, color 0.2s;
+            }
+          `}</style>
         </div>
       )}
     </>

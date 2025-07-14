@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       get('/users/me', { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => {
-          if (res && res.email) setUser(res);
+          if (res && res.data && res.data.email) setUser(res.data);
           else setUser(null);
         })
         .catch(() => setUser(null));
