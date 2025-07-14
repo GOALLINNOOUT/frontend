@@ -54,11 +54,12 @@ function BlogPost() {
 
   const handleShare = async () => {
     const shareUrl = window.location.href;
+    const shareText = `${article.title}\n\n${article.content.slice(0, 300)}${article.content.length > 300 ? '...' : ''}`;
     if (navigator.share) {
       try {
         await navigator.share({
           title: article.title,
-          text: article.content.slice(0, 120) + (article.content.length > 120 ? '...' : ''),
+          text: shareText,
           url: shareUrl,
         });
         setShared(true);
@@ -89,7 +90,7 @@ function BlogPost() {
         <meta name="description" content="Read this blog post from JC's Closet. Discover fashion, fragrance, and lifestyle tips." />
         {ogImage && <meta property="og:image" content={ogImage} />}
         <meta property="og:title" content={article.title} />
-        <meta property="og:description" content={article.content.slice(0, 120) + (article.content.length > 120 ? '...' : '')} />
+        <meta property="og:description" content={`${article.title} - ${article.content.slice(0, 300)}${article.content.length > 300 ? '...' : ''}`} />
         {ogImage && <meta name="twitter:card" content="summary_large_image" />}
         {ogImage && <meta name="twitter:image" content={ogImage} />}
       </Helmet>
