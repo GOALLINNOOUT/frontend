@@ -45,14 +45,19 @@ const OrderPage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
+    console.log('OrderPage useEffect, user:', user);
     if (!user) return;
     setLoading(true);
     get('/orders/my')
       .then(res => {
+        console.log('OrderPage /orders/my response:', res);
         if (res.ok) setOrders(res.data);
         else setError('Failed to fetch orders.');
       })
-      .catch(() => setError('Failed to fetch orders.'))
+      .catch((err) => {
+        console.error('OrderPage /orders/my error:', err);
+        setError('Failed to fetch orders.');
+      })
       .finally(() => setLoading(false));
   }, [user]);
 
