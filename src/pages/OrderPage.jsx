@@ -98,8 +98,11 @@ const OrderPage = () => {
   if (!user) {
     return (
       <Box sx={{ maxWidth: 500, mx: 'auto', mt: 8, p: 3, textAlign: 'center' }}>
-        <Typography variant="h5" fontWeight={700} mb={2}>Sign in to view your orders</Typography>
-        <Button href="/login" variant="contained" color="primary">Login</Button>
+        <Typography variant="h5" fontWeight={700} mb={2}>
+          Please sign in or register with the email you used when ordering to view your orders.
+        </Typography>
+        <Button href="/login" variant="contained" color="primary" sx={{ mr: 1 }}>Sign In</Button>
+        <Button href="/signup" variant="outlined" color="primary">Register</Button>
       </Box>
     );
   }
@@ -158,8 +161,18 @@ const OrderPage = () => {
                         Order #{order._id.slice(-6).toUpperCase()}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Placed: {new Date(order.paidAt).toLocaleString()}
+                        Placed: {order.paidAt ? new Date(order.paidAt).toLocaleString() : 'N/A'}
                       </Typography>
+                      {order.shippedAt && (
+                        <Typography variant="body2" color="text.secondary">
+                          Shipped: {new Date(order.shippedAt).toLocaleString()}
+                        </Typography>
+                      )}
+                      {order.deliveredAt && (
+                        <Typography variant="body2" color="text.secondary">
+                          Delivered: {new Date(order.deliveredAt).toLocaleString()}
+                        </Typography>
+                      )}
                     </Box>
                     <Tooltip title={statusLabel[order.status] || order.status} arrow>
                       <Chip

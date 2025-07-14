@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { AuthContext } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { post } from '../utils/api';
 import TextField from '@mui/material/TextField';
@@ -15,6 +16,7 @@ import { Helmet } from 'react-helmet-async';
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
+  const { setUser } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -61,16 +63,17 @@ export default function Login({ onLogin }) {
       localStorage.removeItem('sessionId');
       // --- START NEW SESSION FOR LOGGED-IN USER ---
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/session/start`, {
+        const resSession = await fetch(`${import.meta.env.VITE_API_BASE_URL}/session/start`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
         });
-        const data = await res.json();
+        const data = await resSession.json();
         if (data && data.sessionId) {
           localStorage.setItem('sessionId', data.sessionId);
         }
       } catch {}
       // --- END SESSION LOGGING ---
+      setUser(res.data.user); // Set user in AuthContext for immediate update
       if (onLogin) onLogin(res.data.user);
       setSuccess(true); // Show success message
       if (res.data.user.role === 'admin') {

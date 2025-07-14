@@ -21,11 +21,12 @@ const UserProfile = () => {
         const res = await get('/users/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setUser(res.data);
+        const userObj = res.data && res.data.data;
+        setUser(userObj);
         setForm({
-          name: res.data.name || '',
-          email: res.data.email || '',
-          phone: res.data.phone || '',
+          name: userObj?.name || '',
+          email: userObj?.email || '',
+          phone: userObj?.phone || '',
         });
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to load profile');
@@ -50,7 +51,8 @@ const UserProfile = () => {
       const res = await put('/users/me', form, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUser(res.data);
+      const userObj = res.data && res.data.data;
+      setUser(userObj);
       setEditMode(false);
       setSuccess('Profile updated successfully!');
     } catch (err) {
