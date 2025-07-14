@@ -26,7 +26,7 @@ function Footer() {
         bgcolor: 'background.paper',
         color: 'text.secondary',
         boxShadow: 1,
-        width: '99%',
+        width: '100%',
         left: 0,
         position: 'relative',
         overflowX: 'hidden',

@@ -52,6 +52,9 @@
   color: #888;
 } */
 
+body{
+  width: 100%;
+}
 
 .app-container {
   padding-top: 170px;
