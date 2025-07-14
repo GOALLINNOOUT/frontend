@@ -14,10 +14,14 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       get('/users/me', { headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => {
+          console.log('AuthProvider /users/me response:', res);
           if (res && res.data && res.data.email) setUser(res.data);
           else setUser(null);
         })
-        .catch(() => setUser(null));
+        .catch((err) => {
+          console.error('AuthProvider /users/me error:', err);
+          setUser(null);
+        });
     } else {
       setUser(null);
     }
