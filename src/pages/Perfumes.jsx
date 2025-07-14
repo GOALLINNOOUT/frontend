@@ -34,9 +34,49 @@ const getImageUrl = (imgPath) => {
   return imgPath;
 };
 
-const PerfumeImage = ({ src, alt, className, style, modal }) => {
+const PerfumeImage = React.memo(({ src, alt, className, style, modal }) => {
   const theme = useTheme();
-  const [loaded, setLoaded] = React.useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const imageRef = useRef(null);
+  const observedElement = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setShouldLoad(true);
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        rootMargin: '100px 0px', // Increased margin to start loading earlier
+        threshold: 0.1
+      }
+    );
+
+    if (imageRef.current) {
+      observedElement.current = imageRef.current;
+      observer.observe(imageRef.current);
+    }
+
+    return () => {
+      if (observedElement.current) {
+        observer.unobserve(observedElement.current);
+      }
+    };
+  }, []);
+
+  // Preload image when shouldLoad becomes true
+  useEffect(() => {
+    if (shouldLoad && src) {
+      const img = new Image();
+      img.src = getImageUrl(src);
+    }
+  }, [shouldLoad, src]);
+
   // Use modal-specific style if modal prop is true
   const imageStyle = modal
     ? {
@@ -49,6 +89,10 @@ const PerfumeImage = ({ src, alt, className, style, modal }) => {
         boxShadow: `0 2px 12px ${theme.palette.grey.e0e7ef}99`,
         maxWidth: '90vw',
         maxHeight: '40vh',
+        opacity: loaded ? 1 : 0,
+        transition: 'opacity 0.3s ease-in-out',
+        transform: loaded ? 'translateY(0)' : 'translateY(10px)',
+        willChange: 'opacity, transform',
         ...style,
       }
     : {
@@ -57,11 +101,25 @@ const PerfumeImage = ({ src, alt, className, style, modal }) => {
         objectFit: 'cover',
         borderRadius: 4,
         opacity: loaded ? 1 : 0,
-        transition: 'opacity 0.2s',
+        transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out',
+        transform: loaded ? 'translateY(0)' : 'translateY(10px)',
+        willChange: 'opacity, transform',
         ...style,
       };
+
+  const containerStyle = {
+    position: 'relative',
+    width: modal ? 260 : '100%',
+    height: modal ? 260 : '120px',
+    margin: modal ? '0 auto 20px auto' : undefined,
+    background: theme.palette.grey.e0e7ef,
+    borderRadius: modal ? 8 : 4,
+    overflow: 'hidden',
+    ...style
+  };
+
   return (
-    <div style={{ position: 'relative', width: modal ? 260 : '100%', height: modal ? 260 : '120px', margin: modal ? '0 auto 20px auto' : undefined, ...style }}>
+    <div ref={imageRef} style={containerStyle}>
       {!loaded && (
         <div style={{
           position: 'absolute',
@@ -75,17 +133,31 @@ const PerfumeImage = ({ src, alt, className, style, modal }) => {
           <span style={{ color: theme.palette.grey._888, fontSize: 18 }}>🖼️</span>
         </div>
       )}
-      <img
-        src={getImageUrl(src)}
-        alt={alt}
-        className={className}
-        loading="lazy"
-        style={imageStyle}
-        onLoad={() => setLoaded(true)}
-      />
+      {shouldLoad && (
+        <img
+          src={getImageUrl(src)}
+          alt={alt}
+          className={className}
+          loading="lazy"
+          decoding="async"
+          style={imageStyle}
+          onLoad={() => {
+            requestAnimationFrame(() => {
+              setLoaded(true);
+            });
+          }}
+          onError={() => {
+            console.warn('Failed to load image:', src);
+            setLoaded(true);
+          }}
+        />
+      )}
     </div>
   );
-};
+});
+
+// Add display name for debugging
+PerfumeImage.displayName = 'PerfumeImage';
 
 const PerfumeCollection = () => {
   const [perfumes, setPerfumes] = useState([]);
@@ -120,8 +192,8 @@ const PerfumeCollection = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, currentSearch, currentCategory]);
 
-  const ITEMS_PER_PAGE = 6;
-  const MAX_PAGES = 120;
+  const ITEMS_PER_PAGE = 12; // Reduced from original value
+  const MAX_PAGES = 10; // Reduced from 120 to prevent excessive loading
 
   const fetchPerfumes = async (page = 1, search = "", category = "all") => {
     try {
@@ -141,25 +213,28 @@ const PerfumeCollection = () => {
   const loadPerfumes = async (append = false, search = currentSearch, category = currentCategory) => {
     if (loading) return;
     setLoading(true);
-    setError(""); // Clear error before loading
+    setError("");
     try {
       const result = await fetchPerfumes(currentPage, search, category);
       setPerfumes((prev) => {
         if (append || currentPage > 1) {
-          // Append new perfumes to previous ones, avoiding duplicates by _id
-          const ids = new Set(prev.map(p => p._id));
+          // Keep only the last 3 pages worth of data to prevent memory issues
+          const maxItems = ITEMS_PER_PAGE * 3;
           const combined = [...prev];
           result.data.forEach(p => {
-            if (!ids.has(p._id)) combined.push(p);
+            if (!combined.find(existing => existing._id === p._id)) {
+              combined.push(p);
+            }
           });
-          return combined;
+          // Trim the array if it gets too large
+          return combined.slice(-maxItems);
         } else {
           return result.data;
         }
       });
-      setHasMore(result.hasMore);
+      setHasMore(result.hasMore && currentPage < MAX_PAGES);
     } catch {
-      // Error is handled in fetchPerfumes
+      setError("Unable to load perfumes. Please check your internet connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -172,20 +247,32 @@ const PerfumeCollection = () => {
 
   // --- Suggestion fetch logic ---
   const handleSearchChange = (e) => {
-    if (searchTimeout.current) clearTimeout(searchTimeout.current);
     const value = e.target.value.toLowerCase().trim();
-    // Debounced search
+    
+    // Clear any existing timeouts
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+    if (suggestionTimeout.current) {
+      clearTimeout(suggestionTimeout.current);
+    }
+
+    // Update the search input immediately
+    setCurrentSearch(value);
+
+    // Debounced search (delay actual search to prevent too many API calls)
     searchTimeout.current = setTimeout(() => {
-      setCurrentSearch(value);
-      setCurrentPage(1);
+      setCurrentPage(1); // Reset to first page
+      setPerfumes([]); // Clear existing results
+      loadPerfumes(false, value, currentCategory);
     }, 500);
-    // Debounced suggestions
-    if (suggestionTimeout.current) clearTimeout(suggestionTimeout.current);
+
+    // Debounced suggestions with shorter delay
     if (value.length > 0) {
       suggestionTimeout.current = setTimeout(async () => {
         try {
           const res = await api.get(`/perfumes/suggestions?query=${encodeURIComponent(value)}`);
-          setSuggestions(res.data || []);
+          setSuggestions(res.data?.slice(0, 5) || []); // Limit suggestions to 5
         } catch {
           setSuggestions([]);
         }
@@ -201,34 +288,37 @@ const PerfumeCollection = () => {
     setCurrentPage(1);
   };
 
-  // Infinite scroll: load more when near bottom
+  // Infinite scroll with proper cleanup and debouncing
   useEffect(() => {
     if (!hasMore || loading) return;
+    
+    let scrollTimeout;
     const handleScroll = () => {
-      // Use window scroll position
-      const scrollY = window.scrollY || window.pageYOffset;
-      const viewportHeight = window.innerHeight;
-      const fullHeight = document.documentElement.scrollHeight;
-      // If user is within 400px of bottom, load more
-      if (fullHeight - (scrollY + viewportHeight) < 400) {
-        if (!loading && hasMore && currentPage < MAX_PAGES) {
-          setCurrentPage((prev) => prev + 1);
+      if (scrollTimeout) {
+        window.cancelAnimationFrame(scrollTimeout);
+      }
+      
+      scrollTimeout = window.requestAnimationFrame(() => {
+        const scrollY = window.scrollY || window.pageYOffset;
+        const viewportHeight = window.innerHeight;
+        const fullHeight = document.documentElement.scrollHeight;
+        
+        if (fullHeight - (scrollY + viewportHeight) < 600) {
+          if (!loading && hasMore && currentPage < MAX_PAGES) {
+            setCurrentPage((prev) => prev + 1);
+          }
         }
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeout) {
+        window.cancelAnimationFrame(scrollTimeout);
       }
     };
-    // Debounce scroll handler
-    let ticking = false;
-    const debouncedScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          handleScroll();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-    window.addEventListener('scroll', debouncedScroll);
-    return () => window.removeEventListener('scroll', debouncedScroll);
   }, [hasMore, loading, currentPage, MAX_PAGES]);
 
   const openModal = (perfumeId) => {
@@ -302,24 +392,42 @@ const PerfumeCollection = () => {
 
   // Responsive columns and card width for 100% width grid
   const [containerWidth, setContainerWidth] = useState(window.innerWidth);
-  const getColumnCount = () => {
+  // Memoize getColumnCount to prevent unnecessary rerenders
+  const getColumnCount = React.useCallback(() => {
     if (containerWidth < 600) return 2;
-    if (containerWidth < 900) return 4;
-    if (containerWidth < 1200) return 6;
+    if (containerWidth < 900) return 3;
+    if (containerWidth < 1200) return 4;
     return 5;
-  };
+  }, [containerWidth]);
   const [columnCount, setColumnCount] = useState(getColumnCount());
+  // Handle window resizing with proper cleanup
   useEffect(() => {
+    let resizeTimeout;
+    
     const handleResize = () => {
-      setContainerWidth(gridRef.current ? gridRef.current.offsetWidth : window.innerWidth);
+      if (resizeTimeout) {
+        window.cancelAnimationFrame(resizeTimeout);
+      }
+      
+      resizeTimeout = window.requestAnimationFrame(() => {
+        setContainerWidth(gridRef.current ? gridRef.current.offsetWidth : window.innerWidth);
+      });
     };
-    window.addEventListener('resize', handleResize);
+
+    window.addEventListener('resize', handleResize, { passive: true });
     handleResize();
-    return () => window.removeEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (resizeTimeout) {
+        window.cancelAnimationFrame(resizeTimeout);
+      }
+    };
   }, []);
+  // Update column count when container width changes
   useEffect(() => {
     setColumnCount(getColumnCount());
-  }, [containerWidth]);
+  }, [containerWidth, getColumnCount]);
   const CARD_GAP = 16;
   const CARD_WIDTH = Math.floor((containerWidth - CARD_GAP * (columnCount + 1)) / columnCount);
   const CARD_HEIGHT = 320;
@@ -966,8 +1074,7 @@ const PerfumeCollection = () => {
                   <>
                     <span style={{ color: 'var(--jc-sale)', fontWeight: 700 }}>₦{modalPromo.displayPrice.toLocaleString()}</span>
                     <span style={{ textDecoration: 'line-through', color: 'var(--jc-text-secondary)', marginLeft: 8, fontSize: 15 }}>
-                      ₦{selectedPerfume.price.toLocaleString()}
-                    </span>
+                      ₦{selectedPerfume.price.toLocaleString()}</span>
                     {modalPromo.promoLabel && (
                       <span style={{ marginLeft: 10, color: 'var(--jc-success)', fontSize: 13, fontWeight: 600 }}>{modalPromo.promoLabel}</span>
                     )}
