@@ -173,8 +173,9 @@ function Home() {
               sx={{
                 position: 'absolute',
                 inset: 0,
-                background: `linear-gradient(120deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`,
-                opacity: 0.68,
+                background: theme.palette.mode === 'dark'
+                  ? 'rgba(10,10,10,0.82)'
+                  : 'rgba(30,30,30,0.72)',
                 zIndex: 1,
               }}
             />
@@ -183,7 +184,7 @@ function Home() {
               sx={{
                 position: 'relative',
                 zIndex: 2,
-                color: theme.palette.getContrastText(theme.palette.primary.dark),
+                color: '#fff',
                 textAlign: 'center',
                 width: { xs: '100%', md: '70%' },
                 p: { xs: 2, md: 5 },
@@ -195,7 +196,7 @@ function Home() {
                 sx={{
                   fontWeight: 900,
                   mb: 2,
-                  color: theme.palette.getContrastText(theme.palette.primary.dark),
+                  color: '#fff',
                   textShadow: '0 4px 24px #000b, 0 1px 0 #fff2',
                   letterSpacing: 1.5,
                 }}
@@ -206,7 +207,7 @@ function Home() {
                 variant="h5"
                 sx={{
                   mb: 3,
-                  color: theme.palette.getContrastText(theme.palette.secondary.dark),
+                  color: '#fff',
                   textShadow: '0 2px 12px #000a',
                   fontWeight: 600,
                 }}
@@ -217,7 +218,7 @@ function Home() {
                 variant="body1"
                 sx={{
                   mb: 3,
-                  color: theme.palette.info.light,
+                  color: '#fff',
                   textShadow: '0 1px 8px #0007',
                   fontWeight: 500,
                   fontSize: { xs: '1.05rem', md: '1.18rem' },
