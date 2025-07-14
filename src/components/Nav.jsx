@@ -22,8 +22,11 @@ function Nav() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [role, setRole] = useState(null);
   const [cartCount, setCartCount] = useState(0);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
+  // Separate anchor and open state for More and Account menus
+  const [moreAnchorEl, setMoreAnchorEl] = useState(null);
+  const [accountAnchorEl, setAccountAnchorEl] = useState(null);
+  const moreMenuOpen = Boolean(moreAnchorEl);
+  const accountMenuOpen = Boolean(accountAnchorEl);
   const { mode, toggleMode } = useThemeMode();
 
   useEffect(() => {
@@ -92,19 +95,29 @@ function Nav() {
 
  
 
+
   const handleDrawerToggle = () => {
     setDrawerOpen((prev) => !prev);
   };
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
+  // For More menu
+  const handleMoreMenu = (event) => {
+    setMoreAnchorEl(event.currentTarget);
   };
-  const handleClose = () => {
-    setAnchorEl(null);
+  const handleMoreClose = () => {
+    setMoreAnchorEl(null);
+  };
+  // For Account menu
+  const handleAccountMenu = (event) => {
+    setAccountAnchorEl(event.currentTarget);
+  };
+  const handleAccountClose = () => {
+    setAccountAnchorEl(null);
   };
 
   // Close dropdown menu on route change
   useEffect(() => {
-    setAnchorEl(null);
+    setMoreAnchorEl(null);
+    setAccountAnchorEl(null);
   }, [location.pathname]);
 
   return (
@@ -193,10 +206,10 @@ function Nav() {
             <Box sx={{ display: { xs: 'none', md: 'flex', lg: 'none' } }}>
               <Button
                 id="more-nav-button"
-                aria-controls={open ? 'more-nav-menu' : undefined}
+                aria-controls={moreMenuOpen ? 'more-nav-menu' : undefined}
                 aria-haspopup="true"
-                aria-expanded={open ? 'true' : undefined}
-                onClick={handleMenu}
+                aria-expanded={moreMenuOpen ? 'true' : undefined}
+                onClick={handleMoreMenu}
                 color="primary"
                 sx={{
                   textTransform: 'none',
@@ -215,9 +228,9 @@ function Nav() {
               </Button>
               <Menu
                 id="more-nav-menu"
-                anchorEl={anchorEl}
-                open={open && anchorEl && anchorEl.id === 'more-nav-button'}
-                onClose={handleClose}
+                anchorEl={moreAnchorEl}
+                open={moreMenuOpen}
+                onClose={handleMoreClose}
                 MenuListProps={{ 'aria-labelledby': 'more-nav-button', role: 'menu' }}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'center' }}
@@ -236,7 +249,7 @@ function Nav() {
                     key={link.to}
                     component={Link}
                     to={link.to}
-                    onClick={handleClose}
+                    onClick={handleMoreClose}
                     selected={location.pathname === link.to}
                     aria-label={link.label}
                     role="menuitem"
@@ -312,13 +325,13 @@ function Nav() {
           {/* Account icon for logged-in users only */}
           {role && (
             <IconButton
-              onClick={handleMenu}
+              onClick={handleAccountMenu}
               color="primary"
               sx={{ ml: 1 }}
               aria-label={role === 'admin' ? 'admin account menu' : 'account menu'}
-              aria-controls={open ? (role === 'admin' ? 'admin-menu' : 'user-menu') : undefined}
+              aria-controls={accountMenuOpen ? (role === 'admin' ? 'admin-menu' : 'user-menu') : undefined}
               aria-haspopup="true"
-              aria-expanded={open ? 'true' : undefined}
+              aria-expanded={accountMenuOpen ? 'true' : undefined}
             >
               <AccountCircleIcon fontSize="large" />
             </IconButton>
@@ -328,9 +341,9 @@ function Nav() {
         {role && (
           <Menu
             id={role === 'admin' ? 'admin-menu' : 'user-menu'}
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
+            anchorEl={accountAnchorEl}
+            open={accountMenuOpen}
+            onClose={handleAccountClose}
             MenuListProps={{ 'aria-labelledby': role === 'admin' ? 'admin-account-button' : 'account-button', role: 'menu' }}
           >
             {accountLinks.map((link) => (
@@ -338,7 +351,7 @@ function Nav() {
                 key={link.to}
                 component={Link}
                 to={link.to}
-                onClick={handleClose}
+                onClick={handleAccountClose}
                 selected={location.pathname === link.to}
                 aria-label={link.label}
                 role="menuitem"
