@@ -283,9 +283,9 @@ function Nav() {
               <ShoppingCartIcon />
             </Badge>
           </IconButton>
-          {/* Show Login/Sign Up for guests on desktop */}
+          {/* Show Login/Sign Up for guests on desktop only (not mobile) */}
           {!role && (
-            <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, ml: 2 }}>
+            <Box sx={{ display: { xs: 'none', sm: 'none', md: 'flex' }, gap: 1, ml: 2 }}>
               {authLinks.map((link) => (
                 <Button
                   key={link.to}
@@ -322,22 +322,24 @@ function Nav() {
               </IconButton>
             </Box>
           )}
-          {/* Account icon for logged-in users only */}
+          {/* Account icon for logged-in users only, only on md and up */}
           {role && (
-            <IconButton
-              onClick={handleAccountMenu}
-              color="primary"
-              sx={{ ml: 1 }}
-              aria-label={role === 'admin' ? 'admin account menu' : 'account menu'}
-              aria-controls={accountMenuOpen ? (role === 'admin' ? 'admin-menu' : 'user-menu') : undefined}
-              aria-haspopup="true"
-              aria-expanded={accountMenuOpen ? 'true' : undefined}
-            >
-              <AccountCircleIcon fontSize="large" />
-            </IconButton>
+            <Box sx={{ display: { xs: 'none', sm: 'none', md: 'flex' } }}>
+              <IconButton
+                onClick={handleAccountMenu}
+                color="primary"
+                sx={{ ml: 1 }}
+                aria-label={role === 'admin' ? 'admin account menu' : 'account menu'}
+                aria-controls={accountMenuOpen ? (role === 'admin' ? 'admin-menu' : 'user-menu') : undefined}
+                aria-haspopup="true"
+                aria-expanded={accountMenuOpen ? 'true' : undefined}
+              >
+                <AccountCircleIcon fontSize="large" />
+              </IconButton>
+            </Box>
           )}
         </Box>
-        {/* Account dropdown menu (Logout at bottom) */}
+        {/* Account dropdown menu (Logout at bottom), only on md and up */}
         {role && (
           <Menu
             id={role === 'admin' ? 'admin-menu' : 'user-menu'}
@@ -345,6 +347,7 @@ function Nav() {
             open={accountMenuOpen}
             onClose={handleAccountClose}
             MenuListProps={{ 'aria-labelledby': role === 'admin' ? 'admin-account-button' : 'account-button', role: 'menu' }}
+            sx={{ display: { xs: 'none', sm: 'none', md: 'block' } }}
           >
             {accountLinks.map((link) => (
               <MenuItem
@@ -491,6 +494,55 @@ function Nav() {
                     </ListItemButton>
                   </ListItem>
                 ))}
+                {/* Show account links and logout for logged-in users in Drawer (mobile only) */}
+                {role && (
+                  <>
+                    <Box sx={{ my: 2, mx: 2 }}>
+                      <hr style={{ border: 0, borderTop: `1px solid ${mode === 'dark' ? theme.palette.divider : theme.palette.divider}` }} />
+                      <Box sx={{ mt: 1, mb: 0.5, fontWeight: 600, fontSize: 14, color: mode === 'dark' ? theme.palette.text.secondary : theme.palette.text.secondary, letterSpacing: 1 }}>
+                        My Account
+                      </Box>
+                    </Box>
+                    {accountLinks.map((link) => (
+                      <ListItem key={link.to} disablePadding>
+                        <ListItemButton
+                          component={Link}
+                          to={link.to}
+                          selected={location.pathname === link.to}
+                          onClick={handleDrawerToggle}
+                          sx={{
+                            py: 2,
+                            fontSize: '1.1rem',
+                            fontWeight: 700,
+                            bgcolor: mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.main,
+                            color: theme.palette.primary.contrastText,
+                            borderRadius: 2,
+                            boxShadow: 2,
+                            mb: 1,
+                            '&.Mui-selected': {
+                              bgcolor: mode === 'dark' ? theme.palette.primary.main : theme.palette.primary.dark,
+                              color: theme.palette.primary.contrastText,
+                            },
+                            '&:hover': {
+                              bgcolor: mode === 'dark' ? theme.palette.primary.main : theme.palette.primary.dark,
+                              color: theme.palette.primary.contrastText,
+                            },
+                          }}
+                          aria-label={link.label}
+                          role="menuitem"
+                        >
+                          <ListItemText primary={link.label} sx={{ color: theme.palette.primary.contrastText }} />
+                        </ListItemButton>
+                      </ListItem>
+                    ))}
+                    {/* Logout button for mobile */}
+                    <ListItem disablePadding>
+                      <ListItemButton onClick={handleDrawerToggle} sx={{ py: 2, fontWeight: 700, color: theme.palette.error.main, justifyContent: 'center' }}>
+                        <LogoutButton />
+                      </ListItemButton>
+                    </ListItem>
+                  </>
+                )}
               </List>
               {/* Dark mode toggle for mobile in drawer */}
               <Box sx={{ display: { xs: 'flex', md: 'none' }, justifyContent: 'center', alignItems: 'center', py: 2 }}>
