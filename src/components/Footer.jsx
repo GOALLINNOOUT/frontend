@@ -26,6 +26,10 @@ function Footer() {
         bgcolor: 'background.paper',
         color: 'text.secondary',
         boxShadow: 1,
+        width: '100%',
+        left: 0,
+        position: 'relative',
+        overflowX: 'hidden',
       }}
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}

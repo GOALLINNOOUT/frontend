@@ -72,9 +72,17 @@ const TrafficEngagement = ({ dateRange }) => {
       setError(null);
       try {
         const token = localStorage.getItem('token');
-        const res = await get('/v1/analytics/traffic', {
+        // Build query string for startDate and endDate
+        let url = '/v1/analytics/traffic';
+        if (dateRange.startDate && dateRange.endDate) {
+          const params = new URLSearchParams({
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate,
+          });
+          url += `?${params.toString()}`;
+        }
+        const res = await get(url, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
-          params: dateRange,
         });
         setData(res.data);
       } catch (err) {

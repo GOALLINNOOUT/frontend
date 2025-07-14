@@ -19,7 +19,7 @@ function Header() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Toolbar sx={{ flexDirection: 'column', alignItems: 'center', py: theme.spacing(2) }}>
+      <Toolbar sx={{ flexDirection: 'column', alignItems: 'center', py: theme.spacing(0.5) }}>
         {/* Logo */}
         <Box sx={{ width: '100%' }}>
           <Nav />
