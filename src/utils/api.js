@@ -22,19 +22,48 @@ export async function request(endpoint, { method = 'GET', data, headers = {}, ..
   if (data) {
     fetchOptions.body = JSON.stringify(data);
   }
-  const res = await fetch(url, fetchOptions);
-  // If backend returns a new x-session-id, update localStorage
-  const newSessionId = res.headers.get('x-session-id');
-  if (newSessionId) {
-    localStorage.setItem('sessionId', newSessionId);
+
+  // Helper to actually make the fetch and parse response
+  async function doFetch() {
+    const res = await fetch(url, fetchOptions);
+    const newSessionId = res.headers.get('x-session-id');
+    if (newSessionId) {
+      localStorage.setItem('sessionId', newSessionId);
+    }
+    let json;
+    try {
+      json = await res.json();
+    } catch {
+      json = null;
+    }
+    return { ok: res.ok, status: res.status, data: json };
   }
-  let json;
-  try {
-    json = await res.json();
-  } catch {
-    json = null;
+
+  let response = await doFetch();
+  // Check for session expiration and renew globally
+  if (
+    response.status === 440 ||
+    response.status === 401 ||
+    (response.data && response.data.error && response.data.error.toLowerCase().includes('session expired'))
+  ) {
+    // Remove old sessionId
+    localStorage.removeItem('sessionId');
+    // Request a new session from the backend
+    try {
+      const res = await fetch(`${API_BASE_URL}/session/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (data && data.sessionId) {
+        localStorage.setItem('sessionId', data.sessionId);
+      }
+    } catch {}
+    // Retry the original request with new session
+    response = await doFetch();
+    response.sessionRenewed = true;
   }
-  return { ok: res.ok, status: res.status, data: json };
+  return response;
 }
 
 export const get = (endpoint, options) => request(endpoint, { ...options, method: 'GET' });

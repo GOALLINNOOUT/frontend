@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useSession } from '../../hooks/useSession';
 import { Card, CardContent, Typography, Box, CircularProgress, Grid, useTheme, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
 import * as api from '../../utils/api';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, LineChart, Line } from 'recharts';
@@ -37,19 +36,13 @@ const PageVisitsTrendChart = ({ dateRange }) => {
   const [infoAnchor, setInfoAnchor] = useState({});
   const theme = useTheme();
 
-  const { handleSessionResponse } = useSession();
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
         const params = new URLSearchParams(dateRange).toString();
-        let response = await api.get(`/v1/analytics/page-visits-trend?${params}`);
-        response = await handleSessionResponse(response);
-        if (response.sessionRenewed) {
-          // Retry the request with new session
-          response = await api.get(`/v1/analytics/page-visits-trend?${params}`);
-        }
+        const response = await api.get(`/v1/analytics/page-visits-trend?${params}`);
         const { data, ok } = response;
         if (!ok) throw new Error();
         setData(data.pageVisitsTrends || {});
@@ -67,7 +60,7 @@ const PageVisitsTrendChart = ({ dateRange }) => {
       fetchData();
     }
     // eslint-disable-next-line
-  }, [dateRange, handleSessionResponse]);
+  }, [dateRange]);
 
   const handleInfoOpen = (key) => (event) => setInfoAnchor({ ...infoAnchor, [key]: event.currentTarget });
   const handleInfoClose = (key) => () => setInfoAnchor({ ...infoAnchor, [key]: null });
