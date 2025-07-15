@@ -79,7 +79,8 @@ export default function Login({ onLogin }) {
       if (onLogin) onLogin(res.data.user);
       setSuccess(true); // Show success message
       // Set welcome flag for next page
-      localStorage.setItem('showWelcome', JSON.stringify({ firstName: res.data.user.firstName }));
+      // Store the full user object (at least name) for the welcome message
+      sessionStorage.setItem('showWelcome', JSON.stringify({ name: res.data.user.name }));
       if (res.data.user.role === 'admin') {
         setTimeout(() => navigate('/admin/dashboard'), 1000); // Redirect admin to dashboard
       } else {

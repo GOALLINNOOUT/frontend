@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import WelcomeMessage from './components/WelcomeMessage';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async'
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { ThemeModeProvider, useThemeMode } from './context/ThemeModeContext';
@@ -74,14 +74,15 @@ export function handleInvalidSession(error) {
   }
 }
 
-function AppContent() {
+function AppContentInner() {
+  const location = useLocation();
   const { theme } = useThemeMode();
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeUser, setWelcomeUser] = useState(null);
 
   useEffect(() => {
-    // Check for welcome flag after redirect
-    const welcomeFlag = localStorage.getItem('showWelcome');
+    // Check for welcome flag after every navigation
+    const welcomeFlag = sessionStorage.getItem('showWelcome');
     if (welcomeFlag) {
       try {
         setWelcomeUser(JSON.parse(welcomeFlag));
@@ -89,81 +90,90 @@ function AppContent() {
         setWelcomeUser(null);
       }
       setShowWelcome(true);
-      localStorage.removeItem('showWelcome');
+      sessionStorage.removeItem('showWelcome');
     }
-  }, []);
+  }, [location]);
 
+  return (
+    <>
+      <PageViewLoggerWrapper />
+      <ScrollToTop />
+      <div className="app-container">
+        <Header />
+        <WelcomeMessage user={welcomeUser} open={showWelcome} onClose={() => setShowWelcome(false)} />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/perfumes" element={<Perfumes />} />
+          <Route path="/fashion" element={<Fashion />} />
+          <Route path="/style-guide" element={<StyleGuide />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/appointments" element={<Appointments />} />
+          <Route path="/admin" element={
+            <RoleRoute role="admin">
+              <Admin />
+            </RoleRoute>
+          } />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/admin/perfumes" element={
+            <RoleRoute role="admin">
+              <AdminPerfumes />
+            </RoleRoute>
+          } />
+          <Route path="/admin/orders" element={<AdminOrders />} />
+          <Route path="/admin/dashboard" element={
+            <RoleRoute role="admin">
+              <AdminDashboard />
+            </RoleRoute>
+          } />
+          <Route path="/admin/blog" element={
+            <RoleRoute role="admin">
+              <AdminBlog />
+            </RoleRoute>
+          } />
+          <Route path="/admin/newsletter" element={
+            <RoleRoute role="admin">
+              <AdminNewsletter />
+            </RoleRoute>
+          } />
+          <Route path="/admin/customers" element={
+            <RoleRoute role="admin">
+              <AdminCustomers />
+            </RoleRoute>
+          } />
+          <Route path="/admin/analytics" element={
+            <RoleRoute role="admin">
+              <AdminAnalytics />
+            </RoleRoute>
+          } />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/setup-password/:token" element={<SetupPasswordPage />} />
+          <Route path="/order-confirmation" element={<OrderConfirmation />} />
+          <Route path="/blog/:id" element={<BlogPost />} />
+          <Route path="/orders" element={<OrderPage />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Footer />
+      </div>
+    </>
+  );
+}
+
+function AppContent() {
+  const { theme } = useThemeMode();
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <HelmetProvider>
         <Router>
-          <PageViewLoggerWrapper />
-          <ScrollToTop />
-          <div className="app-container">
-            <Header />
-            <WelcomeMessage user={welcomeUser} open={showWelcome} onClose={() => setShowWelcome(false)} />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/perfumes" element={<Perfumes />} />
-              <Route path="/fashion" element={<Fashion />} />
-              <Route path="/style-guide" element={<StyleGuide />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/appointments" element={<Appointments />} />
-              <Route path="/admin" element={
-                <RoleRoute role="admin">
-                  <Admin />
-                </RoleRoute>
-              } />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/admin/perfumes" element={
-                <RoleRoute role="admin">
-                  <AdminPerfumes />
-                </RoleRoute>
-              } />
-              <Route path="/admin/orders" element={<AdminOrders />} />
-              <Route path="/admin/dashboard" element={
-                <RoleRoute role="admin">
-                  <AdminDashboard />
-                </RoleRoute>
-              } />
-              <Route path="/admin/blog" element={
-                <RoleRoute role="admin">
-                  <AdminBlog />
-                </RoleRoute>
-              } />
-              <Route path="/admin/newsletter" element={
-                <RoleRoute role="admin">
-                  <AdminNewsletter />
-                </RoleRoute>
-              } />
-              <Route path="/admin/customers" element={
-                <RoleRoute role="admin">
-                  <AdminCustomers />
-                </RoleRoute>
-              } />
-              <Route path="/admin/analytics" element={
-                <RoleRoute role="admin">
-                  <AdminAnalytics />
-                </RoleRoute>
-              } />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/reset-password/:token" element={<ResetPassword />} />
-              <Route path="/setup-password/:token" element={<SetupPasswordPage />} />
-              <Route path="/order-confirmation" element={<OrderConfirmation />} />
-              <Route path="/blog/:id" element={<BlogPost />} />
-              <Route path="/orders" element={<OrderPage />} />
-              <Route path="/users" element={<Users />} />
-              <Route path="/terms" element={<TermsAndConditions />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Footer />
-          </div>
+          <AppContentInner />
         </Router>
       </HelmetProvider>
     </ThemeProvider>

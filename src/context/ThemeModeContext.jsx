@@ -10,44 +10,31 @@ export function ThemeModeProvider({ children }) {
   const getSystemMode = () =>
     window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 
-  // Check if user is new (no theme flag in localStorage)
-  const isNewUser = !localStorage.getItem('jccloset_theme_firstvisit');
-  const [forceLight, setForceLight] = useState(isNewUser);
-  const [mode, setMode] = useState(isNewUser ? 'light' : getSystemMode());
+  // Always use system mode on first visit
+  const [mode, setMode] = useState(getSystemMode());
   const [pendingSystemMode, setPendingSystemMode] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const timerRef = useRef();
   const theme = useMemo(() => getTheme(mode), [mode]);
   const toggleMode = () => setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
 
-  // For new users, force light mode for 30 seconds, then allow normal logic
-  useEffect(() => {
-    if (isNewUser) {
-      const timeout = setTimeout(() => {
-        setForceLight(false);
-        localStorage.setItem('jccloset_theme_firstvisit', '1');
-        setMode(getSystemMode());
-      }, 30000); // 30 seconds
-      return () => clearTimeout(timeout);
-    }
-  }, [isNewUser]);
+  // No forced mode for new users
 
   // Listen for system mode changes, but wait 10 seconds before prompting
   useEffect(() => {
-    if (forceLight) return; // Don't allow system changes during forced light
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e) => {
       setPendingSystemMode(e.matches ? 'dark' : 'light');
       timerRef.current = setTimeout(() => {
         setDialogOpen(true);
-      }, 10000); // 10 seconds
+      }, 2000); // 2 seconds
     };
     mq.addEventListener('change', handleChange);
     return () => {
       mq.removeEventListener('change', handleChange);
       clearTimeout(timerRef.current);
     };
-  }, [forceLight]);
+  }, []);
 
   // Update CSS variables whenever mode changes
   useEffect(() => {
