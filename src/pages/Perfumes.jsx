@@ -187,8 +187,23 @@ const PerfumeCollection = () => {
     };
   }, [theme.custom.gradientBackground]);
 
+  // Track last search/category to know when to reset perfumes
+  const lastQuery = useRef({ search: '', category: '' });
+
   useEffect(() => {
-    loadPerfumes(false);
+    // If search or category changed, reset perfumes and page
+    if (
+      lastQuery.current.search !== currentSearch ||
+      lastQuery.current.category !== currentCategory
+    ) {
+      setPerfumes([]);
+      setCurrentPage(1);
+      lastQuery.current = { search: currentSearch, category: currentCategory };
+      loadPerfumes(false, currentSearch, currentCategory);
+    } else {
+      // Otherwise, append next page
+      loadPerfumes(true, currentSearch, currentCategory);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, currentSearch, currentCategory]);
 
@@ -217,19 +232,14 @@ const PerfumeCollection = () => {
     try {
       const result = await fetchPerfumes(currentPage, search, category);
       setPerfumes((prev) => {
-        if (append || currentPage > 1) {
-          // Keep only the last 3 pages worth of data to prevent memory issues
-          const maxItems = ITEMS_PER_PAGE * 3;
-          const combined = [...prev];
-          result.data.forEach(p => {
-            if (!combined.find(existing => existing._id === p._id)) {
-              combined.push(p);
-            }
-          });
-          // Trim the array if it gets too large
-          return combined.slice(-maxItems);
-        } else {
+        if (!append) {
+          // New search/category: replace
           return result.data;
+        } else {
+          // Infinite scroll: append new unique perfumes
+          const existingIds = new Set(prev.map(p => p._id));
+          const newPerfumes = result.data.filter(p => !existingIds.has(p._id));
+          return [...prev, ...newPerfumes];
         }
       });
       setHasMore(result.hasMore && currentPage < MAX_PAGES);

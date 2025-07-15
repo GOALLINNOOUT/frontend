@@ -53,7 +53,9 @@ const AdminPerfumes = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [perfumeToDelete, setPerfumeToDelete] = useState(null);
   const [errors, setErrors] = useState({});
-  const [visibleCount, setVisibleCount] = useState(3);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [hasMore, setHasMore] = useState(false);
   const [search, setSearch] = useState("");
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState(""); // 'success' or 'error'
@@ -65,30 +67,36 @@ const AdminPerfumes = () => {
   // Helper: Get low stock perfumes (stock <= 5)
   const lowStockPerfumes = perfumes.filter(p => Number(p.stock) <= 5);
 
-  async function fetchPerfumes(query = "") {
+  async function fetchPerfumes(query = "", pageArg = page, limitArg = limit) {
     setLoading(true);
     try {
-      const res = await api.get(`/perfumes${query ? `?search=${encodeURIComponent(query)}` : ''}`);
-      // Handle backend response: { data: perfumesArray, hasMore }
+      let url = `/perfumes?page=${pageArg}&limit=${limitArg}`;
+      if (query) url += `&search=${encodeURIComponent(query)}`;
+      const res = await api.get(url);
       let perfumesArr = [];
+      let hasMoreVal = false;
       if (res.data && Array.isArray(res.data.data)) {
         perfumesArr = res.data.data;
+        hasMoreVal = !!res.data.hasMore;
       } else if (Array.isArray(res.data)) {
         perfumesArr = res.data;
       } else {
         perfumesArr = [];
       }
       setPerfumes(perfumesArr);
+      setHasMore(hasMoreVal);
     } catch {
       setPerfumes([]);
+      setHasMore(false);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchPerfumes();
-  }, []);
+    fetchPerfumes(search, page, limit);
+    // eslint-disable-next-line
+  }, [page, limit]);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -330,7 +338,8 @@ const AdminPerfumes = () => {
   function handleSearchChange(e) {
     const value = e.target.value;
     setSearch(value);
-    fetchPerfumes(value);
+    setPage(1);
+    fetchPerfumes(value, 1, limit);
     // Debounced suggestion fetch
     if (suggestionTimeout.current) clearTimeout(suggestionTimeout.current);
     if (value.trim().length > 0) {
@@ -350,7 +359,8 @@ const AdminPerfumes = () => {
   function handleSuggestionClick(s) {
     setSearch(s);
     setSuggestions([]);
-    fetchPerfumes(s);
+    setPage(1);
+    fetchPerfumes(s, 1, limit);
   }
 
   // Handle inline edit change for low stock
@@ -725,7 +735,7 @@ const AdminPerfumes = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {perfumes.slice(0, visibleCount).map(perfume => (
+                  {perfumes.map(perfume => (
                     <tr key={perfume._id}>
                       <td>{perfume.name}</td>
                       <td>{perfume.description}</td>
@@ -790,13 +800,35 @@ const AdminPerfumes = () => {
                   ))}
                 </tbody>
               </table>
-              {perfumes.length > visibleCount && (
-                <div style={{ textAlign: 'center', marginTop: 16 }}>
-                  <button className="primary-btn" onClick={() => setVisibleCount(v => v + 3)}>
-                    Load More
-                  </button>
-                </div>
-              )}
+              {/* Pagination controls */}
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, marginTop: 24 }}>
+                <button
+                  className="primary-btn"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1 || loading}
+                >
+                  Previous
+                </button>
+                <span style={{ fontWeight: 600 }}>
+                  Page {page} {hasMore ? '' : '(last page)'}
+                </span>
+                <button
+                  className="primary-btn"
+                  onClick={() => setPage(p => p + 1)}
+                  disabled={!hasMore || loading}
+                >
+                  Next
+                </button>
+                <span style={{ marginLeft: 16 }}>
+                  Show
+                  <select value={limit} onChange={e => { setLimit(Number(e.target.value)); setPage(1); }} style={{ margin: '0 6px', padding: '2px 6px', borderRadius: 4 }}>
+                    {[5, 10, 20, 50].map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                  per page
+                </span>
+              </div>
             </>
           )}
         </div>
