@@ -236,8 +236,11 @@ const OrderPage = () => {
                       color="error"
                       size="small"
                       sx={{ mt: 2, fontWeight: 700, borderRadius: 2, boxShadow: 1, textTransform: 'none' }}
-                      onClick={() => handleCancel(order._id)}
-                      disabled={loading}
+                      onClick={() => {
+                        if (order.status === 'shipped') return;
+                        handleCancel(order._id);
+                      }}
+                      disabled={loading || order.status === 'shipped'}
                       fullWidth={isMobile}
                     >
                       Cancel Order
