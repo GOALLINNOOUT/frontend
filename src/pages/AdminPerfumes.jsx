@@ -20,6 +20,7 @@ const getImageUrl = (imgPath) => {
   return imgPath;
 };
 import React, { useEffect, useState } from 'react';
+import { extractCloudinaryPublicId } from '../utils/cloudinary';
 import * as api from '../utils/api';
 import { Box, Typography, Paper, TextField, Button, Grid, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Stack, Radio, RadioGroup, FormControlLabel } from '@mui/material';
 import { Add, Edit, Delete, UploadFile, Remove } from '@mui/icons-material';
@@ -174,13 +175,49 @@ const AdminPerfumes = () => {
     setImageFiles((prev) => prev.filter((_, i) => i !== idx));
   }
 
-  function handleRemoveImg(idx) {
-    setForm((prev) => {
-      const images = prev.images.filter((_, i) => i !== idx);
-      let mainImageIndex = prev.mainImageIndex;
-      if (mainImageIndex >= images.length) mainImageIndex = 0;
-      return { ...prev, images, mainImageIndex };
-    });
+  async function handleRemoveImg(idx) {
+    const imgUrl = form.images[idx];
+    if (!editingId || !imgUrl) {
+      // Just remove from local state if not editing
+      setForm((prev) => {
+        const images = prev.images.filter((_, i) => i !== idx);
+        let mainImageIndex = prev.mainImageIndex;
+        if (mainImageIndex >= images.length) mainImageIndex = 0;
+        return { ...prev, images, mainImageIndex };
+      });
+      return;
+    }
+    setLoading(true);
+    try {
+      const publicId = extractCloudinaryPublicId(imgUrl);
+      const token = localStorage.getItem('token');
+      const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/perfumes/${editingId}/image`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeader
+        },
+        body: JSON.stringify({ publicId })
+      });
+      if (!res.ok) throw new Error('Failed to delete image');
+      // Remove from local state
+      setForm((prev) => {
+        const images = prev.images.filter((_, i) => i !== idx);
+        let mainImageIndex = prev.mainImageIndex;
+        if (mainImageIndex >= images.length) mainImageIndex = 0;
+        return { ...prev, images, mainImageIndex };
+      });
+      setMessage('Image deleted successfully!');
+      setMessageType('success');
+      setTimeout(() => { setMessage(''); setMessageType(''); }, 3000);
+    } catch {
+      setMessage('Failed to delete image.');
+      setMessageType('error');
+      setTimeout(() => { setMessage(''); setMessageType(''); }, 3500);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleMainImageChange(e) {
