@@ -192,8 +192,8 @@ const PerfumeCollection = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, currentSearch, currentCategory]);
 
-  const ITEMS_PER_PAGE = 12; // Reduced from original value
-  const MAX_PAGES = 10; // Reduced from 120 to prevent excessive loading
+  const ITEMS_PER_PAGE = 6; 
+  const MAX_PAGES = 20; 
 
   const fetchPerfumes = async (page = 1, search = "", category = "all") => {
     try {
@@ -201,7 +201,7 @@ const PerfumeCollection = () => {
       const params = new URLSearchParams({ page, search, category, limit: ITEMS_PER_PAGE });
       const res = await api.get(`/perfumes?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to fetch perfumes');
-      // Expecting res.data: { data: [...], hasMore: true/false }
+      
       return res.data;
     } catch {
       setError("Unable to load perfumes. Please check your internet connection and try again.");
@@ -303,7 +303,7 @@ const PerfumeCollection = () => {
         const viewportHeight = window.innerHeight;
         const fullHeight = document.documentElement.scrollHeight;
         
-        if (fullHeight - (scrollY + viewportHeight) < 600) {
+        if (fullHeight - (scrollY + viewportHeight) < 700) {
           if (!loading && hasMore && currentPage < MAX_PAGES) {
             setCurrentPage((prev) => prev + 1);
           }
@@ -443,10 +443,10 @@ const PerfumeCollection = () => {
   // For modal image gallery
   const [modalImageIndex, setModalImageIndex] = useState(0);
   useEffect(() => {
-    if (selectedPerfume) {
+    if (selectedPerfume?._id) {
       setModalImageIndex(selectedPerfume.mainImageIndex || 0);
     }
-  }, [selectedPerfume]);
+  }, [selectedPerfume?._id]);
 
   return (
     <>
