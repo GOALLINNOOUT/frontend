@@ -98,7 +98,18 @@ const TrafficEngagement = ({ dateRange }) => {
 
   if (loading) return <Box display="flex" justifyContent="center" alignItems="center" minHeight={220}><CircularProgress /></Box>;
   if (error) return <Typography color="error.main" align="center" mt={2}>{error}</Typography>;
+
   if (!data) return null;
+
+  // --- OS Chart Data from backend ---
+  // Use backend-calculated 'oses' array: [{ type, percent }]
+  let osChartData = [];
+  if (data && Array.isArray(data.oses)) {
+    osChartData = data.oses.map(o => ({
+      os: o.type,
+      percent: Number(o.percent)
+    }));
+  }
 
   // Prepare pageViewsPerSession data for chart: use user email if present and non-empty, else Session ID N
   let pageViewsPerSessionData = [];
@@ -306,6 +317,49 @@ const TrafficEngagement = ({ dateRange }) => {
             </Box>
           </Grid>
         </Grid>
+        {/* New: OS Usage Chart (styled like Top Landing Pages) */}
+        <Box mt={6}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+            <Typography variant="subtitle2" fontWeight={600} color="primary.dark">Operating System Usage</Typography>
+            <IconButton size="small" onClick={handleInfoOpen('osUsage')}>
+              <HelpOutlineIcon fontSize="small" />
+            </IconButton>
+            <InfoPopover
+              id="info-osUsage"
+              open={Boolean(infoAnchor['osUsage'])}
+              anchorEl={infoAnchor['osUsage']}
+              onClose={handleInfoClose('osUsage')}
+              text={"Distribution of operating systems used by your visitors (Android, iOS, Windows, MacOS, Other)."}
+            />
+          </Box>
+          {/* Chart for OS Usage, styled like Top Landing Pages */}
+          <Box sx={{ bgcolor: theme.palette.background.paper, borderRadius: 3, p: 2, boxShadow: 1, width: '90vw', mt: 2 }}>
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart
+                data={osChartData}
+                layout="horizontal"
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                barCategoryGap={40}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="os" type="category" tick={{ fontSize: 18, fontWeight: 600 }} />
+                <YAxis type="number" domain={[0, 100]} allowDecimals={false} tick={{ fontSize: 18, fontWeight: 600 }} tickFormatter={(v) => v + '%'} />
+                <Tooltip formatter={(value) => [`${value}%`, 'Percent']} />
+                <Bar dataKey="percent" fill={theme.palette.secondary.main} barSize="100%" radius={[10, 10, 0, 0]} name="Percent">
+                  <LabelList dataKey="percent" position="top" fontSize={16} fontWeight={700} formatter={(v) => `${v}%`} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
+          {/* List fallback for accessibility */}
+          <Box component="ul" sx={{ m: 0, pl: 3, fontSize: 15, color: 'text.secondary', display: 'none' }}>
+            {osChartData.map((o, i) => (
+              <li key={i} style={{ marginBottom: 4, listStyle: 'disc' }}>
+                <b>{o.os}</b> <span style={{ color: theme.palette.text.disabled }}>({o.count} users)</span>
+              </li>
+            ))}
+          </Box>
+        </Box>
         {/* New: Page Visits Trend Chart on its own row */}
         <Box mt={6}>
           <PageVisitsTrendChart dateRange={dateRange} />
