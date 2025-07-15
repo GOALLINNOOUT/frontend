@@ -207,7 +207,7 @@ const PerfumeCollection = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, currentSearch, currentCategory]);
 
-  const ITEMS_PER_PAGE = 6; 
+  const ITEMS_PER_PAGE = 5; 
   const MAX_PAGES = 20; 
 
   const fetchPerfumes = async (page = 1, search = "", category = "all") => {
@@ -331,14 +331,14 @@ const PerfumeCollection = () => {
     };
   }, [hasMore, loading, currentPage, MAX_PAGES]);
 
-  const openModal = (perfumeId) => {
+  const openModal = React.useCallback((perfumeId) => {
     const perfume = perfumes.find((p) => p._id === perfumeId);
     if (!perfume) return;
     setSelectedPerfume(perfume);
     setQuantity(1);
     // Increment view count in backend
     api.post(`/perfumes/${perfumeId}/view`);
-  };
+  }, [perfumes]);
 
   const closeModal = () => {
     setSelectedPerfume(null);
@@ -931,7 +931,7 @@ const PerfumeCollection = () => {
         )}
 
         {/* Skeleton loading for perfumes grid */}
-        {loading && (
+        {loading && perfumes.length === 0 && (
           <div className="perfumes-grid" style={{ padding: 0, marginBottom: 24, width: '100%' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
               {Array.from({ length: columnCount * 2 }).map((_, i) => (
@@ -977,64 +977,95 @@ const PerfumeCollection = () => {
         <div className="perfumes-grid" ref={gridRef} style={{ padding: 0, marginBottom: 24, width: '100%' }}>
           {/* Memoize grid item renderer to prevent unnecessary rerenders */}
           {React.useMemo(() => (
-            <Grid
-              columnCount={columnCount}
-              columnWidth={CARD_WIDTH + CARD_GAP}
-              height={Math.min(3, rowCount) * (CARD_HEIGHT + CARD_GAP) + 10}
-              rowCount={rowCount}
-              rowHeight={CARD_HEIGHT + CARD_GAP}
-              width={gridWidth}
-            >
-              {React.memo(({ columnIndex, rowIndex, style }) => {
-                const idx = rowIndex * columnCount + columnIndex;
-                if (idx >= perfumes.length) return null;
-                const perfume = perfumes[idx];
-                const isInStock = perfume.stock > 0;
-                const mainImage = perfume.images[perfume.mainImageIndex || 0];
-                const { promoActive, promoLabel, displayPrice } = getPerfumePromo(perfume);
-                return (
-                  <div
-                    key={perfume._id}
-                    className={`perfume-card ${isInStock ? '' : 'out-of-stock'}`}
-                    style={{ ...style, width: CARD_WIDTH, height: CARD_HEIGHT, margin: CARD_GAP / 2 }}
-                    onClick={isInStock ? () => openModal(perfume._id) : undefined}
-                    role={isInStock ? 'button' : undefined}
-                    tabIndex={isInStock ? 0 : undefined}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && isInStock) openModal(perfume._id);
-                    }}
-                  >
-                    <PerfumeImage src={mainImage} alt={perfume.name} className="perfume-image" />
-                    <div className="perfume-name">{perfume.name}</div>
-                    <div className="perfume-description">{perfume.description}</div>
-                    {perfume.categories.length > 0 && (
-                      <div className="perfume-category">
-                        {perfume.categories[0].charAt(0).toUpperCase() + perfume.categories[0].slice(1)}
-                      </div>
-                    )}
-                    <div className="perfume-price">
-                      {promoActive ? (
-                        <>
-                          <span style={{ color: 'var(--jc-sale)', fontWeight: 700 }}>₦{displayPrice.toLocaleString()}</span>
-                          <span style={{ textDecoration: 'line-through', color: 'var(--jc-text-secondary)', marginLeft: 6, fontSize: 11 }}>
-                            ₦{perfume.price.toLocaleString()}
-                          </span>
-                          {promoLabel && (
-                            <span style={{ marginLeft: 8, color: 'var(--jc-success)', fontSize: 10, fontWeight: 600 }}>{promoLabel}</span>
-                          )}
-                        </>
-                      ) : (
-                        <>₦{perfume.price.toLocaleString()}</>
+            <>
+              <Grid
+                columnCount={columnCount}
+                columnWidth={CARD_WIDTH + CARD_GAP}
+                height={Math.min(3, rowCount) * (CARD_HEIGHT + CARD_GAP) + 10}
+                rowCount={rowCount}
+                rowHeight={CARD_HEIGHT + CARD_GAP}
+                width={gridWidth}
+              >
+                {React.memo(({ columnIndex, rowIndex, style }) => {
+                  const idx = rowIndex * columnCount + columnIndex;
+                  if (idx >= perfumes.length) return null;
+                  const perfume = perfumes[idx];
+                  const isInStock = perfume.stock > 0;
+                  const mainImage = perfume.images[perfume.mainImageIndex || 0];
+                  const { promoActive, promoLabel, displayPrice } = getPerfumePromo(perfume);
+                  return (
+                    <div
+                      key={perfume._id}
+                      className={`perfume-card ${isInStock ? '' : 'out-of-stock'}`}
+                      style={{ ...style, width: CARD_WIDTH, height: CARD_HEIGHT, margin: CARD_GAP / 2 }}
+                      onClick={isInStock ? () => openModal(perfume._id) : undefined}
+                      role={isInStock ? 'button' : undefined}
+                      tabIndex={isInStock ? 0 : undefined}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && isInStock) openModal(perfume._id);
+                      }}
+                    >
+                      <PerfumeImage src={mainImage} alt={perfume.name} className="perfume-image" />
+                      <div className="perfume-name">{perfume.name}</div>
+                      <div className="perfume-description">{perfume.description}</div>
+                      {perfume.categories.length > 0 && (
+                        <div className="perfume-category">
+                          {perfume.categories[0].charAt(0).toUpperCase() + perfume.categories[0].slice(1)}
+                        </div>
                       )}
+                      <div className="perfume-price">
+                        {promoActive ? (
+                          <>
+                            <span style={{ color: 'var(--jc-sale)', fontWeight: 700 }}>₦{displayPrice.toLocaleString()}</span>
+                            <span style={{ textDecoration: 'line-through', color: 'var(--jc-text-secondary)', marginLeft: 6, fontSize: 11 }}>
+                              ₦{perfume.price.toLocaleString()}
+                            </span>
+                            {promoLabel && (
+                              <span style={{ marginLeft: 8, color: 'var(--jc-success)', fontSize: 10, fontWeight: 600 }}>{promoLabel}</span>
+                            )}
+                          </>
+                        ) : (
+                          <>₦{perfume.price.toLocaleString()}</>
+                        )}
+                      </div>
+                      <div className={`perfume-stock ${isInStock ? 'stock-available' : 'stock-out'}`}>
+                        {isInStock ? `Stock: ${perfume.stock}` : 'Out of Stock'}
+                      </div>
                     </div>
-                    <div className={`perfume-stock ${isInStock ? 'stock-available' : 'stock-out'}`}>
-                      {isInStock ? `Stock: ${perfume.stock}` : 'Out of Stock'}
+                  );
+                })}
+              </Grid>
+              {/* Infinite scroll: show skeletons at bottom only when loading and perfumes already exist */}
+              {loading && perfumes.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', marginTop: 16 }}>
+                  {Array.from({ length: columnCount }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="perfume-card"
+                      style={{
+                        width: CARD_WIDTH,
+                        height: CARD_HEIGHT,
+                        margin: CARD_GAP / 2,
+                        background: theme.palette.mode === 'dark' ? theme.palette.grey[900] : '#f3f4f6',
+                        border: `1.5px solid ${theme.palette.mode === 'dark' ? theme.palette.grey[800] : '#e0e7ef'}`,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        opacity: 0.7
+                      }}
+                      aria-hidden="true"
+                    >
+                      <div style={{ width: '100%', height: 140, background: theme.palette.mode === 'dark' ? theme.palette.grey[800] : '#e0e7ef', borderRadius: 8, marginBottom: 10, animation: 'pulse 1.2s infinite' }} />
+                      <div style={{ height: 18, width: '70%', background: theme.palette.mode === 'dark' ? theme.palette.grey[700] : '#e0e7ef', borderRadius: 6, margin: '8px 0', animation: 'pulse 1.2s infinite' }} />
+                      <div style={{ height: 14, width: '90%', background: theme.palette.mode === 'dark' ? theme.palette.grey[700] : '#e0e7ef', borderRadius: 6, margin: '6px 0', animation: 'pulse 1.2s infinite' }} />
+                      <div style={{ height: 16, width: '40%', background: theme.palette.mode === 'dark' ? theme.palette.grey[700] : '#e0e7ef', borderRadius: 6, margin: '6px 0', animation: 'pulse 1.2s infinite' }} />
+                      <div style={{ height: 18, width: '50%', background: theme.palette.mode === 'dark' ? theme.palette.grey[700] : '#e0e7ef', borderRadius: 6, margin: '6px 0', animation: 'pulse 1.2s infinite' }} />
                     </div>
-                  </div>
-                );
-              })}
-            </Grid>
-          ), [perfumes, columnCount, CARD_WIDTH, CARD_GAP, CARD_HEIGHT, rowCount, gridWidth, hasMore, loading])}
+                  ))}
+                </div>
+              )}
+            </>
+          ), [perfumes, columnCount, CARD_WIDTH, CARD_GAP, CARD_HEIGHT, rowCount, gridWidth, loading, theme.palette, openModal])}
           {/* Show end-of-list message if no more products to load and at least one product exists */}
           {!hasMore && perfumes.length > 0 && !loading && (
             <div style={{ textAlign: 'center', color: '#888', fontWeight: 600, margin: '32px 0 0 0', fontSize: '1.1rem' }}>
