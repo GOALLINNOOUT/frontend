@@ -965,63 +965,66 @@ const PerfumeCollection = () => {
         )}
 
         <div className="perfumes-grid" ref={gridRef} style={{ padding: 0, marginBottom: 24, width: '100%' }}>
-          <Grid
-            columnCount={columnCount}
-            columnWidth={CARD_WIDTH + CARD_GAP}
-            height={Math.min(3, rowCount) * (CARD_HEIGHT + CARD_GAP) + 10}
-            rowCount={rowCount}
-            rowHeight={CARD_HEIGHT + CARD_GAP}
-            width={gridWidth}
-          >
-            {({ columnIndex, rowIndex, style }) => {
-              const idx = rowIndex * columnCount + columnIndex;
-              if (idx >= perfumes.length) return null;
-              const perfume = perfumes[idx];
-              const isInStock = perfume.stock > 0;
-              const mainImage = perfume.images[perfume.mainImageIndex || 0];
-              const { promoActive, promoLabel, displayPrice } = getPerfumePromo(perfume);
-              return (
-                <div
-                  key={perfume._id}
-                  className={`perfume-card ${isInStock ? '' : 'out-of-stock'}`}
-                  style={{ ...style, width: CARD_WIDTH, height: CARD_HEIGHT, margin: CARD_GAP / 2 }}
-                  onClick={isInStock ? () => openModal(perfume._id) : undefined}
-                  role={isInStock ? 'button' : undefined}
-                  tabIndex={isInStock ? 0 : undefined}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && isInStock) openModal(perfume._id);
-                  }}
-                >
-                  <PerfumeImage src={mainImage} alt={perfume.name} className="perfume-image" />
-                  <div className="perfume-name">{perfume.name}</div>
-                  <div className="perfume-description">{perfume.description}</div>
-                  {perfume.categories.length > 0 && (
-                    <div className="perfume-category">
-                      {perfume.categories[0].charAt(0).toUpperCase() + perfume.categories[0].slice(1)}
-                    </div>
-                  )}
-                  <div className="perfume-price">
-                    {promoActive ? (
-                      <>
-                        <span style={{ color: 'var(--jc-sale)', fontWeight: 700 }}>₦{displayPrice.toLocaleString()}</span>
-                        <span style={{ textDecoration: 'line-through', color: 'var(--jc-text-secondary)', marginLeft: 6, fontSize: 11 }}>
-                          ₦{perfume.price.toLocaleString()}
-                        </span>
-                        {promoLabel && (
-                          <span style={{ marginLeft: 8, color: 'var(--jc-success)', fontSize: 10, fontWeight: 600 }}>{promoLabel}</span>
-                        )}
-                      </>
-                    ) : (
-                      <>₦{perfume.price.toLocaleString()}</>
+          {/* Memoize grid item renderer to prevent unnecessary rerenders */}
+          {React.useMemo(() => (
+            <Grid
+              columnCount={columnCount}
+              columnWidth={CARD_WIDTH + CARD_GAP}
+              height={Math.min(3, rowCount) * (CARD_HEIGHT + CARD_GAP) + 10}
+              rowCount={rowCount}
+              rowHeight={CARD_HEIGHT + CARD_GAP}
+              width={gridWidth}
+            >
+              {React.memo(({ columnIndex, rowIndex, style }) => {
+                const idx = rowIndex * columnCount + columnIndex;
+                if (idx >= perfumes.length) return null;
+                const perfume = perfumes[idx];
+                const isInStock = perfume.stock > 0;
+                const mainImage = perfume.images[perfume.mainImageIndex || 0];
+                const { promoActive, promoLabel, displayPrice } = getPerfumePromo(perfume);
+                return (
+                  <div
+                    key={perfume._id}
+                    className={`perfume-card ${isInStock ? '' : 'out-of-stock'}`}
+                    style={{ ...style, width: CARD_WIDTH, height: CARD_HEIGHT, margin: CARD_GAP / 2 }}
+                    onClick={isInStock ? () => openModal(perfume._id) : undefined}
+                    role={isInStock ? 'button' : undefined}
+                    tabIndex={isInStock ? 0 : undefined}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && isInStock) openModal(perfume._id);
+                    }}
+                  >
+                    <PerfumeImage src={mainImage} alt={perfume.name} className="perfume-image" />
+                    <div className="perfume-name">{perfume.name}</div>
+                    <div className="perfume-description">{perfume.description}</div>
+                    {perfume.categories.length > 0 && (
+                      <div className="perfume-category">
+                        {perfume.categories[0].charAt(0).toUpperCase() + perfume.categories[0].slice(1)}
+                      </div>
                     )}
+                    <div className="perfume-price">
+                      {promoActive ? (
+                        <>
+                          <span style={{ color: 'var(--jc-sale)', fontWeight: 700 }}>₦{displayPrice.toLocaleString()}</span>
+                          <span style={{ textDecoration: 'line-through', color: 'var(--jc-text-secondary)', marginLeft: 6, fontSize: 11 }}>
+                            ₦{perfume.price.toLocaleString()}
+                          </span>
+                          {promoLabel && (
+                            <span style={{ marginLeft: 8, color: 'var(--jc-success)', fontSize: 10, fontWeight: 600 }}>{promoLabel}</span>
+                          )}
+                        </>
+                      ) : (
+                        <>₦{perfume.price.toLocaleString()}</>
+                      )}
+                    </div>
+                    <div className={`perfume-stock ${isInStock ? 'stock-available' : 'stock-out'}`}>
+                      {isInStock ? `Stock: ${perfume.stock}` : 'Out of Stock'}
+                    </div>
                   </div>
-                  <div className={`perfume-stock ${isInStock ? 'stock-available' : 'stock-out'}`}>
-                    {isInStock ? `Stock: ${perfume.stock}` : 'Out of Stock'}
-                  </div>
-                </div>
-              );
-            }}
-          </Grid>
+                );
+              })}
+            </Grid>
+          ), [perfumes, columnCount, CARD_WIDTH, CARD_GAP, CARD_HEIGHT, rowCount, gridWidth, hasMore, loading])}
           {/* Show end-of-list message if no more products to load and at least one product exists */}
           {!hasMore && perfumes.length > 0 && !loading && (
             <div style={{ textAlign: 'center', color: '#888', fontWeight: 600, margin: '32px 0 0 0', fontSize: '1.1rem' }}>
