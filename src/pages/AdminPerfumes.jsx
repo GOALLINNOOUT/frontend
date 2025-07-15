@@ -141,12 +141,21 @@ const AdminPerfumes = () => {
   async function handleFileChange(e) {
     const files = Array.from(e.target.files).slice(0, 5);
     setLoading(true);
+    setConvertingIdxs(files.map((_, i) => i));
     try {
-      const webpFiles = await Promise.all(files.map(convertToWebP));
+      const webpFiles = [];
+      for (let i = 0; i < files.length; i++) {
+        setConvertingIdxs([i]);
+        // eslint-disable-next-line no-await-in-loop
+        const webpFile = await convertToWebP(files[i]);
+        webpFiles.push(webpFile);
+      }
       setImageFiles(webpFiles);
+      setConvertingIdxs([]);
     } catch {
       setMessage('Failed to convert image(s) to WebP.');
       setMessageType('error');
+      setConvertingIdxs([]);
       setTimeout(() => {
         setMessage("");
         setMessageType("");
@@ -156,6 +165,7 @@ const AdminPerfumes = () => {
     }
   }
 
+  const [convertingIdxs, setConvertingIdxs] = useState([]);
   function handleRemoveFile(idx) {
     setImageFiles((prev) => prev.filter((_, i) => i !== idx));
   }
@@ -551,7 +561,15 @@ const AdminPerfumes = () => {
                   )}
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
                     {imageFiles.map((file, idx) => (
-                      <span key={idx} className="perfume-file-chip">{file.name} <button type="button" onClick={() => handleRemoveFile(idx)}>&times;</button></span>
+                      <span key={idx} className="perfume-file-chip" style={{ position: 'relative', minWidth: 80 }}>
+                        {file.name}
+                        {convertingIdxs.includes(idx) && (
+                          <span style={{ position: 'absolute', right: 4, top: 4 }}>
+                            <CircularProgress size={16} thickness={5} />
+                          </span>
+                        )}
+                        <button type="button" onClick={() => handleRemoveFile(idx)} style={{ marginLeft: 4 }}>&times;</button>
+                      </span>
                     ))}
                     {form.images.length > 0 && form.images.map((img, idx) => (
                       <span key={idx} className="perfume-file-chip"><img src={getImageUrl(img)} alt="" style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, marginRight: 4 }} /><button type="button" onClick={() => handleRemoveImg(idx)}>&times;</button></span>
@@ -668,8 +686,9 @@ const AdminPerfumes = () => {
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-                  <button type="submit" className="primary-btn" disabled={loading}>
-                    {editingId ? 'Update' : 'Add'} Perfume
+                  <button type="submit" className="primary-btn" disabled={loading} style={{ position: 'relative', minWidth: 120 }}>
+                    {loading ? <CircularProgress size={20} thickness={5} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} /> : null}
+                    <span style={{ marginLeft: loading ? 32 : 0 }}>{editingId ? 'Update' : 'Add'} Perfume</span>
                   </button>
                   {editingId && (
                     <button type="button" className="secondary-btn" onClick={() => { setForm({ name: '', description: '', price: '', stock: '', images: [], mainImageIndex: 0, promoEnabled: false, promoType: 'discount', promoValue: '', promoStart: '', promoEnd: '', categories: [] }); setImageFiles([]); setEditingId(null); }}>
