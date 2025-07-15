@@ -1,23 +1,8 @@
 // Ensure BACKEND_URL does not end with /api and always points to backend root
 const BACKEND_URL = (import.meta.env.VITE_API_BASE_URL || 'https://jcserver.onrender.com').replace(/\/?api\/?$/, '');
 const getImageUrl = (imgPath) => {
-  if (!imgPath) return imgPath;
-  if (/^https?:\/\//.test(imgPath)) return imgPath;
-  // Always ensure /api/perfumes/uploads/ for perfume images
-  if (imgPath.startsWith('/uploads/')) {
-    return BACKEND_URL + '/api/perfumes' + imgPath;
-  }
-  if (imgPath.startsWith('/perfumes/uploads/')) {
-    return BACKEND_URL + '/api' + imgPath;
-  }
-  if (imgPath.startsWith('/api/perfumes/uploads/')) {
-    return BACKEND_URL + imgPath;
-  }
-  // If it's just a filename (no slashes), treat as /api/perfumes/uploads/filename
-  if (!imgPath.includes('/')) {
-    return BACKEND_URL + '/api/perfumes/uploads/' + imgPath;
-  }
-  return imgPath;
+  // All images are now from Cloudinary (full URLs)
+  return imgPath || '';
 };
 import React, { useEffect, useState } from 'react';
 import { extractCloudinaryPublicId } from '../utils/cloudinary';
