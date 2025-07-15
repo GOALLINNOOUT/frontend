@@ -53,7 +53,7 @@ const AdminPerfumes = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [perfumeToDelete, setPerfumeToDelete] = useState(null);
   const [errors, setErrors] = useState({});
-  const [visibleCount, setVisibleCount] = useState(5);
+  const [visibleCount, setVisibleCount] = useState(3);
   const [search, setSearch] = useState("");
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState(""); // 'success' or 'error'
@@ -792,7 +792,7 @@ const AdminPerfumes = () => {
               </table>
               {perfumes.length > visibleCount && (
                 <div style={{ textAlign: 'center', marginTop: 16 }}>
-                  <button className="primary-btn" onClick={() => setVisibleCount(v => v + 5)}>
+                  <button className="primary-btn" onClick={() => setVisibleCount(v => v + 3)}>
                     Load More
                   </button>
                 </div>
