@@ -207,7 +207,7 @@ const PerfumeCollection = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, currentSearch, currentCategory]);
 
-  const ITEMS_PER_PAGE = 5; 
+  const ITEMS_PER_PAGE = 6; 
   const MAX_PAGES = 20; 
 
   const fetchPerfumes = async (page = 1, search = "", category = "all") => {
