@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import WelcomeMessage from './components/WelcomeMessage';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import { ThemeProvider, CssBaseline } from '@mui/material';
@@ -40,34 +41,7 @@ import SetupPasswordPage from './pages/SetupPasswordPage';
 import usePageViewLogger from './hooks/usePageViewLogger';
 import './App.css'
 
-function useSessionLogger() {
-  useEffect(() => {
-    const endSession = (event) => {
-      // Only end session if NOT a page reload (refresh)
-      // pagehide with event.persisted === false means tab/browser close or navigation away (not bfcache)
-      if (event.type === 'pagehide' && !event.persisted) {
-        const sessionId = localStorage.getItem('sessionId');
-        if (sessionId) {
-          const url = `${import.meta.env.VITE_API_BASE_URL}/session/end`;
-          const data = JSON.stringify({ sessionId });
-          if (navigator.sendBeacon) {
-            const blob = new Blob([data], { type: 'application/json' });
-            navigator.sendBeacon(url, blob);
-          } else {
-            fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: data
-            });
-          }
-          localStorage.removeItem('sessionId');
-        }
-      }
-    };
-    window.addEventListener('pagehide', endSession);
-    return () => window.removeEventListener('pagehide', endSession);
-  }, []);
-}
+// useSessionLogger removed: session end is now handled in the backend
 
 function useSessionStart() {
   useEffect(() => {
@@ -102,6 +76,23 @@ export function handleInvalidSession(error) {
 
 function AppContent() {
   const { theme } = useThemeMode();
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [welcomeUser, setWelcomeUser] = useState(null);
+
+  useEffect(() => {
+    // Check for welcome flag after redirect
+    const welcomeFlag = localStorage.getItem('showWelcome');
+    if (welcomeFlag) {
+      try {
+        setWelcomeUser(JSON.parse(welcomeFlag));
+      } catch {
+        setWelcomeUser(null);
+      }
+      setShowWelcome(true);
+      localStorage.removeItem('showWelcome');
+    }
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -111,6 +102,7 @@ function AppContent() {
           <ScrollToTop />
           <div className="app-container">
             <Header />
+            <WelcomeMessage user={welcomeUser} open={showWelcome} onClose={() => setShowWelcome(false)} />
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
@@ -179,7 +171,6 @@ function AppContent() {
 }
 
 function App() {
-  useSessionLogger();
   useSessionStart();
   return (
     <ThemeModeProvider>

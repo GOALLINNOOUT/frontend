@@ -1,21 +1,23 @@
+
 import React, { useState, useContext } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../components/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { post } from '../utils/api';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
+import { Helmet } from 'react-helmet-async';
+import AuthMotionWrapper from './AuthMotionWrapper';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
-import CircularProgress from '@mui/material/CircularProgress';
-import AuthMotionWrapper from './AuthMotionWrapper';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-import { Helmet } from 'react-helmet-async';
+import CircularProgress from '@mui/material/CircularProgress';
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { setUser } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -76,10 +78,14 @@ export default function Login({ onLogin }) {
       setUser(res.data.user); // Set user in AuthContext for immediate update
       if (onLogin) onLogin(res.data.user);
       setSuccess(true); // Show success message
+      // Set welcome flag for next page
+      localStorage.setItem('showWelcome', JSON.stringify({ firstName: res.data.user.firstName }));
       if (res.data.user.role === 'admin') {
         setTimeout(() => navigate('/admin/dashboard'), 1000); // Redirect admin to dashboard
       } else {
-        setTimeout(() => navigate('/'), 2000); // Redirect user to home
+        // Redirect to previous page or home
+        const from = location.state?.from?.pathname || '/';
+        setTimeout(() => navigate(from), 2000);
       }
     } else {
       setError(res.data?.error || 'Login failed');
