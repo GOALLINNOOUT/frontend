@@ -397,7 +397,7 @@ function AdminCustomers() {
                   <div>
                     <label style={{fontWeight:600,marginBottom:4,display:'block'}}>Role</label>
                     <select name="role" value={editForm.role} onChange={handleEditFormChange} style={{width:'100%',padding:'10px 12px',border:`1.5px solid ${theme.palette.custom.customersInputBorder}`,borderRadius:7,fontSize:'1.07rem',background:theme.palette.custom.customersInputBg,color:theme.palette.custom.customersInputText}}>
-                      <option value="customer">Customer</option>
+                      <option value="user">Customer</option>
                       <option value="admin">Admin</option>
                     </select>
                   </div>
