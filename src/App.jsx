@@ -6,6 +6,7 @@ import { ThemeProvider, CssBaseline } from '@mui/material';
 import { ThemeModeProvider, useThemeMode } from './context/ThemeModeContext';
 import { getTheme } from './theme';
 import Home from './pages/Home'
+import ReturnPolicyPage from './pages/ReturnPolicyPage';
 import About from './pages/About'
 import Contact from './pages/Contact'
 import Perfumes from './pages/Perfumes'
@@ -158,6 +159,7 @@ function AppContentInner() {
           <Route path="/users" element={<Users />} />
           <Route path="/terms" element={<TermsAndConditions />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/return-policy" element={<ReturnPolicyPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Footer />

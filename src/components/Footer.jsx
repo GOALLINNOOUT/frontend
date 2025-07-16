@@ -79,6 +79,10 @@ function Footer() {
         <MuiLink href="/privacy" underline="hover" color="inherit" sx={{ mx: 1 }}>
           Privacy Policy
         </MuiLink>
+        |
+        <MuiLink href="/return-policy" underline="hover" color="inherit" sx={{ mx: 1 }}>
+          Return Policy
+        </MuiLink>
       </Typography>
       <Typography variant="body2">
         &copy; {new Date().getFullYear()} JC's Closet. All rights reserved.
