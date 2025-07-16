@@ -1005,25 +1005,6 @@ const PerfumeCollection = () => {
                         if (e.key === 'Enter' && isInStock) openModal(perfume._id);
                       }}
                     >
-                      {/* Suggested badge */}
-                      {perfume.suggested && (
-                        <div style={{
-                          position: 'absolute',
-                          top: 10,
-                          right: 10,
-                          background: '#ffd700',
-                          color: '#222',
-                          padding: '4px 12px',
-                          borderRadius: 8,
-                          fontWeight: 700,
-                          fontSize: 13,
-                          boxShadow: '0 2px 8px #ffd70055',
-                          zIndex: 2,
-                          letterSpacing: '0.5px',
-                        }}>
-                          Suggested
-                        </div>
-                      )}
                       <PerfumeImage src={mainImage} alt={perfume.name} className="perfume-image" />
                       <div className="perfume-name">{perfume.name}</div>
                       <div className="perfume-description">{perfume.description}</div>
