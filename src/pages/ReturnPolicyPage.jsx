@@ -43,6 +43,15 @@ const ReturnPolicyPage = () => (
           <li>If your refund is approved, you will be asked to provide your bank details. Refunds will be processed to your provided bank account within <strong>5-10 business days</strong>.</li>
           <li>If your return is rejected, we will provide a clear explanation and may return the item to you at your request.</li>
         </ul>
+        <Typography variant="subtitle1" fontWeight={600} mb={1} mt={2}>
+          Exchanges:
+        </Typography>
+        <ul style={{ marginLeft: 20 }}>
+          <li>Exchanges are available for eligible items if you wish to swap for a different size, color, or product of equal value.</li>
+          <li>To request an exchange, please follow the same process as initiating a return, either via the Order Page or by contacting our support team.</li>
+          <li>Exchanges are subject to product availability. If the requested item is unavailable, you may opt for a refund or select an alternative product.</li>
+          <li>Customers are responsible for any price difference and additional shipping costs, if applicable.</li>
+        </ul>
         <Typography variant="body1" mt={3} mb={2}>
           Please note: Items returned without prior approval or outside the stated policy may not be accepted or refunded. For any questions or concerns regarding our return policy, contact us at <a href="mailto:favouradeyekun@gmail.com">favouradeyekun@gmail.com</a>.
         </Typography>
