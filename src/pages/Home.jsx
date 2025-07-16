@@ -96,7 +96,9 @@ function Home() {
         style={{
           width: '100vw',
           minHeight: '100vh',
-          background: `linear-gradient(135deg, ${theme.palette.background.default} 60%, ${theme.palette.primary.light} 100%)`,
+          background: theme.palette.mode === 'light'
+            ? 'linear-gradient(135deg, #f7f6f3 60%, #f0ece6 100%)'
+            : `linear-gradient(135deg, ${theme.palette.background.default} 60%, ${theme.palette.primary.light} 100%)`,
           overflowX: 'hidden',
         }}
       >
@@ -117,7 +119,9 @@ function Home() {
               borderRadius: theme.shape.borderRadius * 2,
               overflow: 'hidden',
               boxShadow: 6,
-              background: `linear-gradient(120deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+              background: theme.palette.mode === 'light'
+                ? 'linear-gradient(120deg, #f7f6f3 0%, #f0ece6 100%)'
+                : `linear-gradient(120deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
             }}
           >
             {/* Collage Hero Images */}
@@ -196,8 +200,8 @@ function Home() {
                 sx={{
                   fontWeight: 900,
                   mb: 2,
-                  color: '#fff',
-                  textShadow: '0 4px 24px #000b, 0 1px 0 #fff2',
+                  color: theme.palette.mode === 'light' ? theme.palette.primary.main : '#fff',
+                  textShadow: theme.palette.mode === 'light' ? 'none' : '0 4px 24px #000b, 0 1px 0 #fff2',
                   letterSpacing: 1.5,
                 }}
               >
@@ -207,8 +211,8 @@ function Home() {
                 variant="h5"
                 sx={{
                   mb: 3,
-                  color: '#fff',
-                  textShadow: '0 2px 12px #000a',
+                  color: theme.palette.mode === 'light' ? theme.palette.secondary.main : '#fff',
+                  textShadow: theme.palette.mode === 'light' ? 'none' : '0 2px 12px #000a',
                   fontWeight: 600,
                 }}
               >
@@ -274,7 +278,7 @@ function Home() {
           <Box sx={{
             mb: 5,
             background: theme.palette.mode === 'light'
-              ? `linear-gradient(120deg, #fff 60%, ${theme.palette.secondary.light} 100%)`
+              ? 'linear-gradient(120deg, #f7f6f3 60%, #f0ece6 100%)'
               : `linear-gradient(120deg, ${theme.palette.background.paper} 60%, ${theme.palette.secondary.light} 100%)`,
             borderRadius: theme.shape.borderRadius * 1.5,
             p: { xs: 2, md: 4 },
@@ -310,7 +314,7 @@ function Home() {
                 >
                   <LocalMallIcon sx={{ color: theme.palette.secondary.main, mr: { sm: 1, xs: 0 }, mb: { xs: 1, sm: 0 }, fontSize: 32 }} />
                   <Typography component="span" sx={{ color: theme.palette.text.primary, fontSize: '1.1rem', textAlign: { xs: 'center', sm: 'left' }, fontWeight: 600 }}>
-                    Shop our <strong style={{ color: theme.palette.secondary.main }}> Perfume Collection </strong> for the latest and classic scents.
+                    Shop our <span style={{ color: theme.palette.primary.main, fontWeight: 600 }}>Perfume Collection</span> for the latest and classic scents.
                   </Typography>
                 </Box>
               </ButtonBase>
@@ -337,7 +341,7 @@ function Home() {
                 >
                   <StyleIcon sx={{ color: theme.palette.secondary.main, mr: { sm: 1, xs: 0 }, mb: { xs: 1, sm: 0 }, fontSize: 32 }} />
                   <Typography component="span" sx={{ color: theme.palette.text.primary, fontSize: '1.1rem', textAlign: { xs: 'center', sm: 'left' }, fontWeight: 600 }}>
-                    Browse the <strong style={{ color: theme.palette.secondary.main }}> Fashion Portfolio </strong> to see our unique designs and styling ideas.
+                    Browse the <span style={{ color: theme.palette.primary.main, fontWeight: 600 }}>Fashion Portfolio</span> to see our unique designs and styling ideas.
                   </Typography>
                 </Box>
               </ButtonBase>
@@ -364,7 +368,7 @@ function Home() {
                 >
                   <TipsAndUpdatesIcon sx={{ color: theme.palette.primary.main, mr: { sm: 1, xs: 0 }, mb: { xs: 1, sm: 0 }, fontSize: 32 }} />
                   <Typography component="span" sx={{ color: theme.palette.text.primary, fontSize: '1.1rem', textAlign: { xs: 'center', sm: 'left' }, fontWeight: 600 }}>
-                    Use our <strong style={{ color: theme.palette.primary.main }}> Style Guide </strong> for personalized recommendations.
+                    Use our <span style={{ color: theme.palette.primary.main, fontWeight: 600 }}>Style Guide</span> for personalized recommendations.
                   </Typography>
                 </Box>
               </ButtonBase>
@@ -391,7 +395,7 @@ function Home() {
                 >
                   <EventAvailableIcon sx={{ color: theme.palette.primary.main, mr: { sm: 1, xs: 0 }, mb: { xs: 1, sm: 0 }, fontSize: 32 }} />
                   <Typography component="span" sx={{ color: theme.palette.text.primary, fontSize: '1.1rem', textAlign: { xs: 'center', sm: 'left' }, fontWeight: 600 }}>
-                    Book an <strong style={{ color: theme.palette.primary.main }}> Appointment </strong> for one-on-one consultations.
+                    Book an <span style={{ color: theme.palette.primary.main, fontWeight: 600 }}>Appointment</span> for one-on-one consultations.
                   </Typography>
                 </Box>
               </ButtonBase>
@@ -418,7 +422,7 @@ function Home() {
                 >
                   <ArticleIcon sx={{ color: theme.palette.secondary.main, mr: { sm: 1, xs: 0 }, mb: { xs: 1, sm: 0 }, fontSize: 32 }} />
                   <Typography component="span" sx={{ color: theme.palette.text.primary, fontSize: '1.1rem', textAlign: { xs: 'center', sm: 'left' }, fontWeight: 600 }}>
-                    Stay updated with our <strong style={{ color: theme.palette.secondary.main }}> Blog </strong> for news, tips, and trends.
+                    Stay updated with our <span style={{ color: theme.palette.primary.main, fontWeight: 600 }}>Blog</span> for news, tips, and trends.
                   </Typography>
                 </Box>
               </ButtonBase>
@@ -428,7 +432,9 @@ function Home() {
           {/* User Involvement Section */}
           <Box sx={{
             mb: 5,
-            background: `linear-gradient(120deg, ${theme.palette.info.main} 60%, ${theme.palette.primary.light} 100%)`,
+            background: theme.palette.mode === 'light'
+              ? 'linear-gradient(120deg, #f7f6f3 60%, #eaf0fa 100%)'
+              : `linear-gradient(120deg, ${theme.palette.info.main} 60%, ${theme.palette.primary.light} 100%)`,
             borderRadius: theme.shape.borderRadius * 1.5,
             p: { xs: 2, md: 4 },
             boxShadow: 2,
@@ -465,11 +471,7 @@ function Home() {
                   <MailOutlineIcon sx={{ color: theme.palette.secondary.main, mr: { sm: 1, xs: 0 }, mb: { xs: 1, sm: 0 }, fontSize: 32 }} />
                   <Box sx={{ flex: 1 }}>
                     <Typography component="span" sx={{ color: theme.palette.primary.contrastText, fontSize: '1.1rem', textAlign: { xs: 'center', sm: 'left' } }}>
-                      Sign up for our{' '}
-                      <span style={{ color: theme.palette.secondary.main, textDecoration: 'underline', fontWeight: 600 }}>
-                        newsletter
-                      </span>{' '}
-                      to receive exclusive offers and style tips.
+                      Sign up for our <span style={{ color: theme.palette.primary.main, textDecoration: 'underline', fontWeight: 600 }}>newsletter</span> to receive exclusive offers and style tips.
                     </Typography>
                     {/* Newsletter Form */}
                     <NewsletterForm />
@@ -501,7 +503,7 @@ function Home() {
                 >
                   <InstagramIcon sx={{ color: theme.palette.primary.main, mr: { sm: 1, xs: 0 }, mb: { xs: 1, sm: 0 }, fontSize: 32 }} />
                   <Typography component="span" sx={{ color: theme.palette.primary.contrastText, fontSize: '1.1rem', textAlign: { xs: 'center', sm: 'left' } }}>
-                    Share your looks with <strong style={{ color: theme.palette.primary.main }}> #JCsCloset </strong> on Instagram for a chance to be featured.
+                    Share your looks with <span style={{ color: theme.palette.primary.main, fontWeight: 600 }}>#JCsCloset</span> on Instagram for a chance to be featured.
                   </Typography>
                 </Box>
               </ButtonBase>
@@ -564,13 +566,22 @@ function Home() {
           </Box>
 
           {/* About Us & Benefits Section */}
-          <Box sx={{
-            mb: 5,
-            background: `linear-gradient(120deg, ${theme.palette.background.paper} 60%, ${theme.palette.primary.light} 100%)`,
-            borderRadius: theme.shape.borderRadius * 1.5,
-            p: { xs: 2, md: 5 },
-            boxShadow: 3,
-          }}>
+          <Box
+            component={motion.section}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.7 }}
+            sx={{
+              mb: 5,
+              background: theme.palette.mode === 'light'
+                ? 'linear-gradient(120deg, #f7f6f3 60%, #f0ece6 100%)'
+                : `linear-gradient(120deg, ${theme.palette.background.paper} 60%, ${theme.palette.primary.light} 100%)`,
+              borderRadius: theme.shape.borderRadius * 1.5,
+              p: { xs: 2, md: 5 },
+              boxShadow: 3,
+            }}
+          >
             <Typography variant="h4" sx={{ mb: 2, fontWeight: 900, color: theme.palette.primary.main, letterSpacing: 1 }}>
               About JC's Closet
             </Typography>
@@ -590,13 +601,22 @@ function Home() {
           </Box>
 
           {/* Our Process Section */}
-          <Box sx={{
-            mb: 5,
-            background: `linear-gradient(120deg, ${theme.palette.info.light} 60%, ${theme.palette.secondary.light} 100%)`,
-            borderRadius: theme.shape.borderRadius * 1.5,
-            p: { xs: 2, md: 5 },
-            boxShadow: 2,
-          }}>
+          <Box
+            component={motion.section}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            sx={{
+              mb: 5,
+              background: theme.palette.mode === 'light'
+                ? 'linear-gradient(120deg, #f7f6f3 60%, #eaf0fa 100%)'
+                : `linear-gradient(120deg, ${theme.palette.info.light} 60%, ${theme.palette.secondary.light} 100%)`,
+              borderRadius: theme.shape.borderRadius * 1.5,
+              p: { xs: 2, md: 5 },
+              boxShadow: 2,
+            }}
+          >
             <Typography variant="h4" sx={{ mb: 2, fontWeight: 900, color: theme.palette.primary.main, letterSpacing: 1 }}>
               How It Works
             </Typography>
@@ -633,7 +653,9 @@ function Home() {
             ref={reviewsRef}
             sx={{
               mb: 6,
-              background: `linear-gradient(120deg, ${theme.palette.background.paper} 60%, ${theme.palette.primary.light} 100%)`,
+              background: theme.palette.mode === 'light'
+                ? 'linear-gradient(120deg, #f7f6f3 60%, #f0ece6 100%)'
+                : `linear-gradient(120deg, ${theme.palette.background.paper} 60%, ${theme.palette.primary.light} 100%)`,
               borderRadius: theme.shape.borderRadius * 1.5,
               p: { xs: 2, md: 5 },
               boxShadow: 3,
@@ -744,19 +766,28 @@ function Home() {
           </Box>
 
           {/* Trust Badges & Guarantees Section */}
-          <Box sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 3,
-            mb: 4,
-            mt: 2,
-            p: 2,
-            background: `linear-gradient(90deg, ${theme.palette.background.paper} 60%, ${theme.palette.secondary.light} 100%)`,
-            borderRadius: theme.shape.borderRadius * 1.5,
-            boxShadow: 2,
-          }}>
+          <Box
+            component={motion.section}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 3,
+              mb: 4,
+              mt: 2,
+              p: 2,
+              background: theme.palette.mode === 'light'
+                ? 'linear-gradient(90deg, #f7f6f3 60%, #f0ece6 100%)'
+                : `linear-gradient(90deg, ${theme.palette.background.paper} 60%, ${theme.palette.secondary.light} 100%)`,
+              borderRadius: theme.shape.borderRadius * 1.5,
+              boxShadow: 2,
+            }}
+          >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <LockOutlinedIcon sx={{ color: theme.palette.primary.main, fontSize: 32 }} />
               <Typography variant="body2" sx={{ color: theme.palette.primary.main, fontWeight: 700 }}>
@@ -778,7 +809,13 @@ function Home() {
           </Box>
 
           {/* Call to Action */}
-          <Box sx={{ textAlign: 'center', mt: 7 }}>
+          <Box
+            component={motion.section}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.7, delay: 0.3 }}
+            sx={{ textAlign: 'center', mt: 7 }}>
             <Typography
               variant="h5"
               sx={{
