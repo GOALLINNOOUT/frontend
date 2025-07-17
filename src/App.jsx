@@ -41,7 +41,7 @@ import AdminAnalytics from './pages/AdminAnalytics';
 import SetupPasswordPage from './pages/SetupPasswordPage';
 import usePageViewLogger from './hooks/usePageViewLogger';
 import './App.css'
-
+import Notifications from './pages/Notifications';
 // useSessionLogger removed: session end is now handled in the backend
 
 function useSessionStart() {
@@ -103,6 +103,7 @@ function AppContentInner() {
         <Header />
         <WelcomeMessage user={welcomeUser} open={showWelcome} onClose={() => setShowWelcome(false)} />
         <Routes>
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />

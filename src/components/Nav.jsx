@@ -1,4 +1,5 @@
 import { AppBar, Toolbar, IconButton, Drawer, List, ListItem, ListItemButton, ListItemText, Button, Box } from '@mui/material';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -9,6 +10,7 @@ import Slide from '@mui/material/Slide';
 import { useTheme } from '@mui/material/styles';
 import Badge from '@mui/material/Badge';
 import { getCart } from '../utils/cart';
+import axios from 'axios';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import LogoutButton from './user/LogoutButton';
@@ -22,7 +24,24 @@ function Nav() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [role, setRole] = useState(null);
   const [cartCount, setCartCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
   // Separate anchor and open state for More and Account menus
+  useEffect(() => {
+    // Fetch unread notifications count
+    async function fetchUnread() {
+      try {
+        const res = await axios.get('/api/notifications', { withCredentials: true });
+        const unread = Array.isArray(res.data) ? res.data.filter(n => !n.read).length : 0;
+        setUnreadCount(unread);
+      } catch {
+        setUnreadCount(0);
+      }
+    }
+    fetchUnread();
+    // Optionally poll every 60s
+    const interval = setInterval(fetchUnread, 60000);
+    return () => clearInterval(interval);
+  }, []);
   const [moreAnchorEl, setMoreAnchorEl] = useState(null);
   const [accountAnchorEl, setAccountAnchorEl] = useState(null);
   const moreMenuOpen = Boolean(moreAnchorEl);
@@ -59,6 +78,7 @@ function Nav() {
     { to: '/perfumes', label: 'Perfumes' },
     { to: '/fashion', label: 'Design Gallery' },
     { to: '/cart', label: 'Cart' },
+    { to: '/notifications', label: 'Notifications', icon: true },
     { to: '/about', label: 'About' },
     { to: '/blog', label: 'Blog' },
     { to: '/contact', label: 'Contact' },
@@ -69,7 +89,8 @@ function Nav() {
     { to: '/admin/orders', label: 'Orders' },
     { to: '/admin/perfumes', label: 'Perfumes' },
     { to: '/admin', label: 'Fashion' },
-    { to: '/admin/analytics', label: 'Analytics' }, // Added Analytics link
+    { to: '/notifications', label: 'Notifications', icon: true },
+    { to: '/admin/analytics', label: 'Analytics' },
     { to: '/admin/customers', label: 'Users' },
     { to: '/admin/newsletter', label: 'Newsletter' },
     { to: '/admin/blog', label: 'Blogs' },
@@ -175,8 +196,8 @@ function Nav() {
         {/* Desktop Nav */}
         {/* On md: show main links + More dropdown; on lg+: show all links */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, flex: 2, justifyContent: 'center', alignItems: 'center' }} role="menu" aria-label="Main navigation">
-          {/* On lg and up, show all links */}
-          {linksToShow.map((link) => (
+          {/* On lg and up, show all links except notifications icon */}
+          {linksToShow.filter(link => !link.icon).map((link) => (
             <Button
               key={link.to}
               component={Link}
@@ -270,7 +291,7 @@ function Nav() {
             </Box>
           )}
         </Box>
-        {/* Cart and Account icons always at far right */}
+        {/* Cart, Notifications, and Account icons always at far right */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <IconButton
             component={Link}
@@ -283,6 +304,21 @@ function Nav() {
               <ShoppingCartIcon />
             </Badge>
           </IconButton>
+          {/* Notifications icon for desktop only */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+            <IconButton
+              component={Link}
+              to="/notifications"
+              color={location.pathname === '/notifications' ? 'primary' : 'default'}
+              aria-label="Notifications"
+              sx={{ mx: 1, bgcolor: location.pathname === '/notifications' ? theme.palette.primary.main : 'transparent', color: location.pathname === '/notifications' ? theme.palette.primary.contrastText : theme.palette.text.primary, '&:hover': { bgcolor: location.pathname === '/notifications' ? theme.palette.primary.dark : theme.palette.action.hover } }}
+              role="menuitem"
+            >
+              <Badge badgeContent={unreadCount} color="error" max={99}>
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+          </Box>
           {/* Show Login/Sign Up for guests on desktop only (not mobile) */}
           {!role && (
             <Box sx={{ display: { xs: 'none', sm: 'none', md: 'flex' }, gap: 1, ml: 2 }}>
@@ -293,18 +329,7 @@ function Nav() {
                   to={link.to}
                   variant={location.pathname === link.to ? 'contained' : 'outlined'}
                   color="secondary"
-                  sx={{
-                    fontWeight: 600,
-                    borderRadius: 2,
-                    px: 2,
-                    boxShadow: location.pathname === link.to ? theme.shadows[2] : 'none',
-                    bgcolor: location.pathname === link.to ? theme.palette.secondary.main : 'transparent',
-                    color: location.pathname === link.to ? theme.palette.secondary.contrastText : theme.palette.secondary.main,
-                    '&:hover': {
-                      bgcolor: theme.palette.secondary.dark,
-                      color: theme.palette.secondary.contrastText,
-                    },
-                  }}
+                  sx={{ fontWeight: 600, borderRadius: 2, px: 2, boxShadow: location.pathname === link.to ? theme.shadows[2] : 'none', bgcolor: location.pathname === link.to ? theme.palette.secondary.main : 'transparent', color: location.pathname === link.to ? theme.palette.secondary.contrastText : theme.palette.secondary.main, '&:hover': { bgcolor: theme.palette.secondary.dark, color: theme.palette.secondary.contrastText } }}
                   aria-label={link.label}
                   role="menuitem"
                 >
