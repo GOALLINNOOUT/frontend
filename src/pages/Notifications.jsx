@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import socket from '../utils/socket';
+import { toast } from 'react-toastify';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import {
@@ -22,6 +24,33 @@ const Notifications = () => {
 
   useEffect(() => {
     fetchNotifications();
+    // Connect socket and identify user
+    let userId = null;
+    // Try to get userId from notifications (if available)
+    axios.get('/api/auth/me').then(res => {
+      userId = res.data?._id;
+      if (userId) {
+        socket.connect();
+        socket.emit('identify', userId);
+      }
+    });
+    // Listen for notification events
+    socket.on('notification', (data) => {
+      setNotifications(prev => [data, ...prev]);
+      toast.info(data.message, {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    });
+    return () => {
+      socket.off('notification');
+      socket.disconnect();
+    };
     // eslint-disable-next-line
   }, []);
 
