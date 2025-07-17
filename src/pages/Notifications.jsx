@@ -15,11 +15,17 @@ const Notifications = () => {
     // Fetch notifications for the logged-in user
     axios.get('/api/notifications')
       .then(res => {
-        setNotifications(res.data);
+        // Defensive: ensure notifications is always an array
+        if (Array.isArray(res.data)) {
+          setNotifications(res.data);
+        } else {
+          setNotifications([]);
+        }
         setLoading(false);
       })
       .catch(err => {
         setError('Failed to load notifications');
+        setNotifications([]);
         setLoading(false);
       });
   }, []);
