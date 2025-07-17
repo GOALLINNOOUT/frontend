@@ -8,7 +8,7 @@ async function subscribeUserToPush() {
         applicationServerKey: urlBase64ToUint8Array('BAnXpkSuLZLZcgOO0ibI-Z3grRNhkuszV8R7ZyGsRuPMUaAFnIhEtVyvdi8aqGxGVr5PCeG57DPnTt7iOgFgfdU')
       });
       // Send subscription to backend
-      await fetch('/api/push-subscribe', {
+      await fetch('https://jcserver.onrender.com/api/push-subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(subscription)
