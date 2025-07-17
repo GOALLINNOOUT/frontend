@@ -1031,6 +1031,54 @@ const PerfumeCollection = () => {
                       <div className={`perfume-stock ${isInStock ? 'stock-available' : 'stock-out'}`}>
                         {isInStock ? `Stock: ${perfume.stock}` : 'Out of Stock'}
                       </div>
+                      {/* Add to Cart button for grid cards */}
+                      {isInStock && (
+                        <button
+                          className="add-to-cart-btn"
+                          style={{ marginTop: 10, fontSize: 15, padding: '10px 0', fontWeight: 700 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Add perfume directly to cart without opening modal
+                            if (user && (user.status === 'suspended' || user.status === 'blacklisted')) {
+                              setError('Your account is suspended. You cannot add items to cart.');
+                              return;
+                            }
+                            const mainImage = perfume.images[perfume.mainImageIndex || 0];
+                            const { promoActive, displayPrice, promoLabel } = getPerfumePromo(perfume);
+                            addToCartUtil({
+                              _id: perfume._id,
+                              name: perfume.name,
+                              price: perfume.price,
+                              quantity: 1,
+                              image: mainImage,
+                              images: perfume.images,
+                              mainImageIndex: perfume.mainImageIndex || 0,
+                              categories: perfume.categories,
+                              promoActive,
+                              promoLabel,
+                              promoPrice: promoActive ? displayPrice : undefined,
+                              stock: perfume.stock,
+                            });
+                            // Log add-to-cart action to backend for analytics
+                            const sessionId = localStorage.getItem('sessionId') || null;
+                            if (sessionId) {
+                              api.post('/v1/cart-actions', {
+                                sessionId,
+                                productId: perfume._id,
+                                action: 'add',
+                                quantity: 1
+                              });
+                            }
+                            window.dispatchEvent(new Event('cart-updated'));
+                            setCartMsg(`Added 1 x ${perfume.name} to cart!`);
+                            setShowCartMsg(true);
+                            setTimeout(() => setShowCartMsg(false), 4000);
+                          }}
+                          aria-label={`Add ${perfume.name} to cart`}
+                        >
+                          Add to Cart 🛒
+                        </button>
+                      )}
                     </div>
                   );
                 })}
