@@ -246,17 +246,12 @@ const OrderPage = () => {
                       color="error"
                       size="small"
                       sx={{ mt: 2, fontWeight: 700, borderRadius: 2, boxShadow: 1, textTransform: 'none' }}
-                      onClick={e => {
-                        if (order.status === 'shipped' || order.status === 'out_for_delivery') {
-                          setErrorDialog({ open: true, message: order.status === 'shipped' ? 'You cannot cancel an order that has already shipped.' : 'You cannot cancel an order that is out for delivery.' });
-                          e.preventDefault();
-                          return;
-                        }
+                      onClick={() => {
+                        if (order.status === 'shipped' || order.status === 'out_for_delivery') return;
                         handleCancel(order._id);
                       }}
                       disabled={loading || order.status === 'shipped' || order.status === 'out_for_delivery'}
                       fullWidth={isMobile}
-                      style={order.status === 'shipped' || order.status === 'out_for_delivery' ? { pointerEvents: 'auto' } : {}}
                     >
                       Cancel Order
                     </Button>
