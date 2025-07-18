@@ -72,7 +72,7 @@ const OrderPage = () => {
   }, [user]);
 
   // Categorize orders
-  const unfulfilled = orders.filter(o => o.status === 'paid' || o.status === 'shipped');
+  const unfulfilled = orders.filter(o => o.status === 'paid' || o.status === 'shipped' || o.status === 'out_for_delivery');
   const fulfilled = orders.filter(o => o.status === 'delivered');
   const cancelled = orders.filter(o => o.status === 'cancelled');
 
