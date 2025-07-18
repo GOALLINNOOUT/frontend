@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import socket from '../utils/socket';
 import { toast } from 'react-toastify';
 import { Helmet } from 'react-helmet-async';
-import axios from 'axios';
+import * as api from '../utils/api';
 import {
   Box, Typography, Paper, List, ListItem, ListItemText, CircularProgress, Alert,
   IconButton, Chip, Button, Stack
@@ -27,7 +27,7 @@ const Notifications = () => {
     // Connect socket and identify user
     let userId = null;
     console.log('[Notifications] Fetching user ID for socket...');
-    axios.get('/api/auth/me').then(res => {
+    api.get('/auth/me').then(res => {
       userId = res.data?._id;
       console.log('[Notifications] Got userId:', userId);
       if (userId) {
@@ -73,7 +73,7 @@ const Notifications = () => {
 
   const fetchNotifications = () => {
     setLoading(true);
-    axios.get('/api/notifications')
+    api.get('/notifications')
       .then(res => {
         if (Array.isArray(res.data)) {
           setNotifications(res.data);
@@ -92,7 +92,7 @@ const Notifications = () => {
   const markAsRead = async (id) => {
     setMarking(true);
     try {
-      await axios.patch(`/api/notifications/${id}/read`);
+      await api.patch(`/notifications/${id}/read`);
       fetchNotifications();
     } catch {
       setError('Failed to mark as read');
@@ -104,7 +104,7 @@ const Notifications = () => {
     setMarking(true);
     try {
       const unreadIds = notifications.filter(n => !n.read).map(n => n._id);
-      await Promise.all(unreadIds.map(id => axios.patch(`/api/notifications/${id}/read`)));
+      await Promise.all(unreadIds.map(id => api.patch(`/notifications/${id}/read`)));
       fetchNotifications();
     } catch {
       setError('Failed to mark all as read');
