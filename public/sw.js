@@ -8,17 +8,8 @@ self.addEventListener('pushsubscriptionchange', function(event) {
       // Notify the client(s) to update the subscription on the server
       return self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then(function(clients) {
         clients.forEach(function(client) {
-          // Serialize the subscription before sending
-          let subscriptionData = null;
-          if (newSubscription) {
-            subscriptionData = {
-              endpoint: newSubscription.endpoint,
-              keys: {
-                p256dh: newSubscription.getKey('p256dh') ? btoa(String.fromCharCode.apply(null, new Uint8Array(newSubscription.getKey('p256dh')))) : null,
-                auth: newSubscription.getKey('auth') ? btoa(String.fromCharCode.apply(null, new Uint8Array(newSubscription.getKey('auth')))) : null
-              }
-            };
-          }
+          // Use toJSON to serialize the subscription
+          let subscriptionData = newSubscription ? newSubscription.toJSON() : null;
           client.postMessage({
             type: 'pushResubscribe',
             subscription: subscriptionData
@@ -28,8 +19,17 @@ self.addEventListener('pushsubscriptionchange', function(event) {
     })
   );
 });
+
 self.addEventListener('push', function(event) {
-  const data = event.data ? event.data.json() : {};
+  let data = {};
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      // Fallback for plain text payloads
+      data = { title: 'Notification', body: event.data.text() };
+    }
+  }
   const title = data.title || 'JC Closet';
   const options = {
     body: data.body || '',
