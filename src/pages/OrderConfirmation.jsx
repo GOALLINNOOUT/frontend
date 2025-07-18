@@ -52,12 +52,16 @@ function OrderConfirmation() {
   const email = location.state?.email;
 
   useEffect(() => {
-    // Show notification dialog after order confirmation
-    setShowNotifDialog(true);
+    // Only show dialog if user hasn't made a choice before
+    const notifChoice = localStorage.getItem('jc_closet_notif_choice');
+    if (!notifChoice) {
+      setShowNotifDialog(true);
+    }
   }, []);
 
   const handleNotifAccept = async () => {
     setShowNotifDialog(false);
+    localStorage.setItem('jc_closet_notif_choice', 'accepted');
     if ('Notification' in window && Notification.permission !== 'granted') {
       try {
         const permission = await Notification.requestPermission();
@@ -81,6 +85,7 @@ function OrderConfirmation() {
   const handleNotifDecline = () => {
     setShowNotifDialog(false);
     setNotifStatus('denied');
+    localStorage.setItem('jc_closet_notif_choice', 'declined');
   };
 
   return (
