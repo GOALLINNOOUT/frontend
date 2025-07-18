@@ -1,10 +1,26 @@
+// Listen for pushsubscriptionchange to help users resubscribe if needed
+self.addEventListener('pushsubscriptionchange', function(event) {
+  event.waitUntil(
+    self.registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: 'BAnXpkSuLZLZcgOO0ibI-Z3grRNhkuszV8R7ZyGsRuPMUaAFnIhEtVyvdi8aqGxGVr5PCeG57DPnTt7iOgFgfdU'
+    }).then(function(newSubscription) {
+      // Notify the client(s) to update the subscription on the server
+      return self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then(function(clients) {
+        clients.forEach(function(client) {
+          client.postMessage({ type: 'pushResubscribe', subscription: newSubscription });
+        });
+      });
+    })
+  );
+});
 self.addEventListener('push', function(event) {
   const data = event.data ? event.data.json() : {};
-  const title = data.title || 'JC Closet Notification';
+  const title = data.title || 'JC Closet';
   const options = {
     body: data.body || '',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    icon: '/android-icon-192x192.png',
+    badge: '/android-icon-192x192.png',
     data: data.url || '/',
   };
   event.waitUntil(
@@ -16,7 +32,7 @@ self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   if (event.notification.data) {
     event.waitUntil(
-      clients.openWindow(event.notification.data)
+      self.clients.openWindow(event.notification.data)
     );
   }
 });

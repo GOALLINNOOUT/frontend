@@ -1,3 +1,22 @@
+// Listen for pushResubscribe messages from service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', event => {
+    if (event.data && event.data.type === 'pushResubscribe' && event.data.subscription) {
+      // Send new subscription to backend
+      fetch('https://jcserver.onrender.com/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(event.data.subscription)
+      })
+        .then(() => {
+          console.log('Push subscription updated on backend after change.');
+        })
+        .catch(err => {
+          console.error('Failed to update push subscription after change:', err);
+        });
+    }
+  });
+}
 // Helper: subscribe user to push notifications and send to backend
 async function subscribeUserToPush() {
   if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -8,7 +27,7 @@ async function subscribeUserToPush() {
         applicationServerKey: urlBase64ToUint8Array('BAnXpkSuLZLZcgOO0ibI-Z3grRNhkuszV8R7ZyGsRuPMUaAFnIhEtVyvdi8aqGxGVr5PCeG57DPnTt7iOgFgfdU')
       });
       // Send subscription to backend
-      await fetch('https://jcserver.onrender.com/api/push-subscribe', {
+      await fetch('https://jcserver.onrender.com/api/push/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(subscription)
