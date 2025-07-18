@@ -25,16 +25,20 @@ const ChangePassword = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await post('/users/change-password', {
+      const response = await post('/users/change-password', {
         currentPassword: form.currentPassword,
         newPassword: form.newPassword,
       }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSuccess('Password changed successfully!');
-      setForm({ currentPassword: '', newPassword: '', confirm: '' });
+      if (response.ok) {
+        setSuccess('Password changed successfully!');
+        setForm({ currentPassword: '', newPassword: '', confirm: '' });
+      } else {
+        setError(response.data?.error || 'Failed to change password');
+      }
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to change password');
+      setError('Failed to change password');
     } finally {
       setLoading(false);
     }

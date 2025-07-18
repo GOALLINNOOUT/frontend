@@ -14,6 +14,7 @@ export default function Signup({ onSignup }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
@@ -26,6 +27,8 @@ export default function Signup({ onSignup }) {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Invalid email address.';
     if (!password) errors.password = 'Password is required.';
     else if (password.length < 6) errors.password = 'Password must be at least 6 characters.';
+    if (!confirm) errors.confirm = 'Please confirm your password.';
+    else if (password !== confirm) errors.confirm = 'Passwords do not match.';
     return errors;
   };
 
@@ -103,6 +106,16 @@ export default function Signup({ onSignup }) {
             fullWidth
             error={!!validationErrors.password}
             helperText={validationErrors.password}
+          />
+          <TextField
+            label="Confirm Password"
+            type="password"
+            value={confirm}
+            onChange={e => setConfirm(e.target.value)}
+            required
+            fullWidth
+            error={!!validationErrors.confirm}
+            helperText={validationErrors.confirm}
           />
           <Button
             type="submit"
