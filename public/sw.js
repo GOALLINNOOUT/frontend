@@ -9,9 +9,17 @@ self.addEventListener('pushsubscriptionchange', function(event) {
       return self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then(function(clients) {
         clients.forEach(function(client) {
           // Serialize the subscription before sending
+          let serializableSub = null;
+          if (newSubscription) {
+            try {
+              serializableSub = JSON.parse(JSON.stringify(newSubscription));
+            } catch (e) {
+              serializableSub = newSubscription.toJSON ? newSubscription.toJSON() : null;
+            }
+          }
           client.postMessage({
             type: 'pushResubscribe',
-            subscription: newSubscription ? newSubscription.toJSON() : null
+            subscription: serializableSub
           });
         });
       });
