@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import * as api from '../utils/api';
 import './AdminDashboard.css';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
