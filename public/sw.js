@@ -8,7 +8,11 @@ self.addEventListener('pushsubscriptionchange', function(event) {
       // Notify the client(s) to update the subscription on the server
       return self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then(function(clients) {
         clients.forEach(function(client) {
-          client.postMessage({ type: 'pushResubscribe', subscription: newSubscription });
+          // Serialize the subscription before sending
+          client.postMessage({
+            type: 'pushResubscribe',
+            subscription: newSubscription ? newSubscription.toJSON() : null
+          });
         });
       });
     })
