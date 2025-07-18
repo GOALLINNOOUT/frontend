@@ -4,33 +4,43 @@ import { Box, Typography, Paper, Divider, CircularProgress, Stack, Button, Tabs,
 import { Helmet } from 'react-helmet-async';
 import { AuthContext } from '../components/AuthContext';
 import { get, patch as apiPatch } from '../utils/api';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import HomeIcon from '@mui/icons-material/Home';
 import PhoneIcon from '@mui/icons-material/Phone';
 
+
+// Add 'out_for_delivery' to status mappings
 const statusColor = {
   paid: 'info',
   shipped: 'primary',
+  out_for_delivery: 'warning',
   delivered: 'success',
   cancelled: 'error',
 };
 
+
 const statusLabel = {
   paid: 'Paid',
   shipped: 'Shipped',
+  out_for_delivery: 'Out for Delivery',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
 };
 
+import DirectionsBikeIcon from '@mui/icons-material/DirectionsBike';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+
 const statusIcon = {
-  paid: <ShoppingBagIcon fontSize="small" sx={{ mr: 0.5 }} />, 
-  shipped: <LocalShippingIcon fontSize="small" sx={{ mr: 0.5 }} />, 
-  delivered: <CheckCircleIcon fontSize="small" sx={{ mr: 0.5 }} />, 
-  cancelled: <CancelIcon fontSize="small" sx={{ mr: 0.5 }} />, 
+  paid: <ShoppingBagIcon fontSize="small" sx={{ mr: 0.5 }} />,
+  shipped: <LocalShippingIcon fontSize="small" sx={{ mr: 0.5 }} />,
+  out_for_delivery: <DirectionsBikeIcon fontSize="small" sx={{ mr: 0.5 }} />,
+  delivered: <CheckCircleIcon fontSize="small" sx={{ mr: 0.5 }} />,
+  cancelled: <CancelIcon fontSize="small" sx={{ mr: 0.5 }} />,
 };
+
+
 
 const OrderPage = () => {
   const { user } = useContext(AuthContext);

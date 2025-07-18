@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import * as api from '../utils/api';
 import './AdminDashboard.css';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -89,6 +88,8 @@ function AdminOrders() {
 
   const confirmAction = async () => {
     if (dialog.type === 'delete') {
+
+// --- PATCH: Add support for 'out_for_delivery' status in admin order actions and details ---
       setDeleting(dialog.orderId);
       await api.del(`/orders/${dialog.orderId}`);
       await fetchOrders();
@@ -214,7 +215,16 @@ function AdminOrders() {
                     {order.status === 'paid' && (
                       <Button size="small" variant="outlined" color="info" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'shipped')}>Mark as Shipped</Button>
                     )}
+
                     {order.status === 'shipped' && (
+                      <>
+                        <Button size="small" variant="outlined" color="warning" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'out_for_delivery')}>Mark as Out for Delivery</Button>
+                        <Button size="small" variant="outlined" color="secondary" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'delivered')}>Mark as Delivered</Button>
+                        <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
+                      </>
+                    )}
+
+                    {order.status === 'out_for_delivery' && (
                       <>
                         <Button size="small" variant="outlined" color="secondary" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'delivered')}>Mark as Delivered</Button>
                         <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
@@ -265,6 +275,7 @@ function AdminOrders() {
                 <b>Grand Total:</b> ₦{detailsOrder.grandTotal?.toLocaleString?.() ?? detailsOrder.grandTotal ?? '-'}<br/>
                 <b>Paid At:</b> {detailsOrder.paidAt ? new Date(detailsOrder.paidAt).toLocaleString() : '-'}<br/>
                 {detailsOrder.shippedAt && (<><b>Shipped At:</b> {new Date(detailsOrder.shippedAt).toLocaleString()}<br/></>)}
+                {detailsOrder.outForDeliveryAt && (<><b>Out for Delivery At:</b> {new Date(detailsOrder.outForDeliveryAt).toLocaleString()}<br/></>)}
                 {detailsOrder.deliveredAt && (<><b>Delivered At:</b> {new Date(detailsOrder.deliveredAt).toLocaleString()}<br/></>)}
                 {detailsOrder.cancelledAt && (<><b>Cancelled At:</b> <span style={{color:'#b71c1c'}}>{new Date(detailsOrder.cancelledAt).toLocaleString()}</span><br/></>)}
                 <hr style={{margin:'12px 0'}}/>
