@@ -9,17 +9,19 @@ self.addEventListener('pushsubscriptionchange', function(event) {
       return self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then(function(clients) {
         clients.forEach(function(client) {
           // Serialize the subscription before sending
-          let serializableSub = null;
+          let subscriptionData = null;
           if (newSubscription) {
-            try {
-              serializableSub = JSON.parse(JSON.stringify(newSubscription));
-            } catch (e) {
-              serializableSub = newSubscription.toJSON ? newSubscription.toJSON() : null;
-            }
+            subscriptionData = {
+              endpoint: newSubscription.endpoint,
+              keys: {
+                p256dh: newSubscription.getKey('p256dh') ? btoa(String.fromCharCode.apply(null, new Uint8Array(newSubscription.getKey('p256dh')))) : null,
+                auth: newSubscription.getKey('auth') ? btoa(String.fromCharCode.apply(null, new Uint8Array(newSubscription.getKey('auth')))) : null
+              }
+            };
           }
           client.postMessage({
             type: 'pushResubscribe',
-            subscription: serializableSub
+            subscription: subscriptionData
           });
         });
       });
