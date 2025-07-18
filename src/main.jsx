@@ -77,21 +77,11 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 )
 
-// Register service worker and request notification permission
+// Register service worker only (notification logic moved to OrderConfirmation)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then(reg => {
       console.log('Service Worker registered:', reg);
-      if (Notification.permission !== 'granted') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            new Notification('Notifications enabled!');
-            subscribeUserToPush();
-          }
-        });
-      } else {
-        subscribeUserToPush();
-      }
     });
   });
 }

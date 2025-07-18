@@ -1,5 +1,43 @@
-import React from 'react';
-import { Box, Typography, Button, useTheme } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Box, Typography, Button, useTheme, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+// Helper: subscribe user to push notifications and send to backend
+async function subscribeUserToPush() {
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
+    const reg = await navigator.serviceWorker.ready;
+    try {
+      const subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array('BAnXpkSuLZLZcgOO0ibI-Z3grRNhkuszV8R7ZyGsRuPMUaAFnIhEtVyvdi8aqGxGVr5PCeG57DPnTt7iOgFgfdU')
+      });
+      // Get auth token from localStorage
+      const token = localStorage.getItem('token');
+      // Send subscription to backend with Authorization header if token exists
+      await fetch('https://jcserver.onrender.com/api/push/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(subscription)
+      });
+      console.log('Push subscription sent to backend:', subscription);
+    } catch (err) {
+      console.error('Push subscription error:', err);
+    }
+  }
+}
+
+// Helper to convert VAPID key
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 
@@ -7,16 +45,60 @@ function OrderConfirmation() {
   const navigate = useNavigate();
   const theme = useTheme();
   const location = useLocation();
+  const [showNotifDialog, setShowNotifDialog] = useState(false);
+  const [notifStatus, setNotifStatus] = useState('idle'); // idle | granted | denied | error
   // Check if the user was auto-created (passed from checkout page or API response)
-  // e.g. location.state?.wasAutoCreated and location.state?.email
   const wasAutoCreated = location.state?.wasAutoCreated;
   const email = location.state?.email;
+
+  useEffect(() => {
+    // Show notification dialog after order confirmation
+    setShowNotifDialog(true);
+  }, []);
+
+  const handleNotifAccept = async () => {
+    setShowNotifDialog(false);
+    if ('Notification' in window && Notification.permission !== 'granted') {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          setNotifStatus('granted');
+          new Notification('Notifications enabled!');
+          subscribeUserToPush();
+        } else {
+          setNotifStatus('denied');
+        }
+      } catch (e) {
+        setNotifStatus('error');
+      }
+    } else if (Notification.permission === 'granted') {
+      setNotifStatus('granted');
+      subscribeUserToPush();
+    } else {
+      setNotifStatus('denied');
+    }
+  };
+  const handleNotifDecline = () => {
+    setShowNotifDialog(false);
+    setNotifStatus('denied');
+  };
+
   return (
     <>
       <Helmet>
         <title>Order Confirmation | JC's Closet</title>
         <meta name="description" content="Thank you for your order at JC's Closet. Your payment was successful and your order is being processed." />
       </Helmet>
+      <Dialog open={showNotifDialog} onClose={handleNotifDecline}>
+        <DialogTitle>Enable Order Notifications?</DialogTitle>
+        <DialogContent>
+          <Typography>Would you like to receive notifications about your order status and updates?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleNotifDecline}>No, thanks</Button>
+          <Button onClick={handleNotifAccept} variant="contained" autoFocus>Yes, enable</Button>
+        </DialogActions>
+      </Dialog>
       <Box
         sx={{
           maxWidth: 500,
