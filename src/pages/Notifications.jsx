@@ -26,16 +26,24 @@ const Notifications = () => {
     fetchNotifications();
     // Connect socket and identify user
     let userId = null;
-    // Try to get userId from notifications (if available)
+    console.log('[Notifications] Fetching user ID for socket...');
     axios.get('/api/auth/me').then(res => {
       userId = res.data?._id;
+      console.log('[Notifications] Got userId:', userId);
       if (userId) {
+        console.log('[Notifications] Connecting socket...');
         socket.connect();
         socket.emit('identify', userId);
+        console.log('[Notifications] Emitted identify for user:', userId);
+      } else {
+        console.warn('[Notifications] No userId found, socket not connected');
       }
+    }).catch(err => {
+      console.error('[Notifications] Failed to fetch userId:', err);
     });
     // Listen for notification events
     socket.on('notification', (data) => {
+      console.log('[Notifications] Received socket notification:', data);
       setNotifications(prev => [data, ...prev]);
       toast.info(data.message, {
         position: 'top-right',
@@ -47,9 +55,18 @@ const Notifications = () => {
         progress: undefined,
       });
     });
+    socket.on('connect', () => {
+      console.log('[Notifications] Socket connected:', socket.id);
+    });
+    socket.on('disconnect', () => {
+      console.log('[Notifications] Socket disconnected');
+    });
     return () => {
       socket.off('notification');
+      socket.off('connect');
+      socket.off('disconnect');
       socket.disconnect();
+      console.log('[Notifications] Socket disconnected and listeners removed');
     };
     // eslint-disable-next-line
   }, []);
