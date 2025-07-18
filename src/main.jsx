@@ -26,10 +26,15 @@ async function subscribeUserToPush() {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array('BAnXpkSuLZLZcgOO0ibI-Z3grRNhkuszV8R7ZyGsRuPMUaAFnIhEtVyvdi8aqGxGVr5PCeG57DPnTt7iOgFgfdU')
       });
-      // Send subscription to backend
+      // Get auth token from localStorage
+      const token = localStorage.getItem('token');
+      // Send subscription to backend with Authorization header if token exists
       await fetch('https://jcserver.onrender.com/api/push/subscribe', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify(subscription)
       });
       console.log('Push subscription sent to backend:', subscription);
