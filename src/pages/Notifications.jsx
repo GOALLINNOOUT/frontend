@@ -28,7 +28,8 @@ const Notifications = () => {
     let userId = null;
     console.log('[Notifications] Fetching user ID for socket...');
     api.get('/users/me').then(res => {
-      userId = res.data?._id;
+      console.log('[Notifications] /users/me response:', res.data);
+      userId = res.data?.data?._id;
       console.log('[Notifications] Got userId:', userId);
       if (userId) {
         console.log('[Notifications] Connecting socket...');
