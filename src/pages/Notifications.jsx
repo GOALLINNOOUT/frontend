@@ -27,7 +27,7 @@ const Notifications = () => {
     // Connect socket and identify user
     let userId = null;
     console.log('[Notifications] Fetching user ID for socket...');
-    api.get('/auth/me').then(res => {
+    api.get('/users/me').then(res => {
       userId = res.data?._id;
       console.log('[Notifications] Got userId:', userId);
       if (userId) {
