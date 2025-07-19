@@ -5,29 +5,49 @@ import ThemeSystemChangeDialog from '../components/ThemeSystemChangeDialog';
 
 const ThemeModeContext = createContext();
 
+
 export function ThemeModeProvider({ children }) {
-  // Detect system preference on mount
+  // Detect system preference
   const getSystemMode = () =>
     window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 
-  // Always use system mode on first visit
-  const [mode, setMode] = useState(getSystemMode());
+  // Get saved mode from localStorage
+  const getSavedMode = () => {
+    try {
+      return localStorage.getItem('jc_theme_mode');
+    } catch {
+      return null;
+    }
+  };
+
+  // On mount, use saved mode if exists, else system mode
+  const [mode, setModeState] = useState(() => getSavedMode() || getSystemMode());
   const [pendingSystemMode, setPendingSystemMode] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const timerRef = useRef();
   const theme = useMemo(() => getTheme(mode), [mode]);
-  const toggleMode = () => setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
 
-  // No forced mode for new users
+  // Save mode to localStorage and update state
+  const setMode = (newMode) => {
+    setModeState(newMode);
+    try {
+      localStorage.setItem('jc_theme_mode', newMode);
+    } catch {}
+  };
 
-  // Listen for system mode changes, but wait 10 seconds before prompting
+  const toggleMode = () => setMode(mode === 'light' ? 'dark' : 'light');
+
+  // Listen for system mode changes, but only prompt if user hasn't set a preference
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e) => {
-      setPendingSystemMode(e.matches ? 'dark' : 'light');
-      timerRef.current = setTimeout(() => {
-        setDialogOpen(true);
-      }, 2000); // 2 seconds
+      // Only prompt if user hasn't set a preference
+      if (!getSavedMode()) {
+        setPendingSystemMode(e.matches ? 'dark' : 'light');
+        timerRef.current = setTimeout(() => {
+          setDialogOpen(true);
+        }, 2000); // 2 seconds
+      }
     };
     mq.addEventListener('change', handleChange);
     return () => {
@@ -41,7 +61,7 @@ export function ThemeModeProvider({ children }) {
     injectThemeCssVars(mode);
   }, [mode]);
 
-  // If user accepts, switch mode
+  // If user accepts system change, update mode and save
   const handleAccept = () => {
     setMode(pendingSystemMode);
     setDialogOpen(false);
