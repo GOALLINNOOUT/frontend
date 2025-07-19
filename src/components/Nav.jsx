@@ -78,7 +78,7 @@ function Nav() {
     { to: '/perfumes', label: 'Perfumes' },
     { to: '/fashion', label: 'Design Gallery' },
     { to: '/cart', label: 'Cart' },
-    { to: '/notifications', label: 'Notifications', icon: true },
+    // Notifications link removed for guests
     { to: '/about', label: 'About' },
     { to: '/blog', label: 'Blog' },
     { to: '/contact', label: 'Contact' },
@@ -307,21 +307,23 @@ function Nav() {
               </Badge>
             </IconButton>
           )}
-          {/* Notifications icon for desktop only */}
-          <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-            <IconButton
-              component={Link}
-              to="/notifications"
-              color={location.pathname === '/notifications' ? 'primary' : 'default'}
-              aria-label="Notifications"
-              sx={{ mx: 1, bgcolor: location.pathname === '/notifications' ? theme.palette.primary.main : 'transparent', color: location.pathname === '/notifications' ? theme.palette.primary.contrastText : theme.palette.text.primary, '&:hover': { bgcolor: location.pathname === '/notifications' ? theme.palette.primary.dark : theme.palette.action.hover } }}
-              role="menuitem"
-            >
-              <Badge badgeContent={unreadCount} color="error" max={99}>
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-          </Box>
+          {/* Notifications icon for desktop only, only for logged-in users */}
+          {role && (
+            <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+              <IconButton
+                component={Link}
+                to="/notifications"
+                color={location.pathname === '/notifications' ? 'primary' : 'default'}
+                aria-label="Notifications"
+                sx={{ mx: 1, bgcolor: location.pathname === '/notifications' ? theme.palette.primary.main : 'transparent', color: location.pathname === '/notifications' ? theme.palette.primary.contrastText : theme.palette.text.primary, '&:hover': { bgcolor: location.pathname === '/notifications' ? theme.palette.primary.dark : theme.palette.action.hover } }}
+                role="menuitem"
+              >
+                <Badge badgeContent={unreadCount} color="error" max={99}>
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
+            </Box>
+          )}
           {/* Show Login/Sign Up for guests on desktop only (not mobile) */}
           {!role && (
             <Box sx={{ display: { xs: 'none', sm: 'none', md: 'flex' }, gap: 1, ml: 2 }}>
