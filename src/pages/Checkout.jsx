@@ -427,14 +427,6 @@ function Checkout() {
           <Typography variant="h6">Subtotal:</Typography>
           <Typography variant="h6" color="text.secondary">₦{total.toLocaleString()}</Typography>
         </Box>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-          <Typography variant="h6">Delivery Fee:</Typography>
-          <Typography variant="h6" color="info.main">₦{deliveryFee.toLocaleString()}</Typography>
-        </Box>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h5" fontWeight={700}>Grand Total:</Typography>
-          <Typography variant="h5" color="secondary.main" fontWeight={700}>₦{grandTotal.toLocaleString()}</Typography>
-        </Box>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" mb={1} color="text.secondary">Customer Information</Typography>
         <Stack spacing={2} mb={2}>
@@ -462,6 +454,15 @@ function Checkout() {
             sx={{ alignItems: 'flex-start' }}
           />
         </Stack>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+          <Typography variant="h6">Delivery Fee:</Typography>
+          <Typography variant="h6" color="info.main">₦{deliveryFee.toLocaleString()}</Typography>
+        </Box>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h5" fontWeight={700}>Grand Total:</Typography>
+          <Typography variant="h5" color="secondary.main" fontWeight={700}>₦{grandTotal.toLocaleString()}</Typography>
+        </Box>
+        <Divider sx={{ my: 2 }} />
         <AnimatePresence>
           {error && (
             <motion.div
