@@ -293,17 +293,20 @@ function Nav() {
         </Box>
         {/* Cart, Notifications, and Account icons always at far right */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton
-            component={Link}
-            to="/cart"
-            color="primary"
-            aria-label="cart"
-            sx={{ ml: { xs: 1, md: 2 }, bgcolor: theme.palette.background.default, borderRadius: theme.shape.borderRadius }}
-          >
-            <Badge badgeContent={cartCount} color="secondary" max={99}>
-              <ShoppingCartIcon />
-            </Badge>
-          </IconButton>
+          {/* Cart icon only for non-admin users */}
+          {role !== 'admin' && (
+            <IconButton
+              component={Link}
+              to="/cart"
+              color="primary"
+              aria-label="cart"
+              sx={{ ml: { xs: 1, md: 2 }, bgcolor: theme.palette.background.default, borderRadius: theme.shape.borderRadius }}
+            >
+              <Badge badgeContent={cartCount} color="secondary" max={99}>
+                <ShoppingCartIcon />
+              </Badge>
+            </IconButton>
+          )}
           {/* Notifications icon for desktop only */}
           <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
             <IconButton
