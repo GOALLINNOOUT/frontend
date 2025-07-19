@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Box, Typography, Paper, Tabs, Tab } from '@mui/material';
 import AnalyticsFilters from '../components/analytics/AnalyticsFilters';
 import SalesAnalytics from '../components/analytics/SalesAnalytics';
@@ -28,33 +29,39 @@ const AdminAnalytics = () => {
   ];
 
   return (
-    <Box sx={{ p: { xs: 1, md: 3 } }}>
-      <Typography variant="h4" fontWeight={700} mb={2}>
-        Admin Analytics Dashboard
-      </Typography>
-      <Paper sx={{ p: 2, mb: 3 }} elevation={2}>
-        <AnalyticsFilters onChange={handleDateFilter} />
-        <ExportButtons dateRange={dateRange} tab={tabList[tab].key} />
-        <Tabs
-          value={tab}
-          onChange={(_, v) => setTab(v)}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{ mt: 2 }}
-        >
-          {tabList.map((t, idx) => (
-            <Tab key={t.key} label={t.label} value={idx} />
-          ))}
-        </Tabs>
-      </Paper>
-      <Box mt={2}>
-        {tabList[tab]?.component ? (
-          tabList[tab].component
-        ) : (
-          <Typography color="error">Component not found or failed to render.</Typography>
-        )}
+    <>
+      <Helmet>
+        <title>Admin Analytics | JC's Closet</title>
+        <meta name="description" content="Admin analytics dashboard for JC's Closet. View sales, product, customer, traffic, orders, and marketing analytics." />
+      </Helmet>
+      <Box sx={{ p: { xs: 1, md: 3 } }}>
+        <Typography variant="h4" fontWeight={700} mb={2}>
+          Admin Analytics Dashboard
+        </Typography>
+        <Paper sx={{ p: 2, mb: 3 }} elevation={2}>
+          <AnalyticsFilters onChange={handleDateFilter} />
+          <ExportButtons dateRange={dateRange} tab={tabList[tab].key} />
+          <Tabs
+            value={tab}
+            onChange={(_, v) => setTab(v)}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{ mt: 2 }}
+          >
+            {tabList.map((t, idx) => (
+              <Tab key={t.key} label={t.label} value={idx} />
+            ))}
+          </Tabs>
+        </Paper>
+        <Box mt={2}>
+          {tabList[tab]?.component ? (
+            tabList[tab].component
+          ) : (
+            <Typography color="error">Component not found or failed to render.</Typography>
+          )}
+        </Box>
       </Box>
-    </Box>
+    </>
   );
 };
 
