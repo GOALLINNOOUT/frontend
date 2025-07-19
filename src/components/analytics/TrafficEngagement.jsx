@@ -114,10 +114,13 @@ const TrafficEngagement = ({ dateRange }) => {
   // --- Browser Chart Data from backend ---
   // Use backend-calculated 'browsers' array: [{ name, count }]
   let browserChartData = [];
+  let totalBrowserCount = 0;
   if (data && Array.isArray(data.browsers)) {
+    totalBrowserCount = data.browsers.reduce((sum, b) => sum + b.count, 0);
     browserChartData = data.browsers.map(b => ({
       browser: b.name,
-      count: b.count
+      count: b.count,
+      percent: totalBrowserCount > 0 ? ((b.count / totalBrowserCount) * 100).toFixed(1) : '0.0'
     }));
   }
 
@@ -383,7 +386,7 @@ const TrafficEngagement = ({ dateRange }) => {
               open={Boolean(infoAnchor['browserUsage'])}
               anchorEl={infoAnchor['browserUsage']}
               onClose={handleInfoClose('browserUsage')}
-              text={"Number of users by browser (e.g., Chrome, Safari, Firefox, Edge, etc.) in the selected period."}
+              text={"Browser usage distribution: shows the number and percent of users by browser (e.g., Chrome, Safari, Firefox, Edge, etc.) in the selected period. Percent is of total browser-identified users."}
             />
           </Box>
           <Box sx={{ bgcolor: theme.palette.background.paper, borderRadius: 3, p: 2, boxShadow: 1, width: '90vw', mt: 2 }}>
@@ -397,9 +400,28 @@ const TrafficEngagement = ({ dateRange }) => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="browser" type="category" tick={{ fontSize: 18, fontWeight: 600 }} />
                 <YAxis type="number" allowDecimals={false} tick={{ fontSize: 18, fontWeight: 600 }} />
-                <Tooltip formatter={(value) => [`${value} users`, 'Users']} />
+                <Tooltip 
+                  formatter={(value, name, props) => {
+                    const percent = props.payload.percent;
+                    return [`${value} users (${percent}%)`, 'Users'];
+                  }}
+                />
                 <Bar dataKey="count" fill={theme.palette.info.main} barSize="100%" radius={[10, 10, 0, 0]} name="Users">
-                  <LabelList dataKey="count" position="top" fontSize={16} fontWeight={700} />
+                  <LabelList 
+                    dataKey="count" 
+                    position="top" 
+                    fontSize={16} 
+                    fontWeight={700} 
+                    content={(props) => {
+                      const { x, y, width, value, index } = props;
+                      const percent = browserChartData[index]?.percent;
+                      return (
+                        <text x={x + width / 2} y={y - 8} textAnchor="middle" fontSize={16} fontWeight={700} fill={theme.palette.text.primary}>
+                          {value} ({percent}%)
+                        </text>
+                      );
+                    }}
+                  />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -408,7 +430,7 @@ const TrafficEngagement = ({ dateRange }) => {
           <Box component="ul" sx={{ m: 0, pl: 3, fontSize: 15, color: 'text.secondary', display: 'none' }}>
             {browserChartData.map((b, i) => (
               <li key={i} style={{ marginBottom: 4, listStyle: 'disc' }}>
-                <b>{b.browser}</b> <span style={{ color: theme.palette.text.disabled }}>({b.count} users)</span>
+                <b>{b.browser}</b> <span style={{ color: theme.palette.text.disabled }}>({b.count} users, {b.percent}%)</span>
               </li>
             ))}
           </Box>
