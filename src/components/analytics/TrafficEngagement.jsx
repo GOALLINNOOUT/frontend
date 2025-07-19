@@ -386,7 +386,7 @@ const TrafficEngagement = ({ dateRange }) => {
               open={Boolean(infoAnchor['browserUsage'])}
               anchorEl={infoAnchor['browserUsage']}
               onClose={handleInfoClose('browserUsage')}
-              text={"Browser usage distribution: shows the number and percent of users by browser (e.g., Chrome, Safari, Firefox, Edge, etc.) in the selected period. Percent is of total browser-identified users."}
+              text={"Browser usage distribution: shows the number and percent of page views by browser (e.g., Chrome, Safari, Firefox, Edge, etc.) in the selected period. Percent is of total browser-identified page views."}
             />
           </Box>
           <Box sx={{ bgcolor: theme.palette.background.paper, borderRadius: 3, p: 2, boxShadow: 1, width: '90vw', mt: 2 }}>
@@ -403,10 +403,10 @@ const TrafficEngagement = ({ dateRange }) => {
                 <Tooltip 
                   formatter={(value, name, props) => {
                     const percent = props.payload.percent;
-                    return [`${value} users (${percent}%)`, 'Users'];
+                    return [`${value} page views (${percent}%)`, 'Page Views'];
                   }}
                 />
-                <Bar dataKey="count" fill={theme.palette.info.main} barSize="100%" radius={[10, 10, 0, 0]} name="Users">
+                <Bar dataKey="count" fill={theme.palette.info.main} barSize="100%" radius={[10, 10, 0, 0]} name="Page Views">
                   <LabelList 
                     dataKey="count" 
                     position="top" 
@@ -430,7 +430,7 @@ const TrafficEngagement = ({ dateRange }) => {
           <Box component="ul" sx={{ m: 0, pl: 3, fontSize: 15, color: 'text.secondary', display: 'none' }}>
             {browserChartData.map((b, i) => (
               <li key={i} style={{ marginBottom: 4, listStyle: 'disc' }}>
-                <b>{b.browser}</b> <span style={{ color: theme.palette.text.disabled }}>({b.count} users, {b.percent}%)</span>
+                <b>{b.browser}</b> <span style={{ color: theme.palette.text.disabled }}>({b.count} page views, {b.percent}%)</span>
               </li>
             ))}
           </Box>
