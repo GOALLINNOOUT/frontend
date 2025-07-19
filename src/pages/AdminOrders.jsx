@@ -40,7 +40,7 @@ function AdminOrders() {
       if (stateTerm && stateTerm.trim()) params.push(`state=${encodeURIComponent(stateTerm.trim())}`);
       if (params.length) url += `?${params.join('&')}`;
       const res = await api.get(url);
-      setOrders(res.data);
+      setOrders(Array.isArray(res.data) ? res.data : []);
     } finally {
       if (isInitial) setInitialLoading(false);
       setTableLoading(false);
@@ -201,84 +201,86 @@ function AdminOrders() {
             )}
           </div>
         </div>
-        <div className="latest-orders" style={{ position: 'relative' }}>
-          <table>
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Location</th>
-                <th>Items</th>
-                <th>Subtotal</th>
-                <th>Delivery</th>
-                <th>Grand Total</th>
-                <th>Status</th>
-                <th>Paid At</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map(order => (
-                <tr key={order._id} className="order-row">
-                  <td data-label="Order ID">{order._id.slice(-6).toUpperCase()}</td>
-                  <td data-label="Customer">
-                    <b>{order.customer.name}</b><br />
-                    <span style={{ fontSize: 13 }}>{order.customer.email}<br />{order.customer.phone}</span>
-                  </td>
-                  <td data-label="Location">
-                    <span style={{ fontSize: 13 }}>
-                      {order.customer.address}<br/>
-                      <b>{order.customer.state}</b> / {order.customer.lga}
-                    </span>
-                  </td>
-                  <td data-label="Items">
-                    <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                      {order.cart.map(item => (
-                        <li key={item._id}>{item.name} x{item.quantity}</li>
-                      ))}
-                    </ul>
-                  </td>
-                  <td data-label="Subtotal">₦{order.amount?.toLocaleString()}</td>
-                  <td data-label="Delivery">₦{order.deliveryFee?.toLocaleString?.() ?? order.deliveryFee ?? '-'}</td>
-                  <td data-label="Grand Total">₦{order.grandTotal?.toLocaleString?.() ?? order.grandTotal ?? '-'}</td>
-                  <td data-label="Status" className={order.status ? order.status.toLowerCase() : ''}>
-                    {order.status}
-                    {order.status === 'paid' && (
-                      <Button size="small" variant="outlined" color="info" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'shipped')}>Mark as Shipped</Button>
-                    )}
-
-                    {order.status === 'shipped' && (
-                      <>
-                        <Button size="small" variant="outlined" color="warning" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'out_for_delivery')}>Mark as Out for Delivery</Button>
-                        <Button size="small" variant="outlined" color="secondary" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'delivered')}>Mark as Delivered</Button>
-                        <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
-                      </>
-                    )}
-
-                    {order.status === 'out_for_delivery' && (
-                      <>
-                        <Button size="small" variant="outlined" color="secondary" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'delivered')}>Mark as Delivered</Button>
-                        <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
-                      </>
-                    )}
-                    {order.status === 'paid' && (
-                      <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
-                    )}
-                  </td>
-                  <td data-label="Paid At">
-                    {new Date(order.paidAt).toLocaleString()}
-                    {order.shippedAt && <><br /><span style={{fontSize:12}}>Shipped: {new Date(order.shippedAt).toLocaleString()}</span></>}
-                    {order.deliveredAt && <><br /><span style={{fontSize:12}}>Delivered: {new Date(order.deliveredAt).toLocaleString()}</span></>}
-                    {order.cancelledAt && <><br /><span style={{fontSize:12, color:'#b71c1c'}}>Cancelled: {new Date(order.cancelledAt).toLocaleString()}</span></>}
-                  </td>
-                  <td data-label="Actions">
-                    <Button color="primary" onClick={() => setDetailsOrder(order)} style={{marginRight:8}}>View Details</Button>
-                    <Button color="error" onClick={() => handleDelete(order._id)} disabled={deleting === order._id}>Delete</Button>
-                  </td>
+        <div className="latest-orders" style={{ position: 'relative', width: '100%' }}>
+          <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: 8, border: '1px solid #e0e7ef', background: '#fff', boxShadow: '0 1px 4px #e0e7ef' }}>
+            <table style={{ minWidth: 1100, width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Location</th>
+                  <th>Items</th>
+                  <th>Subtotal</th>
+                  <th>Delivery</th>
+                  <th>Grand Total</th>
+                  <th>Status</th>
+                  <th>Paid At</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {(Array.isArray(orders) ? orders : []).map(order => (
+                  <tr key={order._id} className="order-row">
+                    <td data-label="Order ID">{order._id.slice(-6).toUpperCase()}</td>
+                    <td data-label="Customer">
+                      <b>{order.customer.name}</b><br />
+                      <span style={{ fontSize: 13 }}>{order.customer.email}<br />{order.customer.phone}</span>
+                    </td>
+                    <td data-label="Location">
+                      <span style={{ fontSize: 13 }}>
+                        {order.customer.address}<br/>
+                        <b>{order.customer.state}</b> / {order.customer.lga}
+                      </span>
+                    </td>
+                    <td data-label="Items">
+                      <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                        {order.cart.map(item => (
+                          <li key={item._id}>{item.name} x{item.quantity}</li>
+                        ))}
+                      </ul>
+                    </td>
+                    <td data-label="Subtotal">₦{order.amount?.toLocaleString()}</td>
+                    <td data-label="Delivery">₦{order.deliveryFee?.toLocaleString?.() ?? order.deliveryFee ?? '-'}</td>
+                    <td data-label="Grand Total">₦{order.grandTotal?.toLocaleString?.() ?? order.grandTotal ?? '-'}</td>
+                    <td data-label="Status" className={order.status ? order.status.toLowerCase() : ''}>
+                      {order.status}
+                      {order.status === 'paid' && (
+                        <Button size="small" variant="outlined" color="info" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'shipped')}>Mark as Shipped</Button>
+                      )}
+
+                      {order.status === 'shipped' && (
+                        <>
+                          <Button size="small" variant="outlined" color="warning" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'out_for_delivery')}>Mark as Out for Delivery</Button>
+                          <Button size="small" variant="outlined" color="secondary" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'delivered')}>Mark as Delivered</Button>
+                          <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
+                        </>
+                      )}
+
+                      {order.status === 'out_for_delivery' && (
+                        <>
+                          <Button size="small" variant="outlined" color="secondary" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'delivered')}>Mark as Delivered</Button>
+                          <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
+                        </>
+                      )}
+                      {order.status === 'paid' && (
+                        <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
+                      )}
+                    </td>
+                    <td data-label="Paid At">
+                      {new Date(order.paidAt).toLocaleString()}
+                      {order.shippedAt && <><br /><span style={{fontSize:12}}>Shipped: {new Date(order.shippedAt).toLocaleString()}</span></>}
+                      {order.deliveredAt && <><br /><span style={{fontSize:12}}>Delivered: {new Date(order.deliveredAt).toLocaleString()}</span></>}
+                      {order.cancelledAt && <><br /><span style={{fontSize:12, color:'#b71c1c'}}>Cancelled: {new Date(order.cancelledAt).toLocaleString()}</span></>}
+                    </td>
+                    <td data-label="Actions">
+                      <Button color="primary" onClick={() => setDetailsOrder(order)} style={{marginRight:8}}>View Details</Button>
+                      <Button color="error" onClick={() => handleDelete(order._id)} disabled={deleting === order._id}>Delete</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {tableLoading && (
             <div style={{
               position: 'absolute',
