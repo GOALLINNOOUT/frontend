@@ -42,7 +42,6 @@ import SetupPasswordPage from './pages/SetupPasswordPage';
 import usePageViewLogger from './hooks/usePageViewLogger';
 import './App.css'
 import Notifications from './pages/Notifications';
-import AdminPush from './pages/AdminPush.jsx';
 // useSessionLogger removed: session end is now handled in the backend
 
 function useSessionStart() {
@@ -105,7 +104,6 @@ function AppContentInner() {
         <WelcomeMessage user={welcomeUser} open={showWelcome} onClose={() => setShowWelcome(false)} />
         <Routes>
           <Route path="/notifications" element={<Notifications />} />
-          <Route path="/admin/push" element={<AdminPush />} />
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
