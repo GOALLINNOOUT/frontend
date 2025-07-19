@@ -111,6 +111,16 @@ const TrafficEngagement = ({ dateRange }) => {
     }));
   }
 
+  // --- Browser Chart Data from backend ---
+  // Use backend-calculated 'browsers' array: [{ name, count }]
+  let browserChartData = [];
+  if (data && Array.isArray(data.browsers)) {
+    browserChartData = data.browsers.map(b => ({
+      browser: b.name,
+      count: b.count
+    }));
+  }
+
   // Prepare pageViewsPerSession data for chart: use user email if present and non-empty, else Session ID N
   let pageViewsPerSessionData = [];
   if (data && Array.isArray(data.pageViewsPerSession)) {
@@ -356,6 +366,49 @@ const TrafficEngagement = ({ dateRange }) => {
             {osChartData.map((o, i) => (
               <li key={i} style={{ marginBottom: 4, listStyle: 'disc' }}>
                 <b>{o.os}</b> <span style={{ color: theme.palette.text.disabled }}>({o.count} users)</span>
+              </li>
+            ))}
+          </Box>
+        </Box>
+
+        {/* New: Browser Usage Chart */}
+        <Box mt={6}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+            <Typography variant="subtitle2" fontWeight={600} color="primary.dark">Browser Usage</Typography>
+            <IconButton size="small" onClick={handleInfoOpen('browserUsage')}>
+              <HelpOutlineIcon fontSize="small" />
+            </IconButton>
+            <InfoPopover
+              id="info-browserUsage"
+              open={Boolean(infoAnchor['browserUsage'])}
+              anchorEl={infoAnchor['browserUsage']}
+              onClose={handleInfoClose('browserUsage')}
+              text={"Number of users by browser (e.g., Chrome, Safari, Firefox, Edge, etc.) in the selected period."}
+            />
+          </Box>
+          <Box sx={{ bgcolor: theme.palette.background.paper, borderRadius: 3, p: 2, boxShadow: 1, width: '90vw', mt: 2 }}>
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart
+                data={browserChartData}
+                layout="horizontal"
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                barCategoryGap={40}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="browser" type="category" tick={{ fontSize: 18, fontWeight: 600 }} />
+                <YAxis type="number" allowDecimals={false} tick={{ fontSize: 18, fontWeight: 600 }} />
+                <Tooltip formatter={(value) => [`${value} users`, 'Users']} />
+                <Bar dataKey="count" fill={theme.palette.info.main} barSize="100%" radius={[10, 10, 0, 0]} name="Users">
+                  <LabelList dataKey="count" position="top" fontSize={16} fontWeight={700} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
+          {/* List fallback for accessibility */}
+          <Box component="ul" sx={{ m: 0, pl: 3, fontSize: 15, color: 'text.secondary', display: 'none' }}>
+            {browserChartData.map((b, i) => (
+              <li key={i} style={{ marginBottom: 4, listStyle: 'disc' }}>
+                <b>{b.browser}</b> <span style={{ color: theme.palette.text.disabled }}>({b.count} users)</span>
               </li>
             ))}
           </Box>
