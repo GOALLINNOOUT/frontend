@@ -6,6 +6,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { Helmet } from 'react-helmet-async';
 
@@ -13,6 +14,9 @@ import { Helmet } from 'react-helmet-async';
 function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [statesLoading, setStatesLoading] = useState(false);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [updating, setUpdating] = useState('');
   const [deleting, setDeleting] = useState('');
   const [dialog, setDialog] = useState({ open: false, type: '', orderId: '', status: '' });
@@ -24,7 +28,11 @@ function AdminOrders() {
   const suggestionTimeout = useRef(null);
 
   const fetchOrders = async (emailTerm = '', stateTerm = '', isInitial = false) => {
-    if (isInitial) setInitialLoading(true);
+    if (isInitial) {
+      setInitialLoading(true);
+    } else {
+      setTableLoading(true);
+    }
     try {
       let url = '/orders';
       const params = [];
@@ -35,12 +43,14 @@ function AdminOrders() {
       setOrders(res.data);
     } finally {
       if (isInitial) setInitialLoading(false);
+      setTableLoading(false);
     }
   };
 
   // Fetch available states for dropdown
   useEffect(() => {
-    api.get('/orders/states').then(res => setStates(res.data || []));
+    setStatesLoading(true);
+    api.get('/orders/states').then(res => setStates(res.data || [])).finally(() => setStatesLoading(false));
   }, []);
 
   useEffect(() => {
@@ -56,15 +66,19 @@ function AdminOrders() {
     if (suggestionTimeout.current) clearTimeout(suggestionTimeout.current);
     if (value.trim().length > 0) {
       suggestionTimeout.current = setTimeout(async () => {
+        setSuggestionsLoading(true);
         try {
           const res = await api.get(`/orders/suggestions?query=${encodeURIComponent(value)}`);
           setSuggestions(res.data || []);
         } catch {
           setSuggestions([]);
+        } finally {
+          setSuggestionsLoading(false);
         }
       }, 200);
     } else {
       setSuggestions([]);
+      setSuggestionsLoading(false);
     }
   }
 
@@ -133,7 +147,7 @@ function AdminOrders() {
             onBlur={e => e.target.style.border = '1.5px solid #cbd5e1'}
             aria-label="Search Orders by Email"
           />
-          {suggestions.length > 0 && (
+          {(suggestionsLoading || suggestions.length > 0) && (
             <div style={{
               position: 'absolute',
               top: 44,
@@ -147,11 +161,19 @@ function AdminOrders() {
               maxHeight: 220,
               overflowY: 'auto',
               marginTop: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: suggestionsLoading && suggestions.length === 0 ? 'center' : 'flex-start',
+              minHeight: suggestionsLoading && suggestions.length === 0 ? 60 : undefined,
             }}>
+              {suggestionsLoading && suggestions.length === 0 && (
+                <div style={{ padding: '16px 0' }}><CircularProgress size={22} /></div>
+              )}
               {suggestions.map((s, i) => (
                 <div
                   key={i}
-                  style={{ padding: '10px 16px', cursor: 'pointer', fontSize: 15, color: '#222', borderBottom: i !== suggestions.length - 1 ? '1px solid #f1f5f9' : 'none', background: '#fff' }}
+                  style={{ padding: '10px 16px', cursor: 'pointer', fontSize: 15, color: '#222', borderBottom: i !== suggestions.length - 1 ? '1px solid #f1f5f9' : 'none', background: '#fff', width: '100%' }}
                   onMouseDown={() => handleSuggestionClick(s)}
                 >
                   {s}
@@ -159,19 +181,27 @@ function AdminOrders() {
               ))}
             </div>
           )}
-          <select
-            value={selectedState}
-            onChange={handleStateChange}
-            style={{ padding: 8, width: 180, borderRadius: 24, border: '1.5px solid #cbd5e1', fontSize: 16, background: '#f8fafc', boxShadow: '0 1px 4px #e0e7ef', outline: 'none', transition: 'border 0.2s, box-shadow 0.2s' }}
-            aria-label="Filter by State"
-          >
-            <option value="">All States</option>
-            {states.map((state, i) => (
-              <option key={state + i} value={state}>{state}</option>
-            ))}
-          </select>
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <select
+              value={selectedState}
+              onChange={handleStateChange}
+              style={{ padding: 8, width: 180, borderRadius: 24, border: '1.5px solid #cbd5e1', fontSize: 16, background: '#f8fafc', boxShadow: '0 1px 4px #e0e7ef', outline: 'none', transition: 'border 0.2s, box-shadow 0.2s' }}
+              aria-label="Filter by State"
+              disabled={statesLoading}
+            >
+              <option value="">All States</option>
+              {states.map((state, i) => (
+                <option key={state + i} value={state}>{state}</option>
+              ))}
+            </select>
+            {statesLoading && (
+              <div style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
+                <CircularProgress size={18} />
+              </div>
+            )}
+          </div>
         </div>
-        <div className="latest-orders">
+        <div className="latest-orders" style={{ position: 'relative' }}>
           <table>
             <thead>
               <tr>
@@ -249,6 +279,22 @@ function AdminOrders() {
               ))}
             </tbody>
           </table>
+          {tableLoading && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: 'rgba(255,255,255,0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 2
+            }}>
+              <CircularProgress size={36} />
+            </div>
+          )}
         </div>
         <Dialog open={dialog.open} onClose={cancelDialog}>
           <DialogTitle>{dialog.type === 'delete' ? 'Delete Order' : 'Update Order Status'}</DialogTitle>
@@ -256,9 +302,15 @@ function AdminOrders() {
             {dialog.type === 'delete' ? 'Are you sure you want to delete this order? This action cannot be undone.' : `Are you sure you want to mark this order as "${dialog.status}"? The customer will be notified.`}
           </DialogContent>
           <DialogActions>
-            <Button onClick={cancelDialog}>Cancel</Button>
-            <Button onClick={confirmAction} color={dialog.type === 'delete' ? 'error' : 'primary'} autoFocus>
-              Confirm
+            <Button onClick={cancelDialog} disabled={updating || deleting}>Cancel</Button>
+            <Button
+              onClick={confirmAction}
+              color={dialog.type === 'delete' ? 'error' : 'primary'}
+              autoFocus
+              disabled={Boolean(updating || deleting)}
+              startIcon={(updating || deleting) && <CircularProgress size={18} color="inherit" />}
+            >
+              {(updating || deleting) ? 'Processing...' : 'Confirm'}
             </Button>
           </DialogActions>
         </Dialog>
