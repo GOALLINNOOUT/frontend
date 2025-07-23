@@ -865,74 +865,74 @@ const PerfumeCollection = () => {
       <div className="container">
         <div className="header">
           <h1 className="title">Perfumes Collection</h1>
-          <div className="sticky-controls">
-            <div className="search-container">
-              <div style={{ position: 'relative', width: '90%', maxWidth: 320 }}>
-                <input
-                  type="text"
-                  className="search-input"
-                  placeholder="Search perfumes..."
-                  onChange={handleSearchChange}
-                  style={{
-                    paddingLeft: 38,
-                    boxShadow: `0 2px 8px ${theme.palette.grey.e0e7ef}99`,
-                    background: `${theme.palette.grey.f8fafc} 0%, ${theme.palette.grey.e0e7ef} 100%)`,
-                    border: `1.5px solid ${theme.palette.grey._e3eaf5 || '#e3eaf5'}`,
-                    borderRadius: 12,
-                    fontSize: 15,
-                    transition: 'border 0.2s, box-shadow 0.2s',
-                  }}
-                  onFocus={e => e.target.style.border = '2px solid #1976d2'}
-                  onBlur={e => e.target.style.border = '1.5px solid #e3eaf5'}
-                  value={currentSearch}
-                  autoComplete="off"
-                />
-                <svg
-                  style={{
-                    position: 'absolute',
-                    left: 12,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    width: 18,
-                    height: 18,
-                    color: '#b0b8c9',
-                    pointerEvents: 'none',
-                  }}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <circle cx="11" cy="11" r="7" />
-                  <line x1="16.5" y1="16.5" x2="21" y2="21" />
-                </svg>
-                {/* Suggestions dropdown */}
-                {suggestions.length > 0 && (
-                  <div className="suggestions-dropdown">
-                    {suggestions.map((s, i) => (
-                      <div
-                        key={i}
-                        className="suggestion-item"
-                        onMouseDown={() => handleSuggestionClick(s)}
-                      >
-                        {s}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="categories">
-              {categories.map((cat) => (
-                <div
-                  key={cat}
-                  className={`category-item ${cat === currentCategory ? "active" : ""}`}
-                  onClick={() => handleCategoryClick(cat)}
-                >
-                  {cat === "all" ? "All" : cat.charAt(0).toUpperCase() + cat.slice(1)}
+        </div>
+        <div className="sticky-controls">
+          <div className="search-container">
+            <div style={{ position: 'relative', width: '90%', maxWidth: 320 }}>
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search perfumes..."
+                onChange={handleSearchChange}
+                style={{
+                  paddingLeft: 38,
+                  boxShadow: `0 2px 8px ${theme.palette.grey.e0e7ef}99`,
+                  background: `${theme.palette.grey.f8fafc} 0%, ${theme.palette.grey.e0e7ef} 100%)`,
+                  border: `1.5px solid ${theme.palette.grey._e3eaf5 || '#e3eaf5'}`,
+                  borderRadius: 12,
+                  fontSize: 15,
+                  transition: 'border 0.2s, box-shadow 0.2s',
+                }}
+                onFocus={e => e.target.style.border = '2px solid #1976d2'}
+                onBlur={e => e.target.style.border = '1.5px solid #e3eaf5'}
+                value={currentSearch}
+                autoComplete="off"
+              />
+              <svg
+                style={{
+                  position: 'absolute',
+                  left: 12,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: 18,
+                  height: 18,
+                  color: '#b0b8c9',
+                  pointerEvents: 'none',
+                }}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <line x1="16.5" y1="16.5" x2="21" y2="21" />
+              </svg>
+              {/* Suggestions dropdown */}
+              {suggestions.length > 0 && (
+                <div className="suggestions-dropdown">
+                  {suggestions.map((s, i) => (
+                    <div
+                      key={i}
+                      className="suggestion-item"
+                      onMouseDown={() => handleSuggestionClick(s)}
+                    >
+                      {s}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
+          </div>
+          <div className="categories">
+            {categories.map((cat) => (
+              <div
+                key={cat}
+                className={`category-item ${cat === currentCategory ? "active" : ""}`}
+                onClick={() => handleCategoryClick(cat)}
+              >
+                {cat === "all" ? "All" : cat.charAt(0).toUpperCase() + cat.slice(1)}
+              </div>
+            ))}
           </div>
         </div>
 
