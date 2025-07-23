@@ -2,17 +2,19 @@
 // Install idb-keyval: npm install idb-keyval
 import { get, set } from 'idb-keyval';
 
-export async function getCachedPerfumes(key = 'perfumes') {
+// Get cached perfumes for a specific page (default page 1)
+export async function getCachedPerfumes(page = 1) {
   try {
-    return await get(key);
+    return await get(`perfumes_page_${page}`);
   } catch (e) {
     return null;
   }
 }
 
-export async function setCachedPerfumes(data, key = 'perfumes') {
+// Set cached perfumes for a specific page (default page 1)
+export async function setCachedPerfumes(data, page = 1) {
   try {
-    await set(key, data);
+    await set(`perfumes_page_${page}`, data);
   } catch (e) {
     // handle error
   }

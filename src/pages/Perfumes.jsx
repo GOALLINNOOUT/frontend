@@ -212,10 +212,10 @@ const PerfumeCollection = () => {
   const MAX_PAGES = 20; 
 
   const fetchPerfumes = async (page = 1, search = "", category = "all") => {
-    // Only cache when no search and all category, and first page
-    const shouldUseCache = page === 1 && !search && (category === "all" || !category);
+    // Only cache when no search and all category
+    const shouldUseCache = !search && (category === "all" || !category);
     if (shouldUseCache) {
-      const cached = await getCachedPerfumes();
+      const cached = await getCachedPerfumes(page);
       if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
         return cached;
       }
@@ -225,9 +225,9 @@ const PerfumeCollection = () => {
       const params = new URLSearchParams({ page, search, category, limit: ITEMS_PER_PAGE });
       const res = await api.get(`/perfumes?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to fetch perfumes');
-      // Cache only the main collection (no search/category, first page)
+      // Cache only the main collection (no search/category)
       if (shouldUseCache) {
-        setCachedPerfumes(res.data);
+        setCachedPerfumes(res.data, page);
       }
       return res.data;
     } catch {
