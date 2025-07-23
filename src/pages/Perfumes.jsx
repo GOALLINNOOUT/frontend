@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { addToCart as addToCartUtil } from '../utils/cart';
 import { getPerfumePromo } from '../utils/perfumePromo';
 import * as api from '../utils/api';
+import { getCachedPerfumes, setCachedPerfumes } from '../utils/indexedDb';
 import { Helmet } from 'react-helmet-async';
 import { AuthContext } from '../components/AuthContext';
 import { useTheme } from '@mui/material/styles';
@@ -211,12 +212,23 @@ const PerfumeCollection = () => {
   const MAX_PAGES = 20; 
 
   const fetchPerfumes = async (page = 1, search = "", category = "all") => {
+    // Only cache when no search and all category, and first page
+    const shouldUseCache = page === 1 && !search && (category === "all" || !category);
+    if (shouldUseCache) {
+      const cached = await getCachedPerfumes();
+      if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
+        return cached;
+      }
+    }
     try {
       // Send search, category, and limit as query params
       const params = new URLSearchParams({ page, search, category, limit: ITEMS_PER_PAGE });
       const res = await api.get(`/perfumes?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to fetch perfumes');
-      
+      // Cache only the main collection (no search/category, first page)
+      if (shouldUseCache) {
+        setCachedPerfumes(res.data);
+      }
       return res.data;
     } catch {
       setError("Unable to load perfumes. Please check your internet connection and try again.");
