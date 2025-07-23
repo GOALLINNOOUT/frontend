@@ -213,7 +213,7 @@ const PerfumeCollection = () => {
 
   const fetchPerfumes = async (page = 1, search = "", category = "all") => {
     // Only cache when no search and all category, and first page
-    const shouldUseCache = page === 1 && !search && (category === "all" || !category)
+    const shouldUseCache = page === 1 && !search && (category === "all" || !category);
     if (shouldUseCache) {
       const cached = await getCachedPerfumes();
       if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
