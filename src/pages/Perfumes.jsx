@@ -35,49 +35,10 @@ const getImageUrl = (imgPath) => {
   return imgPath;
 };
 
-const PerfumeImage = React.memo(({ src, alt, className, style, modal }) => {
+
+// PerfumeImage now receives loaded/shouldLoad and onLoad/onError from parent
+const PerfumeImage = React.memo(({ src, alt, className, style, modal, loaded, shouldLoad, onLoad, onError, observeRef }) => {
   const theme = useTheme();
-  const [loaded, setLoaded] = useState(false);
-  const [shouldLoad, setShouldLoad] = useState(false);
-  const imageRef = useRef(null);
-  const observedElement = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setShouldLoad(true);
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        rootMargin: '100px 0px', // Increased margin to start loading earlier
-        threshold: 0.1
-      }
-    );
-
-    if (imageRef.current) {
-      observedElement.current = imageRef.current;
-      observer.observe(imageRef.current);
-    }
-
-    return () => {
-      if (observedElement.current) {
-        observer.unobserve(observedElement.current);
-      }
-    };
-  }, []);
-
-  // Preload image when shouldLoad becomes true
-  useEffect(() => {
-    if (shouldLoad && src) {
-      const img = new Image();
-      img.src = getImageUrl(src);
-    }
-  }, [shouldLoad, src]);
-
   // Use modal-specific style if modal prop is true
   const imageStyle = modal
     ? {
@@ -120,7 +81,7 @@ const PerfumeImage = React.memo(({ src, alt, className, style, modal }) => {
   };
 
   return (
-    <div ref={imageRef} style={containerStyle}>
+    <div ref={observeRef} style={containerStyle}>
       {!loaded && (
         <div style={{
           position: 'absolute',
@@ -142,15 +103,8 @@ const PerfumeImage = React.memo(({ src, alt, className, style, modal }) => {
           loading="lazy"
           decoding="async"
           style={imageStyle}
-          onLoad={() => {
-            requestAnimationFrame(() => {
-              setLoaded(true);
-            });
-          }}
-          onError={() => {
-            console.warn('Failed to load image:', src);
-            setLoaded(true);
-          }}
+          onLoad={onLoad}
+          onError={onError}
         />
       )}
     </div>
@@ -457,6 +411,7 @@ const PerfumeCollection = () => {
   const gridWidth = containerWidth;
   const rowCount = Math.ceil(perfumes.length / columnCount);
 
+
   // For modal promo support
   let modalPromo = { promoActive: false, promoLabel: '', displayPrice: 0 };
   if (selectedPerfume) {
@@ -470,6 +425,15 @@ const PerfumeCollection = () => {
       setModalImageIndex(selectedPerfume.mainImageIndex || 0);
     }
   }, [selectedPerfume?._id]);
+
+  // --- Image loaded/shouldLoad cache for react-window grid ---
+  // Use a ref so it persists across renders but doesn't trigger rerender
+  const imageLoadCache = useRef({}); // { [imageUrl]: { loaded: bool, shouldLoad: bool } }
+
+  // Helper to get unique image key
+  const getImageKey = (perfume, mainImageIndex) => {
+    return `${perfume._id}-${mainImageIndex || 0}`;
+  };
 
   return (
     <>
@@ -1051,6 +1015,50 @@ const PerfumeCollection = () => {
               const isInStock = perfume.stock > 0;
               const mainImage = perfume.images[perfume.mainImageIndex || 0];
               const { promoActive, promoLabel, displayPrice } = getPerfumePromo(perfume);
+              const imageKey = getImageKey(perfume, perfume.mainImageIndex || 0);
+              // Setup intersection observer for lazy loading
+              const imgDivRef = React.useRef();
+              React.useEffect(() => {
+                if (!imgDivRef.current) return;
+                if (imageLoadCache.current[imageKey]?.shouldLoad) return;
+                const observer = new window.IntersectionObserver((entries) => {
+                  entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                      imageLoadCache.current[imageKey] = {
+                        ...imageLoadCache.current[imageKey],
+                        shouldLoad: true
+                      };
+                      observer.unobserve(entry.target);
+                    }
+                  });
+                }, { rootMargin: '100px 0px', threshold: 0.1 });
+                observer.observe(imgDivRef.current);
+                return () => observer.disconnect();
+              }, [imageKey]);
+              // Preload image if shouldLoad
+              React.useEffect(() => {
+                if (imageLoadCache.current[imageKey]?.shouldLoad && !imageLoadCache.current[imageKey]?.loaded && mainImage) {
+                  const img = new window.Image();
+                  img.src = getImageUrl(mainImage);
+                }
+              }, [imageKey, mainImage]);
+              // onLoad/onError handlers
+              const handleLoad = React.useCallback(() => {
+                imageLoadCache.current[imageKey] = {
+                  ...imageLoadCache.current[imageKey],
+                  loaded: true,
+                  shouldLoad: true
+                };
+              }, [imageKey]);
+              const handleError = React.useCallback(() => {
+                imageLoadCache.current[imageKey] = {
+                  ...imageLoadCache.current[imageKey],
+                  loaded: true,
+                  shouldLoad: true
+                };
+              }, [imageKey]);
+              const loaded = !!imageLoadCache.current[imageKey]?.loaded;
+              const shouldLoad = !!imageLoadCache.current[imageKey]?.shouldLoad;
               return (
                 <div
                   key={perfume._id}
@@ -1067,7 +1075,12 @@ const PerfumeCollection = () => {
                     src={mainImage}
                     alt={perfume.name}
                     className="perfume-image"
-                    key={`${perfume._id}-${perfume.mainImageIndex || 0}`}
+                    key={imageKey}
+                    loaded={loaded}
+                    shouldLoad={shouldLoad}
+                    onLoad={handleLoad}
+                    onError={handleError}
+                    observeRef={imgDivRef}
                   />
                   <div className="perfume-name">{perfume.name}</div>
                   <div className="perfume-description">{perfume.description}</div>
