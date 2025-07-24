@@ -9,6 +9,7 @@ import TrafficEngagement from '../components/analytics/TrafficEngagement';
 import OrdersOverview from '../components/analytics/OrdersOverview';
 import MarketingPerformance from '../components/analytics/MarketingPerformance';
 import ExportButtons from '../components/analytics/ExportButtons';
+import UserFlowAnalytics from '../components/analytics/UserFlowAnalytics';
 
 const AdminAnalytics = () => {
   const [tab, setTab] = useState(0);
@@ -26,6 +27,7 @@ const AdminAnalytics = () => {
     { key: 'traffic', label: 'Traffic & Engagement', component: <TrafficEngagement dateRange={dateRange} /> },
     { key: 'orders', label: 'Orders Overview', component: <OrdersOverview dateRange={dateRange} /> },
     { key: 'marketing', label: 'Marketing', component: <MarketingPerformance dateRange={dateRange} /> },
+    { key: 'userflow', label: 'User Flow', component: <UserFlowAnalytics /> },
   ];
 
   return (
