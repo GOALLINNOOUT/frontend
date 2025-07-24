@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Sankey, Tooltip, ResponsiveContainer } from 'recharts';
-
-import api from '../../utils/api';
+import * as api from '../../utils/api';
 
 // Helper to convert path string to Sankey nodes/links
 function buildSankeyData(paths) {
