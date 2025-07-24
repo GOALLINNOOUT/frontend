@@ -1009,17 +1009,37 @@ const PerfumeCollection = () => {
           {React.useMemo(() => {
             // Memoized cell renderer
             const Cell = React.memo(({ columnIndex, rowIndex, style }) => {
-              const idx = rowIndex * columnCount + columnIndex;
-              if (idx >= perfumes.length) return null;
-              const perfume = perfumes[idx];
-              const isInStock = perfume.stock > 0;
-              const mainImage = perfume.images[perfume.mainImageIndex || 0];
-              const { promoActive, promoLabel, displayPrice } = getPerfumePromo(perfume);
-              const imageKey = getImageKey(perfume, perfume.mainImageIndex || 0);
-              // Setup intersection observer for lazy loading
+              // All hooks must be called unconditionally
               const imgDivRef = React.useRef();
+              // onLoad/onError handlers
+              const [imageKey, perfume, isInStock, mainImage, promoActive, promoLabel, displayPrice] = React.useMemo(() => {
+                const idx = rowIndex * columnCount + columnIndex;
+                if (idx >= perfumes.length) return [null, null, null, null, null, null, null];
+                const perfume = perfumes[idx];
+                const isInStock = perfume.stock > 0;
+                const mainImage = perfume.images[perfume.mainImageIndex || 0];
+                const { promoActive, promoLabel, displayPrice } = getPerfumePromo(perfume);
+                const imageKey = getImageKey(perfume, perfume.mainImageIndex || 0);
+                return [imageKey, perfume, isInStock, mainImage, promoActive, promoLabel, displayPrice];
+              }, [rowIndex, columnIndex]);
+              const handleLoad = React.useCallback(() => {
+                if (!imageKey) return;
+                imageLoadCache.current[imageKey] = {
+                  ...imageLoadCache.current[imageKey],
+                  loaded: true,
+                  shouldLoad: true
+                };
+              }, [imageKey]);
+              const handleError = React.useCallback(() => {
+                if (!imageKey) return;
+                imageLoadCache.current[imageKey] = {
+                  ...imageLoadCache.current[imageKey],
+                  loaded: true,
+                  shouldLoad: true
+                };
+              }, [imageKey]);
               React.useEffect(() => {
-                if (!imgDivRef.current) return;
+                if (!imgDivRef.current || !imageKey) return;
                 if (imageLoadCache.current[imageKey]?.shouldLoad) return;
                 const observer = new window.IntersectionObserver((entries) => {
                   entries.forEach((entry) => {
@@ -1035,30 +1055,17 @@ const PerfumeCollection = () => {
                 observer.observe(imgDivRef.current);
                 return () => observer.disconnect();
               }, [imageKey]);
-              // Preload image if shouldLoad
               React.useEffect(() => {
+                if (!imageKey) return;
                 if (imageLoadCache.current[imageKey]?.shouldLoad && !imageLoadCache.current[imageKey]?.loaded && mainImage) {
                   const img = new window.Image();
                   img.src = getImageUrl(mainImage);
                 }
               }, [imageKey, mainImage]);
-              // onLoad/onError handlers
-              const handleLoad = React.useCallback(() => {
-                imageLoadCache.current[imageKey] = {
-                  ...imageLoadCache.current[imageKey],
-                  loaded: true,
-                  shouldLoad: true
-                };
-              }, [imageKey]);
-              const handleError = React.useCallback(() => {
-                imageLoadCache.current[imageKey] = {
-                  ...imageLoadCache.current[imageKey],
-                  loaded: true,
-                  shouldLoad: true
-                };
-              }, [imageKey]);
-              const loaded = !!imageLoadCache.current[imageKey]?.loaded;
-              const shouldLoad = !!imageLoadCache.current[imageKey]?.shouldLoad;
+              const loaded = !!(imageKey && imageLoadCache.current[imageKey]?.loaded);
+              const shouldLoad = !!(imageKey && imageLoadCache.current[imageKey]?.shouldLoad);
+              // Early return after hooks
+              if (!perfume) return null;
               return (
                 <div
                   key={perfume._id}
