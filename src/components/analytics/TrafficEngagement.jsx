@@ -32,7 +32,7 @@ function getTooltipStyles(theme) {
   };
 }
 
-const CustomTooltip = ({ active, payload, label, theme, tooltipStyles }) => {
+const CustomTooltip = ({ active, payload, label, tooltipStyles }) => {
   if (active && payload && payload.length) {
     const styles = tooltipStyles;
     return (
@@ -157,8 +157,8 @@ const TrafficEngagement = ({ dateRange }) => {
     pageViewsPerSessionData = data.pageViewsPerSession.map((s, i) => {
       let label = '';
       if (s.email && typeof s.email === 'string' && s.email.trim() !== '') {
-        // Use only the part before '@' for brevity
-        label = s.email.split('@')[0];
+        // Use only the part before '@' for brevity, but make label unique by appending index
+        label = `${s.email.split('@')[0]} #${i + 1}`;
       } else {
         label = `Session ${i + 1}`;
       }
