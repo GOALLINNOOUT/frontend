@@ -123,10 +123,22 @@ const CustomerBehavior = ({ dateRange }) => {
         <Grid container spacing={4}>
           {/* Live Visitors Trend Chart (last 15 minutes) */}
           <Grid item xs={12}>
-            <Box sx={{ width: '100%', height: 180, background: analyticsColors.lightBg, borderRadius: 3, p: 2, mb: 2 }}>
-              <Typography variant="subtitle2" fontWeight={600} color="text.secondary" mb={1}>
-                Live Visitors (last 15 minutes)
-              </Typography>
+            <Box sx={{ width: '100%', height: 180, background: analyticsColors.lightBg, borderRadius: 3, p: 2, mb: 2, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Typography variant="subtitle1" fontWeight={600} color="text.secondary" sx={{ mr: 1 }}>
+                  Live Visitors (last 15 minutes)
+                </Typography>
+                <IconButton size="small" onClick={handleInfoOpen('live')}>
+                  <HelpOutlineIcon fontSize="small" />
+                </IconButton>
+                <InfoPopover
+                  id="info-live"
+                  open={Boolean(infoAnchor['live'])}
+                  anchorEl={infoAnchor['live']}
+                  onClose={handleInfoClose('live')}
+                  text={infoTexts.live}
+                />
+              </Box>
               <ResponsiveContainer width="100%" height={120}>
                 <BarChart data={liveVisitorsTrend} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                   <XAxis dataKey="minute" tick={{ fontSize: 12 }} interval={0} angle={-15} textAnchor="end" height={40} />
@@ -140,28 +152,6 @@ const CustomerBehavior = ({ dateRange }) => {
                 </BarChart>
               </ResponsiveContainer>
             </Box>
-          </Grid>
-          {/* Live Visitors & Live Cart Actions */}
-          <Grid item xs={12}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center" justifyContent="flex-end" mb={2}>
-              <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-                  Live Visitors & Live Carts
-                </Typography>
-                <IconButton size="small" onClick={handleInfoOpen('live')}>
-                  <HelpOutlineIcon fontSize="small" />
-                </IconButton>
-                <InfoPopover
-                  id="info-live"
-                  open={Boolean(infoAnchor['live'])}
-                  anchorEl={infoAnchor['live']}
-                  onClose={handleInfoClose('live')}
-                  text={infoTexts.live}
-                />
-              </Box>
-              <Chip label={`Live Visitors: ${data.liveVisitors ?? 0}`} color="secondary" size="medium" sx={{ fontWeight: 600, fontSize: 16 }} />
-              <Chip label={`Live Carts: ${data.liveCarts ?? 0}`} color="warning" size="medium" sx={{ fontWeight: 600, fontSize: 16 }} />
-            </Stack>
           </Grid>
 
           {/* New vs Returning Customers */}
