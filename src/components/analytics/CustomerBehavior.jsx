@@ -123,9 +123,9 @@ const CustomerBehavior = ({ dateRange }) => {
         <Grid container spacing={4}>
           {/* Live Visitors Trend Chart (last 15 minutes) */}
           <Grid item xs={12}>
-            <Box sx={{ width: '100%', height: 180, background: analyticsColors.lightBg, borderRadius: 3, p: 2, mb: 2, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+            <Box sx={{ width: '90vw', maxWidth: '100%', height: 320, background: analyticsColors.lightBg, borderRadius: 3, p: 2, mb: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle1" fontWeight={600} color="text.secondary" sx={{ mr: 1 }}>
+                <Typography variant="subtitle1" fontWeight={600} color="text.secondary">
                   Live Visitors (last 15 minutes)
                 </Typography>
                 <IconButton size="small" onClick={handleInfoOpen('live')}>
@@ -139,15 +139,23 @@ const CustomerBehavior = ({ dateRange }) => {
                   text={infoTexts.live}
                 />
               </Box>
-              <ResponsiveContainer width="100%" height={120}>
-                <BarChart data={liveVisitorsTrend} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                  <XAxis dataKey="minute" tick={{ fontSize: 12 }} interval={0} angle={-15} textAnchor="end" height={40} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={liveVisitorsTrend} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="liveVisitorsGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={analyticsColors.blue} stopOpacity={0.8} />
+                      <stop offset="100%" stopColor={analyticsColors.green} stopOpacity={0.7} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="minute" tick={{ fontSize: 13 }} interval={0} angle={-15} textAnchor="end" height={60} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 13 }} />
                   <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle}
                     formatter={(value) => `${value} visitor${value === 1 ? '' : 's'}`}
                   />
-                  <Bar dataKey="count" fill={analyticsColors.blue} radius={[6, 6, 0, 0]} name="Active Visitors">
-                    <LabelList dataKey="count" position="top" style={{ fontWeight: 600, fontSize: 12 }} />
+                  <Legend />
+                  <Bar dataKey="count" fill="url(#liveVisitorsGradient)" name="Active Visitors" radius={[8, 8, 0, 0]}>
+                    <LabelList dataKey="count" position="top" style={{ fontWeight: 600, fontSize: 13 }} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
