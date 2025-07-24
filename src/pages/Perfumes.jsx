@@ -269,8 +269,8 @@ const PerfumeCollection = () => {
 
   // --- Suggestion fetch logic ---
   const handleSearchChange = (e) => {
-    const value = e.target.value.toLowerCase().trim();
-    
+    const value = e.target.value.toLowerCase(); // Do not trim here, allow spaces
+
     // Clear any existing timeouts
     if (searchTimeout.current) {
       clearTimeout(searchTimeout.current);
@@ -282,18 +282,19 @@ const PerfumeCollection = () => {
     // Update the search input immediately
     setCurrentSearch(value);
 
-    // Debounced search (delay actual search to prevent too many API calls)
+    // Debounced search (trim only at submission)
     searchTimeout.current = setTimeout(() => {
+      const trimmed = value.trim();
       setCurrentPage(1); // Reset to first page
       setPerfumes([]); // Clear existing results
-      loadPerfumes(false, value, currentCategory);
+      loadPerfumes(false, trimmed, currentCategory);
     }, 500);
 
     // Debounced suggestions with shorter delay
     if (value.length > 0) {
       suggestionTimeout.current = setTimeout(async () => {
         try {
-          const res = await api.get(`/perfumes/suggestions?query=${encodeURIComponent(value)}`);
+          const res = await api.get(`/perfumes/suggestions?query=${encodeURIComponent(value.trim())}`);
           setSuggestions(res.data?.slice(0, 5) || []); // Limit suggestions to 5
         } catch {
           setSuggestions([]);
