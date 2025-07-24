@@ -8,13 +8,38 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import IconButton from '@mui/material/IconButton';
 import Popover from '@mui/material/Popover';
 
-const CustomTooltip = ({ active, payload, label }) => {
+
+// Theme-responsive tooltip styles (match CustomerBehavior)
+
+function getTooltipStyles(theme) {
+  return {
+    contentStyle: {
+      backgroundColor: theme.palette.background.paper,
+      color: theme.palette.text.primary,
+      borderRadius: 8,
+      fontSize: 14,
+      border: `1px solid ${theme.palette.divider}`,
+      boxShadow: theme.shadows[1],
+    },
+    labelStyle: {
+      color: theme.palette.text.secondary,
+      fontWeight: 600,
+    },
+    itemStyle: {
+      color: theme.palette.text.primary,
+      fontWeight: 500,
+    },
+  };
+}
+
+const CustomTooltip = ({ active, payload, label, theme, tooltipStyles }) => {
   if (active && payload && payload.length) {
+    const styles = tooltipStyles;
     return (
-      <Box sx={{ bgcolor: 'background.paper', p: 1.5, borderRadius: 2, boxShadow: 2 }}>
-        <Typography variant="subtitle2" fontWeight={600}>{label}</Typography>
+      <Box sx={styles.contentStyle}>
+        <Typography variant="subtitle2" fontWeight={600} sx={styles.labelStyle}>{label}</Typography>
         {payload.map((entry, i) => (
-          <Typography key={i} variant="body2" color={entry.color}>
+          <Typography key={i} variant="body2" sx={{ color: entry.color || styles.itemStyle.color, fontWeight: styles.itemStyle.fontWeight }}>
             {entry.name}: <b>{entry.value}</b>
           </Typography>
         ))}
@@ -35,7 +60,9 @@ const TrafficEngagement = ({ dateRange }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [infoAnchor, setInfoAnchor] = useState({});
+
   const theme = useTheme();
+  const tooltipStyles = getTooltipStyles(theme);
 
   const infoTexts = {
     visitsTrend: 'Shows how many people visited your site over time.',
@@ -174,7 +201,7 @@ const TrafficEngagement = ({ dateRange }) => {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="date" tick={{ fontSize: 12 }} angle={-20} dy={10} />
                     <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-                    <Tooltip content={<CustomTooltip />} />
+                    <Tooltip content={<CustomTooltip theme={theme} tooltipStyles={tooltipStyles} />} />
                     <Legend verticalAlign="top" height={36} iconType="circle"/>
                     <Line type="monotone" dataKey="visits" stroke="#1976d2" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 7 }} name="Visits" fill="url(#visitsGradient)" />
                   </LineChart>
@@ -244,7 +271,12 @@ const TrafficEngagement = ({ dateRange }) => {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="page" type="category" tick={{ fontSize: 18, fontWeight: 600 }} />
                       <YAxis type="number" allowDecimals={false} tick={{ fontSize: 18, fontWeight: 600 }} />
-                      <Tooltip formatter={(value) => [`${value} visits`, 'Visits']} />
+                      <Tooltip 
+                        formatter={(value) => [`${value} visits`, 'Visits']}
+                        contentStyle={tooltipStyles.contentStyle}
+                        labelStyle={tooltipStyles.labelStyle}
+                        itemStyle={tooltipStyles.itemStyle}
+                      />
                       <Bar dataKey="visits" fill={theme.palette.primary.main} barSize="100%" radius={[10, 10, 0, 0]} name="Visits">
                         <LabelList dataKey="visits" position="top" fontSize={16} fontWeight={700} />
                       </Bar>
@@ -311,7 +343,12 @@ const TrafficEngagement = ({ dateRange }) => {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="page" type="category" tick={{ fontSize: 16, fontWeight: 600 }} />
                       <YAxis type="number" allowDecimals={false} tick={{ fontSize: 16, fontWeight: 600 }} />
-                      <Tooltip formatter={(value) => [`${value} views`, 'Views']} />
+                      <Tooltip 
+                        formatter={(value) => [`${value} views`, 'Views']}
+                        contentStyle={tooltipStyles.contentStyle}
+                        labelStyle={tooltipStyles.labelStyle}
+                        itemStyle={tooltipStyles.itemStyle}
+                      />
                       <Bar dataKey="views" fill={theme.palette.success.main} barSize="100%" radius={[10, 10, 0, 0]} name="Views">
                         <LabelList dataKey="views" position="top" fontSize={15} fontWeight={700} />
                       </Bar>
@@ -357,7 +394,12 @@ const TrafficEngagement = ({ dateRange }) => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="os" type="category" tick={{ fontSize: 18, fontWeight: 600 }} />
                 <YAxis type="number" domain={[0, 100]} allowDecimals={false} tick={{ fontSize: 18, fontWeight: 600 }} tickFormatter={(v) => v + '%'} />
-                <Tooltip formatter={(value) => [`${value}%`, 'Percent']} />
+                <Tooltip 
+                  formatter={(value) => [`${value}%`, 'Percent']}
+                  contentStyle={tooltipStyles.contentStyle}
+                  labelStyle={tooltipStyles.labelStyle}
+                  itemStyle={tooltipStyles.itemStyle}
+                />
                 <Bar dataKey="percent" fill={theme.palette.secondary.main} barSize="100%" radius={[10, 10, 0, 0]} name="Percent">
                   <LabelList dataKey="percent" position="top" fontSize={16} fontWeight={700} formatter={(v) => `${v}%`} />
                 </Bar>
@@ -405,6 +447,9 @@ const TrafficEngagement = ({ dateRange }) => {
                     const percent = props.payload.percent;
                     return [`${value} page views (${percent}%)`, 'Page Views'];
                   }}
+                  contentStyle={tooltipStyles.contentStyle}
+                  labelStyle={tooltipStyles.labelStyle}
+                  itemStyle={tooltipStyles.itemStyle}
                 />
                 <Bar dataKey="count" fill={theme.palette.info.main} barSize="100%" radius={[10, 10, 0, 0]} name="Page Views">
                   <LabelList 
@@ -465,7 +510,12 @@ const TrafficEngagement = ({ dateRange }) => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="page" type="category" tick={{ fontSize: 18, fontWeight: 600 }} />
                 <YAxis type="number" allowDecimals={false} tick={{ fontSize: 18, fontWeight: 600 }} />
-                <Tooltip formatter={(value) => [`${value} exits`, 'Exits']} />
+                <Tooltip 
+                  formatter={(value) => [`${value} exits`, 'Exits']}
+                  contentStyle={tooltipStyles.contentStyle}
+                  labelStyle={tooltipStyles.labelStyle}
+                  itemStyle={tooltipStyles.itemStyle}
+                />
                 <Bar dataKey="exits" fill={theme.palette.error.main} barSize="100%" radius={[10, 10, 0, 0]} name="Exits">
                   <LabelList dataKey="exits" position="top" fontSize={16} fontWeight={700} />
                 </Bar>
@@ -507,7 +557,12 @@ const TrafficEngagement = ({ dateRange }) => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="label" type="category" tick={{ fontSize: 13, fontWeight: 600 }} interval={0} angle={-15}/>
                 <YAxis dataKey="pageViews" type="number" allowDecimals={false} tick={{ fontSize: 13, fontWeight: 600 }} />
-                <Tooltip formatter={(value) => [`${value} page views`, 'Page Views']} />
+                <Tooltip 
+                  formatter={(value) => [`${value} page views`, 'Page Views']}
+                  contentStyle={tooltipStyles.contentStyle}
+                  labelStyle={tooltipStyles.labelStyle}
+                  itemStyle={tooltipStyles.itemStyle}
+                />
                 <Bar dataKey="pageViews" fill={theme.palette.primary.dark} barSize="100%" radius={[10, 10, 0, 0]} name="Page Views">
                   <LabelList dataKey="pageViews" position="top" fontSize={13} fontWeight={700} />
                 </Bar>
