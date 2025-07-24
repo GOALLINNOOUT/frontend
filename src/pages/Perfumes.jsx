@@ -879,6 +879,7 @@ const PerfumeCollection = () => {
                   onChange={handleSearchChange}
                   style={{
                     paddingLeft: 38,
+                    paddingRight: 38,
                     boxShadow: `0 2px 8px ${theme.palette.grey.e0e7ef}99`,
                     background: `${theme.palette.grey.f8fafc} 0%, ${theme.palette.grey.e0e7ef} 100%)`,
                     border: `1.5px solid ${theme.palette.grey._e3eaf5 || '#e3eaf5'}`,
@@ -891,6 +892,44 @@ const PerfumeCollection = () => {
                   value={currentSearch}
                   autoComplete="off"
                 />
+                {/* Clear (X) button */}
+                {currentSearch && (
+                  <button
+                    type="button"
+                    aria-label="Clear search"
+                    onClick={() => {
+                      setCurrentSearch("");
+                      setSuggestions([]);
+                      setCurrentPage(1);
+                      setPerfumes([]);
+                      loadPerfumes(false, "", currentCategory);
+                    }}
+                    style={{
+                      position: 'absolute',
+                      right: 8,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: '#b0b8c9',
+                      fontSize: 18,
+                      cursor: 'pointer',
+                      padding: 0,
+                      zIndex: 2,
+                      lineHeight: 1,
+                      width: 24,
+                      height: 24,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 12,
+                      transition: 'background 0.18s',
+                    }}
+                    tabIndex={0}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="5" x2="13" y2="13" /><line x1="13" y1="5" x2="5" y2="13" /></svg>
+                  </button>
+                )}
                 <svg
                   style={{
                     position: 'absolute',
@@ -911,7 +950,7 @@ const PerfumeCollection = () => {
                   <line x1="16.5" y1="16.5" x2="21" y2="21" />
                 </svg>
                 {/* Suggestions dropdown */}
-                {suggestions.length > 0 && (
+                {currentSearch.trim().length > 0 && suggestions.length > 0 && (
                   <div className="suggestions-dropdown">
                     {suggestions.map((s, i) => (
                       <div
