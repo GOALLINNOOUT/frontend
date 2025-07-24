@@ -35,10 +35,49 @@ const getImageUrl = (imgPath) => {
   return imgPath;
 };
 
-
-// PerfumeImage now receives loaded/shouldLoad and onLoad/onError from parent
-const PerfumeImage = React.memo(({ src, alt, className, style, modal, loaded, shouldLoad, onLoad, onError, observeRef }) => {
+const PerfumeImage = React.memo(({ src, alt, className, style, modal }) => {
   const theme = useTheme();
+  const [loaded, setLoaded] = useState(false);
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const imageRef = useRef(null);
+  const observedElement = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setShouldLoad(true);
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        rootMargin: '100px 0px', // Increased margin to start loading earlier
+        threshold: 0.1
+      }
+    );
+
+    if (imageRef.current) {
+      observedElement.current = imageRef.current;
+      observer.observe(imageRef.current);
+    }
+
+    return () => {
+      if (observedElement.current) {
+        observer.unobserve(observedElement.current);
+      }
+    };
+  }, []);
+
+  // Preload image when shouldLoad becomes true
+  useEffect(() => {
+    if (shouldLoad && src) {
+      const img = new Image();
+      img.src = getImageUrl(src);
+    }
+  }, [shouldLoad, src]);
+
   // Use modal-specific style if modal prop is true
   const imageStyle = modal
     ? {
@@ -81,7 +120,7 @@ const PerfumeImage = React.memo(({ src, alt, className, style, modal, loaded, sh
   };
 
   return (
-    <div ref={observeRef} style={containerStyle}>
+    <div ref={imageRef} style={containerStyle}>
       {!loaded && (
         <div style={{
           position: 'absolute',
@@ -103,8 +142,15 @@ const PerfumeImage = React.memo(({ src, alt, className, style, modal, loaded, sh
           loading="lazy"
           decoding="async"
           style={imageStyle}
-          onLoad={onLoad}
-          onError={onError}
+          onLoad={() => {
+            requestAnimationFrame(() => {
+              setLoaded(true);
+            });
+          }}
+          onError={() => {
+            console.warn('Failed to load image:', src);
+            setLoaded(true);
+          }}
         />
       )}
     </div>
@@ -411,7 +457,6 @@ const PerfumeCollection = () => {
   const gridWidth = containerWidth;
   const rowCount = Math.ceil(perfumes.length / columnCount);
 
-
   // For modal promo support
   let modalPromo = { promoActive: false, promoLabel: '', displayPrice: 0 };
   if (selectedPerfume) {
@@ -425,15 +470,6 @@ const PerfumeCollection = () => {
       setModalImageIndex(selectedPerfume.mainImageIndex || 0);
     }
   }, [selectedPerfume?._id]);
-
-  // --- Image loaded/shouldLoad cache for react-window grid ---
-  // Use a ref so it persists across renders but doesn't trigger rerender
-  const imageLoadCache = useRef({}); // { [imageUrl]: { loaded: bool, shouldLoad: bool } }
-
-  // Helper to get unique image key
-  const getImageKey = (perfume, mainImageIndex) => {
-    return `${perfume._id}-${mainImageIndex || 0}`;
-  };
 
   return (
     <>
@@ -1005,210 +1041,144 @@ const PerfumeCollection = () => {
 
         <div className="perfumes-grid" ref={gridRef} style={{ padding: 0, marginBottom: 24, width: '100%' }}>
           {/* Memoize grid item renderer to prevent unnecessary rerenders */}
-          {/* Memoize grid cell renderer outside render to avoid unnecessary re-renders and image reloads */}
-          {React.useMemo(() => {
-            // Memoized cell renderer
-            const Cell = React.memo(({ columnIndex, rowIndex, style }) => {
-              // All hooks must be called unconditionally
-              const imgDivRef = React.useRef();
-              // onLoad/onError handlers
-              const [imageKey, perfume, isInStock, mainImage, promoActive, promoLabel, displayPrice] = React.useMemo(() => {
-                const idx = rowIndex * columnCount + columnIndex;
-                if (idx >= perfumes.length) return [null, null, null, null, null, null, null];
-                const perfume = perfumes[idx];
-                const isInStock = perfume.stock > 0;
-                const mainImage = perfume.images[perfume.mainImageIndex || 0];
-                const { promoActive, promoLabel, displayPrice } = getPerfumePromo(perfume);
-                const imageKey = getImageKey(perfume, perfume.mainImageIndex || 0);
-                return [imageKey, perfume, isInStock, mainImage, promoActive, promoLabel, displayPrice];
-              }, [rowIndex, columnIndex]);
-              const handleLoad = React.useCallback(() => {
-                if (!imageKey) return;
-                imageLoadCache.current[imageKey] = {
-                  ...imageLoadCache.current[imageKey],
-                  loaded: true,
-                  shouldLoad: true
-                };
-              }, [imageKey]);
-              const handleError = React.useCallback(() => {
-                if (!imageKey) return;
-                imageLoadCache.current[imageKey] = {
-                  ...imageLoadCache.current[imageKey],
-                  loaded: true,
-                  shouldLoad: true
-                };
-              }, [imageKey]);
-              React.useEffect(() => {
-                if (!imgDivRef.current || !imageKey) return;
-                if (imageLoadCache.current[imageKey]?.shouldLoad) return;
-                const observer = new window.IntersectionObserver((entries) => {
-                  entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                      imageLoadCache.current[imageKey] = {
-                        ...imageLoadCache.current[imageKey],
-                        shouldLoad: true
-                      };
-                      observer.unobserve(entry.target);
-                    }
-                  });
-                }, { rootMargin: '100px 0px', threshold: 0.1 });
-                observer.observe(imgDivRef.current);
-                return () => observer.disconnect();
-              }, [imageKey]);
-              React.useEffect(() => {
-                if (!imageKey) return;
-                if (imageLoadCache.current[imageKey]?.shouldLoad && !imageLoadCache.current[imageKey]?.loaded && mainImage) {
-                  const img = new window.Image();
-                  img.src = getImageUrl(mainImage);
-                }
-              }, [imageKey, mainImage]);
-              const loaded = !!(imageKey && imageLoadCache.current[imageKey]?.loaded);
-              const shouldLoad = !!(imageKey && imageLoadCache.current[imageKey]?.shouldLoad);
-              // Early return after hooks
-              if (!perfume) return null;
-              return (
-                <div
-                  key={perfume._id}
-                  className={`perfume-card ${isInStock ? '' : 'out-of-stock'}`}
-                  style={{ ...style, width: CARD_WIDTH, height: CARD_HEIGHT, margin: CARD_GAP / 2 }}
-                  onClick={isInStock ? () => openModal(perfume._id) : undefined}
-                  role={isInStock ? 'button' : undefined}
-                  tabIndex={isInStock ? 0 : undefined}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && isInStock) openModal(perfume._id);
-                  }}
-                >
-                  <PerfumeImage
-                    src={mainImage}
-                    alt={perfume.name}
-                    className="perfume-image"
-                    key={imageKey}
-                    loaded={loaded}
-                    shouldLoad={shouldLoad}
-                    onLoad={handleLoad}
-                    onError={handleError}
-                    observeRef={imgDivRef}
-                  />
-                  <div className="perfume-name">{perfume.name}</div>
-                  <div className="perfume-description">{perfume.description}</div>
-                  {perfume.categories.length > 0 && (
-                    <div className="perfume-category">
-                      {perfume.categories[0].charAt(0).toUpperCase() + perfume.categories[0].slice(1)}
-                    </div>
-                  )}
-                  <div className="perfume-price">
-                    {promoActive ? (
-                      <>
-                        <span style={{ color: 'var(--jc-sale)', fontWeight: 700 }}>₦{displayPrice.toLocaleString()}</span>
-                        <span style={{ textDecoration: 'line-through', color: 'var(--jc-text-secondary)', marginLeft: 6, fontSize: 11 }}>
-                          ₦{perfume.price.toLocaleString()}
-                        </span>
-                        {promoLabel && (
-                          <span style={{ marginLeft: 8, color: 'var(--jc-success)', fontSize: 10, fontWeight: 600 }}>{promoLabel}</span>
-                        )}
-                      </>
-                    ) : (
-                      <>₦{perfume.price.toLocaleString()}</>
-                    )}
-                  </div>
-                  <div className={`perfume-stock ${isInStock ? 'stock-available' : 'stock-out'}`}>
-                    {isInStock ? `Stock: ${perfume.stock}` : 'Out of Stock'}
-                  </div>
-                  {/* Add to Cart button for grid cards */}
-                  {isInStock && (
-                    <button
-                      className="add-to-cart-btn"
-                      style={{ marginTop: 10, fontSize: 15, padding: '10px 0', fontWeight: 700 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Add perfume directly to cart without opening modal
-                        if (user && (user.status === 'suspended' || user.status === 'blacklisted')) {
-                          setError('Your account is suspended. You cannot add items to cart.');
-                          return;
-                        }
-                        const mainImage = perfume.images[perfume.mainImageIndex || 0];
-                        const { promoActive, displayPrice, promoLabel } = getPerfumePromo(perfume);
-                        addToCartUtil({
-                          _id: perfume._id,
-                          name: perfume.name,
-                          price: perfume.price,
-                          quantity: 1,
-                          image: mainImage,
-                          images: perfume.images,
-                          mainImageIndex: perfume.mainImageIndex || 0,
-                          categories: perfume.categories,
-                          promoActive,
-                          promoLabel,
-                          promoPrice: promoActive ? displayPrice : undefined,
-                          stock: perfume.stock,
-                        });
-                        // Log add-to-cart action to backend for analytics
-                        const sessionId = localStorage.getItem('sessionId') || null;
-                        if (sessionId) {
-                          api.post('/v1/cart-actions', {
-                            sessionId,
-                            productId: perfume._id,
-                            action: 'add',
-                            quantity: 1
-                          });
-                        }
-                        window.dispatchEvent(new Event('cart-updated'));
-                        setCartMsg(`Added 1 x ${perfume.name} to cart!`);
-                        setShowCartMsg(true);
-                        setTimeout(() => setShowCartMsg(false), 4000);
+          {React.useMemo(() => (
+            <>
+              <Grid
+                columnCount={columnCount}
+                columnWidth={CARD_WIDTH + CARD_GAP}
+                height={Math.min(3, rowCount) * (CARD_HEIGHT + CARD_GAP) + 10}
+                rowCount={rowCount}
+                rowHeight={CARD_HEIGHT + CARD_GAP}
+                width={gridWidth}
+              >
+                {React.memo(({ columnIndex, rowIndex, style }) => {
+                  const idx = rowIndex * columnCount + columnIndex;
+                  if (idx >= perfumes.length) return null;
+                  const perfume = perfumes[idx];
+                  const isInStock = perfume.stock > 0;
+                  const mainImage = perfume.images[perfume.mainImageIndex || 0];
+                  const { promoActive, promoLabel, displayPrice } = getPerfumePromo(perfume);
+                  return (
+                    <div
+                      key={perfume._id}
+                      className={`perfume-card ${isInStock ? '' : 'out-of-stock'}`}
+                      style={{ ...style, width: CARD_WIDTH, height: CARD_HEIGHT, margin: CARD_GAP / 2 }}
+                      onClick={isInStock ? () => openModal(perfume._id) : undefined}
+                      role={isInStock ? 'button' : undefined}
+                      tabIndex={isInStock ? 0 : undefined}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && isInStock) openModal(perfume._id);
                       }}
-                      aria-label={`Add ${perfume.name} to cart`}
                     >
-                      Add to Cart 🛒
-                    </button>
-                  )}
-                </div>
-              );
-            });
-            return (
-              <>
-                <Grid
-                  columnCount={columnCount}
-                  columnWidth={CARD_WIDTH + CARD_GAP}
-                  height={Math.min(3, rowCount) * (CARD_HEIGHT + CARD_GAP) + 10}
-                  rowCount={rowCount}
-                  rowHeight={CARD_HEIGHT + CARD_GAP}
-                  width={gridWidth}
-                >
-                  {Cell}
-                </Grid>
-                {/* Infinite scroll: show skeletons at bottom only when loading and perfumes already exist */}
-                {loading && perfumes.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', marginTop: 16 }}>
-                    {Array.from({ length: columnCount }).map((_, i) => (
-                      <div
-                        key={i}
-                        className="perfume-card"
-                        style={{
-                          width: CARD_WIDTH,
-                          height: CARD_HEIGHT,
-                          margin: CARD_GAP / 2,
-                          background: theme.palette.mode === 'dark' ? theme.palette.grey[900] : '#f3f4f6',
-                          border: `1.5px solid ${theme.palette.mode === 'dark' ? theme.palette.grey[800] : '#e0e7ef'}`,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          opacity: 0.7
-                        }}
-                        aria-hidden="true"
-                      >
-                        <div style={{ width: '100%', height: 140, background: theme.palette.mode === 'dark' ? theme.palette.grey[800] : '#e0e7ef', borderRadius: 8, marginBottom: 10, animation: 'pulse 1.2s infinite' }} />
-                        <div style={{ height: 18, width: '70%', background: theme.palette.mode === 'dark' ? theme.palette.grey[700] : '#e0e7ef', borderRadius: 6, margin: '8px 0', animation: 'pulse 1.2s infinite' }} />
-                        <div style={{ height: 14, width: '90%', background: theme.palette.mode === 'dark' ? theme.palette.grey[700] : '#e0e7ef', borderRadius: 6, margin: '6px 0', animation: 'pulse 1.2s infinite' }} />
-                        <div style={{ height: 16, width: '40%', background: theme.palette.mode === 'dark' ? theme.palette.grey[700] : '#e0e7ef', borderRadius: 6, margin: '6px 0', animation: 'pulse 1.2s infinite' }} />
-                        <div style={{ height: 18, width: '50%', background: theme.palette.mode === 'dark' ? theme.palette.grey[700] : '#e0e7ef', borderRadius: 6, margin: '6px 0', animation: 'pulse 1.2s infinite' }} />
+                      <PerfumeImage src={mainImage} alt={perfume.name} className="perfume-image" />
+                      <div className="perfume-name">{perfume.name}</div>
+                      <div className="perfume-description">{perfume.description}</div>
+                      {perfume.categories.length > 0 && (
+                        <div className="perfume-category">
+                          {perfume.categories[0].charAt(0).toUpperCase() + perfume.categories[0].slice(1)}
+                        </div>
+                      )}
+                      <div className="perfume-price">
+                        {promoActive ? (
+                          <>
+                            <span style={{ color: 'var(--jc-sale)', fontWeight: 700 }}>₦{displayPrice.toLocaleString()}</span>
+                            <span style={{ textDecoration: 'line-through', color: 'var(--jc-text-secondary)', marginLeft: 6, fontSize: 11 }}>
+                              ₦{perfume.price.toLocaleString()}
+                            </span>
+                            {promoLabel && (
+                              <span style={{ marginLeft: 8, color: 'var(--jc-success)', fontSize: 10, fontWeight: 600 }}>{promoLabel}</span>
+                            )}
+                          </>
+                        ) : (
+                          <>₦{perfume.price.toLocaleString()}</>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            );
-          }, [perfumes, columnCount, CARD_WIDTH, CARD_GAP, CARD_HEIGHT, rowCount, gridWidth, loading, theme.palette, openModal, user, setError, setCartMsg, setShowCartMsg])}
+                      <div className={`perfume-stock ${isInStock ? 'stock-available' : 'stock-out'}`}>
+                        {isInStock ? `Stock: ${perfume.stock}` : 'Out of Stock'}
+                      </div>
+                      {/* Add to Cart button for grid cards */}
+                      {isInStock && (
+                        <button
+                          className="add-to-cart-btn"
+                          style={{ marginTop: 10, fontSize: 15, padding: '10px 0', fontWeight: 700 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Add perfume directly to cart without opening modal
+                            if (user && (user.status === 'suspended' || user.status === 'blacklisted')) {
+                              setError('Your account is suspended. You cannot add items to cart.');
+                              return;
+                            }
+                            const mainImage = perfume.images[perfume.mainImageIndex || 0];
+                            const { promoActive, displayPrice, promoLabel } = getPerfumePromo(perfume);
+                            addToCartUtil({
+                              _id: perfume._id,
+                              name: perfume.name,
+                              price: perfume.price,
+                              quantity: 1,
+                              image: mainImage,
+                              images: perfume.images,
+                              mainImageIndex: perfume.mainImageIndex || 0,
+                              categories: perfume.categories,
+                              promoActive,
+                              promoLabel,
+                              promoPrice: promoActive ? displayPrice : undefined,
+                              stock: perfume.stock,
+                            });
+                            // Log add-to-cart action to backend for analytics
+                            const sessionId = localStorage.getItem('sessionId') || null;
+                            if (sessionId) {
+                              api.post('/v1/cart-actions', {
+                                sessionId,
+                                productId: perfume._id,
+                                action: 'add',
+                                quantity: 1
+                              });
+                            }
+                            window.dispatchEvent(new Event('cart-updated'));
+                            setCartMsg(`Added 1 x ${perfume.name} to cart!`);
+                            setShowCartMsg(true);
+                            setTimeout(() => setShowCartMsg(false), 4000);
+                          }}
+                          aria-label={`Add ${perfume.name} to cart`}
+                        >
+                          Add to Cart 🛒
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </Grid>
+              {/* Infinite scroll: show skeletons at bottom only when loading and perfumes already exist */}
+              {loading && perfumes.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', marginTop: 16 }}>
+                  {Array.from({ length: columnCount }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="perfume-card"
+                      style={{
+                        width: CARD_WIDTH,
+                        height: CARD_HEIGHT,
+                        margin: CARD_GAP / 2,
+                        background: theme.palette.mode === 'dark' ? theme.palette.grey[900] : '#f3f4f6',
+                        border: `1.5px solid ${theme.palette.mode === 'dark' ? theme.palette.grey[800] : '#e0e7ef'}`,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        opacity: 0.7
+                      }}
+                      aria-hidden="true"
+                    >
+                      <div style={{ width: '100%', height: 140, background: theme.palette.mode === 'dark' ? theme.palette.grey[800] : '#e0e7ef', borderRadius: 8, marginBottom: 10, animation: 'pulse 1.2s infinite' }} />
+                      <div style={{ height: 18, width: '70%', background: theme.palette.mode === 'dark' ? theme.palette.grey[700] : '#e0e7ef', borderRadius: 6, margin: '8px 0', animation: 'pulse 1.2s infinite' }} />
+                      <div style={{ height: 14, width: '90%', background: theme.palette.mode === 'dark' ? theme.palette.grey[700] : '#e0e7ef', borderRadius: 6, margin: '6px 0', animation: 'pulse 1.2s infinite' }} />
+                      <div style={{ height: 16, width: '40%', background: theme.palette.mode === 'dark' ? theme.palette.grey[700] : '#e0e7ef', borderRadius: 6, margin: '6px 0', animation: 'pulse 1.2s infinite' }} />
+                      <div style={{ height: 18, width: '50%', background: theme.palette.mode === 'dark' ? theme.palette.grey[700] : '#e0e7ef', borderRadius: 6, margin: '6px 0', animation: 'pulse 1.2s infinite' }} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ), [perfumes, columnCount, CARD_WIDTH, CARD_GAP, CARD_HEIGHT, rowCount, gridWidth, loading, theme.palette, openModal])}
           {/* Show end-of-list message if no more products to load and at least one product exists */}
           {!hasMore && perfumes.length > 0 && !loading && (
             <div style={{ textAlign: 'center', color: '#888', fontWeight: 600, margin: '32px 0 0 0', fontSize: '1.1rem' }}>

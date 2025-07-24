@@ -14,6 +14,7 @@ import Popover from '@mui/material/Popover';
 const CustomerBehavior = ({ dateRange }) => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
+  const [liveVisitorsTrend, setLiveVisitorsTrend] = useState([]);
   const [funnelData, setFunnelData] = useState({ funnel: [], topCartProducts: [] });
   const [error, setError] = useState(null);
   const [infoAnchor, setInfoAnchor] = useState({});
@@ -89,6 +90,13 @@ const CustomerBehavior = ({ dateRange }) => {
         const { data: funnelDataRes, ok: ok2 } = await api.get(`/v1/analytics/funnel?${params}`);
         if (!ok2) throw new Error();
         setFunnelData(funnelDataRes);
+        // Fetch live visitors trend for the last 15 minutes
+        const { data: liveTrend, ok: ok3 } = await api.get(`/v1/analytics/live-visitors-trend?minutes=15`);
+        if (ok3 && Array.isArray(liveTrend?.trend)) {
+          setLiveVisitorsTrend(liveTrend.trend);
+        } else {
+          setLiveVisitorsTrend([]);
+        }
       } catch {
         setError('Failed to load customer behavior analytics');
       } finally {
@@ -113,6 +121,26 @@ const CustomerBehavior = ({ dateRange }) => {
         </Typography>
         <Divider sx={{ mb: 3 }} />
         <Grid container spacing={4}>
+          {/* Live Visitors Trend Chart (last 15 minutes) */}
+          <Grid item xs={12}>
+            <Box sx={{ width: '100%', height: 180, background: analyticsColors.lightBg, borderRadius: 3, p: 2, mb: 2 }}>
+              <Typography variant="subtitle2" fontWeight={600} color="text.secondary" mb={1}>
+                Live Visitors (last 15 minutes)
+              </Typography>
+              <ResponsiveContainer width="100%" height={120}>
+                <BarChart data={liveVisitorsTrend} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <XAxis dataKey="minute" tick={{ fontSize: 12 }} interval={0} angle={-15} textAnchor="end" height={40} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                  <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle}
+                    formatter={(value) => `${value} visitor${value === 1 ? '' : 's'}`}
+                  />
+                  <Bar dataKey="count" fill={analyticsColors.blue} radius={[6, 6, 0, 0]} name="Active Visitors">
+                    <LabelList dataKey="count" position="top" style={{ fontWeight: 600, fontSize: 12 }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </Box>
+          </Grid>
           {/* Live Visitors & Live Cart Actions */}
           <Grid item xs={12}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center" justifyContent="flex-end" mb={2}>
