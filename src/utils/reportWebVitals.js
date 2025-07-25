@@ -1,5 +1,5 @@
 // Utility to report web-vitals from the browser to the backend
-import { getCLS, getFID, getLCP, getFCP, getTTFB, getINP } from 'web-vitals';
+import * as webVitals from 'web-vitals';
 
 function sendToAnalytics(metric) {
   // Optionally add more context (page, session, user, etc.)
@@ -17,10 +17,10 @@ function sendToAnalytics(metric) {
 }
 
 export function reportWebVitals() {
-  getCLS(sendToAnalytics);
-  getFID(sendToAnalytics);
-  getLCP(sendToAnalytics);
-  if (getFCP) getFCP(sendToAnalytics);
-  getTTFB(sendToAnalytics);
-  if (getINP) getINP(sendToAnalytics);
+  if (webVitals.getCLS) webVitals.getCLS(sendToAnalytics);
+  if (webVitals.getFID) webVitals.getFID(sendToAnalytics);
+  if (webVitals.getLCP) webVitals.getLCP(sendToAnalytics);
+  if (webVitals.getFCP) webVitals.getFCP(sendToAnalytics);
+  if (webVitals.getTTFB) webVitals.getTTFB(sendToAnalytics);
+  if (webVitals.getINP) webVitals.getINP(sendToAnalytics);
 }
