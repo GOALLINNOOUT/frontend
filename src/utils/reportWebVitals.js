@@ -21,10 +21,10 @@ function sendToAnalytics(metric) {
 
 export function reportWebVitals() {
   console.log('[WebVitals] reportWebVitals() called');
-  if (webVitals.getCLS) webVitals.getCLS(m => { console.log('[WebVitals] CLS:', m); sendToAnalytics(m); });
-  if (webVitals.getFID) webVitals.getFID(m => { console.log('[WebVitals] FID:', m); sendToAnalytics(m); });
-  if (webVitals.getLCP) webVitals.getLCP(m => { console.log('[WebVitals] LCP:', m); sendToAnalytics(m); });
-  if (webVitals.getFCP) webVitals.getFCP(m => { console.log('[WebVitals] FCP:', m); sendToAnalytics(m); });
-  if (webVitals.getTTFB) webVitals.getTTFB(m => { console.log('[WebVitals] TTFB:', m); sendToAnalytics(m); });
+  webVitals.getCLS(m => { console.log('[WebVitals] CLS:', m); sendToAnalytics(m); });
+  webVitals.getFID(m => { console.log('[WebVitals] FID:', m); sendToAnalytics(m); });
+  webVitals.getLCP(m => { console.log('[WebVitals] LCP:', m); sendToAnalytics(m); });
+  webVitals.getFCP(m => { console.log('[WebVitals] FCP:', m); sendToAnalytics(m); });
+  webVitals.getTTFB(m => { console.log('[WebVitals] TTFB:', m); sendToAnalytics(m); });
   if (webVitals.getINP) webVitals.getINP(m => { console.log('[WebVitals] INP:', m); sendToAnalytics(m); });
 }
