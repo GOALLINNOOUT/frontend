@@ -89,6 +89,7 @@ const UserFlowAnalytics = ({ dateRange }) => {
   }, [dateRange]);
 
   const sankeyData = buildSankeyData(paths);
+  const hasValidSankey = sankeyData.nodes.length > 0 && sankeyData.links.length > 0;
 
   return (
     <Card elevation={2} sx={{ mb: 3, borderRadius: 3, bgcolor: theme.palette.background.paper }}>
@@ -118,9 +119,9 @@ const UserFlowAnalytics = ({ dateRange }) => {
           </Box>
         ) : error ? (
           <Typography color="error" sx={{ my: 3 }}>{error}</Typography>
-        ) : !paths.length ? (
+        ) : !hasValidSankey ? (
           <Typography color="text.secondary" sx={{ my: 3 }}>
-            No user flow data available for the selected date range.
+            No multi-step user flow data available for the selected date range.
           </Typography>
         ) : (
           <ResponsiveContainer width="100%" height={400}>
