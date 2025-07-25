@@ -21,10 +21,10 @@ function sendToAnalytics(metric) {
 
 export function reportWebVitals() {
   console.log('[WebVitals] reportWebVitals() called');
-  webVitals.getCLS(m => { console.log('[WebVitals] CLS:', m); sendToAnalytics(m); });
-  webVitals.getFID(m => { console.log('[WebVitals] FID:', m); sendToAnalytics(m); });
-  webVitals.getLCP(m => { console.log('[WebVitals] LCP:', m); sendToAnalytics(m); });
-  webVitals.getFCP(m => { console.log('[WebVitals] FCP:', m); sendToAnalytics(m); });
-  webVitals.getTTFB(m => { console.log('[WebVitals] TTFB:', m); sendToAnalytics(m); });
-  if (webVitals.getINP) webVitals.getINP(m => { console.log('[WebVitals] INP:', m); sendToAnalytics(m); });
+  if (typeof webVitals.getCLS === 'function') webVitals.getCLS(m => { console.log('[WebVitals] CLS:', m); sendToAnalytics(m); });
+  if (typeof webVitals.getFID === 'function') webVitals.getFID(m => { console.log('[WebVitals] FID:', m); sendToAnalytics(m); });
+  if (typeof webVitals.getLCP === 'function') webVitals.getLCP(m => { console.log('[WebVitals] LCP:', m); sendToAnalytics(m); });
+  if (typeof webVitals.getFCP === 'function') webVitals.getFCP(m => { console.log('[WebVitals] FCP:', m); sendToAnalytics(m); });
+  if (typeof webVitals.getTTFB === 'function') webVitals.getTTFB(m => { console.log('[WebVitals] TTFB:', m); sendToAnalytics(m); });
+  if (typeof webVitals.getINP === 'function') webVitals.getINP(m => { console.log('[WebVitals] INP:', m); sendToAnalytics(m); });
 }
