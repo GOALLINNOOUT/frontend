@@ -41,8 +41,13 @@ export function ThemeModeProvider({ children }) {
   // Send color mode to backend
   const sendColorModeToBackend = async (colorMode) => {
     try {
+      const sessionId = localStorage.getItem('sessionId');
+      if (!sessionId) {
+        return;
+      }
       // You can POST to a session or analytics endpoint; adjust as needed
-      await api.post('/v1/analytics/color-mode', { colorMode });
+      await api.post('/v1/analytics/color-mode', { colorMode, sessionId });
+      
     } catch (e) {
       // Fail silently
     }
