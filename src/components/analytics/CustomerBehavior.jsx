@@ -18,6 +18,7 @@ const CustomerBehavior = ({ dateRange }) => {
   const [funnelData, setFunnelData] = useState({ funnel: [], topCartProducts: [] });
   const [error, setError] = useState(null);
   const [infoAnchor, setInfoAnchor] = useState({});
+  const [colorModeUsage, setColorModeUsage] = useState([]);
   const theme = useTheme();
   const analyticsColors = theme.palette.customerAnalytics;
   const COLORS = [
@@ -58,6 +59,7 @@ const CustomerBehavior = ({ dateRange }) => {
     spend: 'This chart shows how much each customer have spent. It helps you see your typical order value per customer.',
     topCart: "This chart shows which products are most often added to customers' carts. It helps you spot your most popular items.",
     funnel: 'This chart shows the steps customers take from visiting your site to making a purchase. It helps you see where people drop off in the buying process.'
+    ,colorMode: 'This chart shows which color mode (light, dark, or system) your users prefer. It helps you understand how people like to view your site.'
   };
 
   function InfoPopover({ id, open, anchorEl, onClose, text }) {
@@ -97,6 +99,13 @@ const CustomerBehavior = ({ dateRange }) => {
         } else {
           setLiveVisitorsTrend([]);
         }
+        // Fetch color mode usage
+        const { data: colorModeData, ok: ok4 } = await api.get(`/v1/analytics/color-mode-usage?${params}`);
+        if (ok4 && Array.isArray(colorModeData?.colorModeUsage)) {
+          setColorModeUsage(colorModeData.colorModeUsage);
+        } else {
+          setColorModeUsage([]);
+        }
       } catch {
         setError('Failed to load customer behavior analytics');
       } finally {
@@ -121,6 +130,60 @@ const CustomerBehavior = ({ dateRange }) => {
         </Typography>
         <Divider sx={{ mb: 3 }} />
         <Grid container spacing={4}>
+          {/* Color Mode Usage Chart */}
+          <Grid item xs={12} md={6}>
+            <Stack spacing={2}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="subtitle1" fontWeight={600} color="text.secondary">
+                  Color Mode Usage
+                </Typography>
+                <IconButton size="small" onClick={handleInfoOpen('colorMode')}>
+                  <HelpOutlineIcon fontSize="small" />
+                </IconButton>
+                <InfoPopover
+                  id="info-colorMode"
+                  open={Boolean(infoAnchor['colorMode'])}
+                  anchorEl={infoAnchor['colorMode']}
+                  onClose={handleInfoClose('colorMode')}
+                  text={infoTexts.colorMode}
+                />
+              </Box>
+              <Box sx={{ width: '100%', height: 220, background: analyticsColors.lightBg, borderRadius: 3, p: 2 }}>
+                {Array.isArray(colorModeUsage) && colorModeUsage.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={colorModeUsage} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorModeGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={analyticsColors.blue} stopOpacity={0.8} />
+                          <stop offset="100%" stopColor={analyticsColors.purple} stopOpacity={0.7} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="colorMode" tick={{ fontSize: 14, fontWeight: 600 }} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 13 }} />
+                      <Tooltip 
+                        contentStyle={tooltipStyle}
+                        labelStyle={tooltipLabelStyle}
+                        itemStyle={tooltipItemStyle}
+                        formatter={(value) => `${value} user${value === 1 ? '' : 's'}`}
+                      />
+                      <Legend />
+                      <Bar dataKey="count" fill="url(#colorModeGradient)" radius={[8, 8, 0, 0]} name="Users">
+                        <LabelList dataKey="count" position="top" style={{ fontWeight: 700, fontSize: 15 }} />
+                        {colorModeUsage.map((entry, idx) => (
+                          <Cell key={`cell-cm-${idx}`} fill={COLORS[idx % COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Typography color="text.secondary" fontSize={16} textAlign="center" width="100%">
+                    No color mode data available.
+                  </Typography>
+                )}
+              </Box>
+            </Stack>
+          </Grid>
           {/* Live Visitors Trend Chart (last 15 minutes) */}
           <Grid item xs={12}>
             <Box sx={{ width: '90vw', maxWidth: '100%', height: 320, background: analyticsColors.lightBg, borderRadius: 3, p: 2, mb: 2 }}>
