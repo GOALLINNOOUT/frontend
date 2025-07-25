@@ -182,7 +182,7 @@ const Notifications = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.05 }}
                   sx={{
-                    bgcolor: note.read ? theme.palette.background.paper : theme.palette.secondary.light,
+                    bgcolor: note.read ? theme.palette.background.paper : theme.palette.info.light,
                     borderRadius: 3,
                     mb: 2,
                     boxShadow: note.read ? 0 : 2,
