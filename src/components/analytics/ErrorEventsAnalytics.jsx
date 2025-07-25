@@ -4,6 +4,43 @@ import { get } from '../../utils/api';
 import { Modal, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Tooltip as MuiTooltip } from '@mui/material';
 import InfoIcon from '@mui/icons-material/InfoOutlined';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, LabelList } from 'recharts';
+// Custom Recharts tooltip using MUI theme
+const ThemedRechartsTooltip = ({ active, payload, label }) => {
+  const theme = useTheme();
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <Box
+      sx={{
+        bgcolor: theme.palette.background.paper,
+        color: theme.palette.text.primary,
+        boxShadow: 3,
+        borderRadius: 1,
+        p: 2,
+        minWidth: 120,
+        fontSize: 14,
+        border: `1px solid ${theme.palette.divider}`,
+      }}
+    >
+      <Typography variant="subtitle2" sx={{ mb: 0.5 }}>{label}</Typography>
+      {payload.map((entry, i) => (
+        <Box key={i} display="flex" alignItems="center" gap={1}>
+          <Box
+            sx={{
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              bgcolor: entry.color,
+              display: 'inline-block',
+            }}
+          />
+          <Typography variant="body2" component="span">
+            {entry.value} errors
+          </Typography>
+        </Box>
+      ))}
+    </Box>
+  );
+};
 
 /**
  * ErrorEventsAnalytics - Visualizes error boundary events for admin/analytics
@@ -85,7 +122,7 @@ const ErrorEventsAnalytics = ({ dateRange }) => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" stroke={theme.palette.text.secondary} />
               <YAxis stroke={theme.palette.text.secondary} allowDecimals={false} />
-              <Tooltip formatter={(value) => [`${value} errors`, 'Errors']} />
+              <Tooltip content={<ThemedRechartsTooltip />} />
               <Bar dataKey="count" fill={theme.palette.error.main} barSize={40} radius={[10, 10, 0, 0]} name="Errors" onClick={handleBarClick}>
                 <LabelList dataKey="count" position="top" fontSize={16} fontWeight={700} />
               </Bar>
