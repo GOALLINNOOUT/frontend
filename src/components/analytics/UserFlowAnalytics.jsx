@@ -15,11 +15,15 @@ function buildSankeyData(paths) {
   const linkMap = new Map();
   paths.forEach(({ path, count }) => {
     if (!path || typeof path !== 'string') return;
+    // Exclude any path containing an admin page
+    if (path.includes('/admin/')) return;
     const steps = path.split(' → ').map(s => s.trim()).filter(Boolean);
     if (steps.length < 2) return; // Skip single-page paths
     // Skip paths with cycles (node appears more than once)
     const uniqueSteps = new Set(steps);
     if (uniqueSteps.size !== steps.length) return;
+    // Skip if any step is empty or not a string
+    if (steps.some(s => !s || typeof s !== 'string')) return;
     steps.forEach((step) => {
       if (!nodeSet.has(step)) {
         nodeSet.add(step);
@@ -115,6 +119,7 @@ const UserFlowAnalytics = ({ dateRange }) => {
 
   const sankeyData = buildSankeyData(paths);
   const hasValidSankey = sankeyData.nodes.length > 0 && sankeyData.links.length > 0;
+  let sankeyError = null;
 
   return (
     <Card elevation={2} sx={{ mb: 3, borderRadius: 3, bgcolor: theme.palette.background.paper }}>
@@ -149,21 +154,34 @@ const UserFlowAnalytics = ({ dateRange }) => {
             No multi-step user flow data available for the selected date range.
           </Typography>
         ) : (
-          <ResponsiveContainer width="100%" height={400}>
-            <Sankey
-              data={sankeyData}
-              nodePadding={30}
-              margin={{ top: 20, bottom: 20 }}
-              link={{ stroke: '#8884d8' }}
-              node={{ stroke: '#333', strokeWidth: 1 }}
-            >
-              <RechartsTooltip
-                contentStyle={tooltipStyles.contentStyle}
-                labelStyle={tooltipStyles.labelStyle}
-                itemStyle={tooltipStyles.itemStyle}
-              />
-            </Sankey>
-          </ResponsiveContainer>
+          (() => {
+            try {
+              return (
+                <ResponsiveContainer width="100%" height={400}>
+                  <Sankey
+                    data={sankeyData}
+                    nodePadding={30}
+                    margin={{ top: 20, bottom: 20 }}
+                    link={{ stroke: '#8884d8' }}
+                    node={{ stroke: '#333', strokeWidth: 1 }}
+                  >
+                    <RechartsTooltip
+                      contentStyle={tooltipStyles.contentStyle}
+                      labelStyle={tooltipStyles.labelStyle}
+                      itemStyle={tooltipStyles.itemStyle}
+                    />
+                  </Sankey>
+                </ResponsiveContainer>
+              );
+            } catch (err) {
+              sankeyError = err;
+              return (
+                <Typography color="error" sx={{ my: 3 }}>
+                  Error rendering Sankey diagram. Please check your data.
+                </Typography>
+              );
+            }
+          })()
         )}
         <Box sx={{ fontSize: 12, color: '#888', mt: 1 }}>
           Most common navigation paths (Sankey diagram)
