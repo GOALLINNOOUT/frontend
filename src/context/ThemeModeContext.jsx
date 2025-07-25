@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useMemo, useState, useEffect, useRef } from 'react';
+import * as api from '../utils/api';
 import { getTheme } from '../theme';
 import { injectThemeCssVars } from '../themeCssVars';
 import ThemeSystemChangeDialog from '../components/ThemeSystemChangeDialog';
@@ -33,6 +34,18 @@ export function ThemeModeProvider({ children }) {
     try {
       localStorage.setItem('jc_theme_mode', newMode);
     } catch {}
+    // Send color mode to backend for analytics/session
+    sendColorModeToBackend(newMode);
+  };
+
+  // Send color mode to backend
+  const sendColorModeToBackend = async (colorMode) => {
+    try {
+      // You can POST to a session or analytics endpoint; adjust as needed
+      await api.post('/v1/analytics/color-mode', { colorMode });
+    } catch (e) {
+      // Fail silently
+    }
   };
 
   const toggleMode = () => setMode(mode === 'light' ? 'dark' : 'light');
@@ -56,9 +69,10 @@ export function ThemeModeProvider({ children }) {
     };
   }, []);
 
-  // Update CSS variables whenever mode changes
+  // Update CSS variables and send color mode whenever mode changes
   useEffect(() => {
     injectThemeCssVars(mode);
+    sendColorModeToBackend(mode);
   }, [mode]);
 
   // If user accepts system change, update mode and save
