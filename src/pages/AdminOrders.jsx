@@ -17,7 +17,7 @@ async function subscribeAdminToPush() {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
-        body: JSON.stringify({ ...subscription, admin: true })
+        body: JSON.stringify(subscription)
       });
       console.log('Admin push subscription sent to backend:', subscription);
     } catch (err) {
