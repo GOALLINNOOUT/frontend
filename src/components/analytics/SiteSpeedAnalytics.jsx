@@ -56,7 +56,7 @@ const SiteSpeedAnalytics = ({ dateRange }) => {
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
         }).toString();
-        const res = await api.get(`/analytics/web-vitals?${params}`);
+        const res = await api.get(`/v1/analytics/web-vitals?${params}`);
         setData(res.data.metrics || []);
       } catch (err) {
         setError('Failed to load site speed analytics');

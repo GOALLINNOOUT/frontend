@@ -3,7 +3,7 @@ import * as webVitals from 'web-vitals';
 
 function sendToAnalytics(metric) {
   // Optionally add more context (page, session, user, etc.)
-  fetch('/api/analytics/web-vitals', {
+  fetch('/v1/analytics/web-vitals', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
