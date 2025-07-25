@@ -38,11 +38,12 @@ export function ThemeModeProvider({ children }) {
     sendColorModeToBackend(newMode);
   };
 
-  // Send color mode to backend
+  // Send color mode to backend, including sessionId from localStorage
   const sendColorModeToBackend = async (colorMode) => {
     try {
-      // You can POST to a session or analytics endpoint; adjust as needed
-      await api.post('/v1/analytics/color-mode', { colorMode });
+      const sessionId = localStorage.getItem('jc_session_id');
+      if (!sessionId) return;
+      await api.post('/v1/analytics/color-mode', { colorMode, sessionId });
     } catch (e) {
       // Fail silently
     }
