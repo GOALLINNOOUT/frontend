@@ -1,7 +1,7 @@
 
 console.log('[WebVitals] reportWebVitals.js loaded');
 // Utility to report web-vitals from the browser to the backend
-import webVitals from 'web-vitals';
+import * as webVitals from 'web-vitals';
 import * as api from './api';
 
 function sendToAnalytics(metric) {
