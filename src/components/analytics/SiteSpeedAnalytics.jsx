@@ -35,6 +35,25 @@ function getTooltipStyles(theme) {
   };
 }
 
+
+// Web Vitals thresholds for rating
+const METRIC_THRESHOLDS = {
+  LCP: [2500, 4000], // ms
+  FID: [100, 300], // ms (deprecated, but still shown)
+  INP: [200, 500], // ms
+  CLS: [0.1, 0.25],
+  FCP: [1800, 3000], // ms
+  TTFB: [800, 1800], // ms
+};
+
+function getRating(metric, value) {
+  const t = METRIC_THRESHOLDS[metric];
+  if (!t || value == null) return { label: 'Unknown', color: 'grey' };
+  if (value <= t[0]) return { label: 'Good', color: 'green' };
+  if (value <= t[1]) return { label: 'Needs Improvement', color: 'orange' };
+  return { label: 'Poor', color: 'red' };
+}
+
 const SiteSpeedAnalytics = ({ dateRange }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -84,6 +103,11 @@ const SiteSpeedAnalytics = ({ dateRange }) => {
     count: values.length,
   }));
 
+  // Latest value for summary
+  const latest = metricData.length ? metricData[metricData.length - 1].value : null;
+  const rating = getRating(currentMetric, latest);
+  const thresholds = METRIC_THRESHOLDS[currentMetric];
+
   return (
     <Card elevation={2} sx={{ mb: 3, borderRadius: 3, bgcolor: theme.palette.background.paper }}>
       <CardContent>
@@ -104,6 +128,35 @@ const SiteSpeedAnalytics = ({ dateRange }) => {
           >
             <Typography variant="body2" color="text.secondary">{infoText}</Typography>
           </Popover>
+        </Box>
+        {/* Summary panel for latest value and rating */}
+        <Box display="flex" alignItems="center" mb={2}>
+          <Typography variant="body2" sx={{ mr: 2 }}>
+            Latest {METRICS[tab].label}:
+          </Typography>
+          <Box sx={{
+            px: 2, py: 0.5, borderRadius: 2, fontWeight: 700, fontSize: 16,
+            bgcolor: rating.color === 'green' ? '#C8E6C9' : rating.color === 'orange' ? '#FFF9C4' : rating.color === 'red' ? '#FFCDD2' : '#eee',
+            color: rating.color === 'green' ? '#388E3C' : rating.color === 'orange' ? '#FBC02D' : rating.color === 'red' ? '#C62828' : '#888',
+            display: 'inline-block',
+            minWidth: 80,
+            textAlign: 'center',
+          }}>
+            {latest !== null ? latest.toFixed(currentMetric === 'CLS' ? 3 : 0) : '—'}
+          </Box>
+          <Box sx={{ ml: 2, fontWeight: 600, color: rating.color === 'green' ? '#388E3C' : rating.color === 'orange' ? '#FBC02D' : rating.color === 'red' ? '#C62828' : '#888' }}>
+            {rating.label}
+          </Box>
+        </Box>
+        {/* Threshold legend */}
+        <Box sx={{ mb: 2, fontSize: 13, color: '#888' }}>
+          {thresholds && (
+            <>
+              <span style={{ color: '#388E3C', fontWeight: 600 }}>Good</span>: ≤ {currentMetric === 'CLS' ? thresholds[0] : thresholds[0] + ' ms'} &nbsp;|&nbsp;
+              <span style={{ color: '#FBC02D', fontWeight: 600 }}>Needs Improvement</span>: ≤ {currentMetric === 'CLS' ? thresholds[1] : thresholds[1] + ' ms'} &nbsp;|&nbsp;
+              <span style={{ color: '#C62828', fontWeight: 600 }}>Poor</span>: &gt; {currentMetric === 'CLS' ? thresholds[1] : thresholds[1] + ' ms'}
+            </>
+          )}
         </Box>
         <Divider sx={{ mb: 2 }} />
         <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto" sx={{ mb: 2 }}>
