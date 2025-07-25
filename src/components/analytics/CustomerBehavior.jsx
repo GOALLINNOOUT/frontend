@@ -131,7 +131,7 @@ const CustomerBehavior = ({ dateRange }) => {
         <Divider sx={{ mb: 3 }} />
         <Grid container spacing={4}>
           {/* Color Mode Usage Chart */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12}>
             <Stack spacing={2}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography variant="subtitle1" fontWeight={600} color="text.secondary">
@@ -148,7 +148,7 @@ const CustomerBehavior = ({ dateRange }) => {
                   text={infoTexts.colorMode}
                 />
               </Box>
-              <Box sx={{ width: '100%', height: 220, background: analyticsColors.lightBg, borderRadius: 3, p: 2 }}>
+              <Box sx={{ width: '90vw', maxWidth: '100%', height: 320, background: analyticsColors.lightBg, borderRadius: 3, p: 2, mb: 2 }}>
                 {Array.isArray(colorModeUsage) && colorModeUsage.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={colorModeUsage} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
