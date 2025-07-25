@@ -374,7 +374,7 @@ function AdminOrders() {
                     <td data-label="Subtotal">₦{order.amount?.toLocaleString()}</td>
                     <td data-label="Delivery">₦{order.deliveryFee?.toLocaleString?.() ?? order.deliveryFee ?? '-'}</td>
                     <td data-label="Grand Total">₦{order.grandTotal?.toLocaleString?.() ?? order.grandTotal ?? '-'}</td>
-                    <td data-label="Status" className={order.status ? order.status.toLowerCase() : ''} style={{verticalAlign:'top', minWidth:110, maxWidth:200, whiteSpace:'normal'}}>
+                    <td data-label="Status" className={order.status ? order.status.toLowerCase() : ''} style={{verticalAlign:'top', minWidth:110, maxWidth:'99vw', whiteSpace:'normal'}}>
                       <div style={{fontWeight:500, marginBottom:4}}>{order.status}</div>
                       <div className="order-status-actions" style={{display:'flex', flexDirection:'column', gap:6}}>
                         {order.status === 'paid' && (
