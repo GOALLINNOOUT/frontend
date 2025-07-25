@@ -211,6 +211,30 @@ function AdminOrders() {
         <meta name="description" content="Admin panel for managing orders at JC's Closet." />
       </Helmet>
       <div className="admin-dashboard">
+        <style>{`
+          @media (max-width: 700px) {
+            .latest-orders table {
+              min-width: 600px !important;
+            }
+            .order-row td[data-label="Status"] {
+              min-width: 120px;
+              max-width: 98vw;
+              white-space: normal;
+              word-break: break-word;
+              padding: 8px 4px;
+            }
+            .order-status-actions {
+              display: flex;
+              flex-direction: column;
+              gap: 6px;
+              margin-top: 4px;
+            }
+            .order-row td {
+              font-size: 13px;
+              padding: 8px 4px;
+            }
+          }
+        `}</style>
         {/* Admin notification opt-in dialog */}
         <Dialog open={adminNotifStatus === 'idle'}>
           <DialogTitle>Enable Admin Notifications?</DialogTitle>
@@ -350,29 +374,25 @@ function AdminOrders() {
                     <td data-label="Subtotal">₦{order.amount?.toLocaleString()}</td>
                     <td data-label="Delivery">₦{order.deliveryFee?.toLocaleString?.() ?? order.deliveryFee ?? '-'}</td>
                     <td data-label="Grand Total">₦{order.grandTotal?.toLocaleString?.() ?? order.grandTotal ?? '-'}</td>
-                    <td data-label="Status" className={order.status ? order.status.toLowerCase() : ''}>
-                      {order.status}
-                      {order.status === 'paid' && (
-                        <Button size="small" variant="outlined" color="info" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'shipped')}>Mark as Shipped</Button>
-                      )}
-
-                      {order.status === 'shipped' && (
-                        <>
+                    <td data-label="Status" className={order.status ? order.status.toLowerCase() : ''} style={{verticalAlign:'top', minWidth:110, maxWidth:200, whiteSpace:'normal'}}>
+                      <div style={{fontWeight:500, marginBottom:4}}>{order.status}</div>
+                      <div className="order-status-actions" style={{display:'flex', flexDirection:'column', gap:6}}>
+                        {order.status === 'paid' && (
+                          <Button size="small" variant="outlined" color="info" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'shipped')}>Mark as Shipped</Button>
+                        )}
+                        {order.status === 'shipped' && <>
                           <Button size="small" variant="outlined" color="warning" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'out_for_delivery')}>Mark as Out for Delivery</Button>
                           <Button size="small" variant="outlined" color="secondary" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'delivered')}>Mark as Delivered</Button>
                           <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
-                        </>
-                      )}
-
-                      {order.status === 'out_for_delivery' && (
-                        <>
+                        </>}
+                        {order.status === 'out_for_delivery' && <>
                           <Button size="small" variant="outlined" color="secondary" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'delivered')}>Mark as Delivered</Button>
                           <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
-                        </>
-                      )}
-                      {order.status === 'paid' && (
-                        <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
-                      )}
+                        </>}
+                        {order.status === 'paid' && (
+                          <Button size="small" variant="outlined" color="error" disabled={updating === order._id} onClick={() => handleStatus(order._id, 'cancelled')}>Cancel</Button>
+                        )}
+                      </div>
                     </td>
                     <td data-label="Paid At">
                       {new Date(order.paidAt).toLocaleString()}
