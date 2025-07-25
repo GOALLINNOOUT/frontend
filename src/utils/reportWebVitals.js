@@ -1,7 +1,7 @@
 
 console.log('[WebVitals] reportWebVitals.js loaded');
 // Utility to report web-vitals from the browser to the backend
-import { onCLS, onFID, onLCP, onFCP, onTTFB, onINP } from 'web-vitals';
+import { getCLS, getFID, getLCP, getFCP, getTTFB, getINP } from 'web-vitals/attribution';
 import * as api from './api';
 
 function sendToAnalytics(metric) {
@@ -21,10 +21,10 @@ function sendToAnalytics(metric) {
 
 export function reportWebVitals() {
   console.log('[WebVitals] reportWebVitals() called');
-  onCLS(m => { console.log('[WebVitals] CLS:', m); sendToAnalytics(m); });
-  onFID(m => { console.log('[WebVitals] FID:', m); sendToAnalytics(m); });
-  onLCP(m => { console.log('[WebVitals] LCP:', m); sendToAnalytics(m); });
-  onFCP(m => { console.log('[WebVitals] FCP:', m); sendToAnalytics(m); });
-  onTTFB(m => { console.log('[WebVitals] TTFB:', m); sendToAnalytics(m); });
-  if (typeof onINP === 'function') onINP(m => { console.log('[WebVitals] INP:', m); sendToAnalytics(m); });
+  getCLS(m => { console.log('[WebVitals] CLS:', m); sendToAnalytics(m); });
+  getFID(m => { console.log('[WebVitals] FID:', m); sendToAnalytics(m); });
+  getLCP(m => { console.log('[WebVitals] LCP:', m); sendToAnalytics(m); });
+  getFCP(m => { console.log('[WebVitals] FCP:', m); sendToAnalytics(m); });
+  getTTFB(m => { console.log('[WebVitals] TTFB:', m); sendToAnalytics(m); });
+  if (typeof getINP === 'function') getINP(m => { console.log('[WebVitals] INP:', m); sendToAnalytics(m); });
 }
