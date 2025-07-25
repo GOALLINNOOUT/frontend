@@ -9,6 +9,10 @@ import * as api from '../../utils/api';
 function buildSankeyData(paths, options = {}) {
   const { minPathLength = 2, maxNodes = 50, minLinkValue = 1 } = options;
   
+  if (!paths || !Array.isArray(paths) || paths.length === 0) {
+    return { nodes: [], links: [] };
+  }
+  
   // Collect all unique node names in order of appearance
   const nodeNames = [];
   const nodeSet = new Set();
@@ -16,7 +20,8 @@ function buildSankeyData(paths, options = {}) {
   const linkMap = new Map();
   
   paths.forEach(({ path, count }) => {
-    if (!path || typeof path !== 'string' || count < minLinkValue) return;
+    // Validate input data
+    if (!path || typeof path !== 'string' || !count || count < minLinkValue) return;
     
     // Exclude any path containing an admin page
     if (path.includes('/admin/')) return;
@@ -31,14 +36,28 @@ function buildSankeyData(paths, options = {}) {
     // Skip if any step is empty or not a string
     if (steps.some(s => !s || typeof s !== 'string')) return;
     
+    // First pass: collect all nodes
     steps.forEach((step) => {
       if (!nodeSet.has(step) && nodeNames.length < maxNodes) {
         nodeSet.add(step);
         nodeNames.push(step);
       }
     });
+  });
+  
+  // Second pass: create links only for paths where all nodes exist
+  paths.forEach(({ path, count }) => {
+    if (!path || typeof path !== 'string' || !count || count < minLinkValue) return;
+    if (path.includes('/admin/')) return;
     
-    // Aggregate links (only if all steps are in our node set)
+    const steps = path.split(' → ').map(s => s.trim()).filter(Boolean);
+    if (steps.length < minPathLength) return;
+    
+    // Skip paths with cycles
+    const uniqueSteps = new Set(steps);
+    if (uniqueSteps.size !== steps.length) return;
+    
+    // Only process if all steps are in our node set
     if (steps.every(step => nodeSet.has(step))) {
       for (let i = 0; i < steps.length - 1; i++) {
         const source = steps[i];
@@ -52,12 +71,15 @@ function buildSankeyData(paths, options = {}) {
   // Map node names to their index in the nodes array
   const nodeMap = new Map(nodeNames.map((name, idx) => [name, idx]));
   
-  // Build links using these indices, skip invalid
+  // Build links using these indices, with strict validation
   const links = [];
   for (const [key, value] of linkMap.entries()) {
-    if (value < minLinkValue) continue;
+    if (!value || value < minLinkValue || !Number.isFinite(value)) continue;
     
-    const [source, target] = key.split('__');
+    const parts = key.split('__');
+    if (parts.length !== 2) continue;
+    
+    const [source, target] = parts;
     const sourceIdx = nodeMap.get(source);
     const targetIdx = nodeMap.get(target);
     
@@ -65,26 +87,54 @@ function buildSankeyData(paths, options = {}) {
       typeof sourceIdx === 'number' &&
       typeof targetIdx === 'number' &&
       sourceIdx !== targetIdx &&
-      !isNaN(sourceIdx) &&
-      !isNaN(targetIdx)
+      Number.isFinite(sourceIdx) &&
+      Number.isFinite(targetIdx) &&
+      sourceIdx >= 0 &&
+      targetIdx >= 0 &&
+      sourceIdx < nodeNames.length &&
+      targetIdx < nodeNames.length
     ) {
-      links.push({ source: sourceIdx, target: targetIdx, value });
+      links.push({ 
+        source: sourceIdx, 
+        target: targetIdx, 
+        value: Number(value)
+      });
     }
-  }
+  });
   
   // Sort links by value for better visual hierarchy
   links.sort((a, b) => b.value - a.value);
   
-  const nodes = nodeNames.map((name) => ({ 
-    name,
-    // Truncate long node names for better display
-    displayName: name.length > 25 ? `${name.substring(0, 22)}...` : name
-  }));
+  // Create nodes with proper formatting
+  const nodes = nodeNames.map((name, index) => {
+    const cleanName = String(name).trim();
+    return {
+      name: cleanName,
+      displayName: cleanName.length > 25 ? `${cleanName.substring(0, 22)}...` : cleanName,
+      nodeId: index
+    };
+  });
   
-  // Final validation: if no valid links, return empty
-  if (!nodes.length || !links.length) return { nodes: [], links: [] };
+  // Final validation: ensure we have valid data
+  if (!nodes.length || !links.length) {
+    return { nodes: [], links: [] };
+  }
   
-  return { nodes, links };
+  // Validate that all link indices are valid
+  const validLinks = links.filter(link => 
+    link.source >= 0 && 
+    link.source < nodes.length && 
+    link.target >= 0 && 
+    link.target < nodes.length &&
+    Number.isFinite(link.value) &&
+    link.value > 0
+  );
+  
+  if (!validLinks.length) {
+    return { nodes: [], links: [] };
+  }
+  
+  return { nodes, links: validLinks };
 }
 
 function getTooltipStyles(theme) {
@@ -230,16 +280,35 @@ const UserFlowAnalytics = ({ dateRange, options = {} }) => {
     }
 
     try {
+      // Additional validation before rendering
+      const hasValidData = sankeyData && 
+        Array.isArray(sankeyData.nodes) && 
+        Array.isArray(sankeyData.links) &&
+        sankeyData.nodes.length > 0 && 
+        sankeyData.links.length > 0 &&
+        sankeyData.links.every(link => 
+          Number.isFinite(link.source) && 
+          Number.isFinite(link.target) && 
+          Number.isFinite(link.value) &&
+          link.source >= 0 && 
+          link.target >= 0 && 
+          link.value > 0
+        );
+
+      if (!hasValidData) {
+        throw new Error('Invalid Sankey data structure');
+      }
+
       return (
         <ResponsiveContainer width="100%" height={400}>
           <Sankey
             data={sankeyData}
             nodePadding={20}
+            nodeWidth={15}
             margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
             link={{ 
               stroke: theme.palette.primary.main, 
               strokeOpacity: 0.6,
-              strokeWidth: 2,
             }}
             node={{ 
               stroke: theme.palette.text.primary, 
