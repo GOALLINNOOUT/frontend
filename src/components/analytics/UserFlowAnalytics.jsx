@@ -8,28 +8,44 @@ import * as api from '../../utils/api';
 
 // Helper to convert path string to Sankey nodes/links
 function buildSankeyData(paths) {
-  const nodeMap = new Map();
+  // Collect all unique node names in order of appearance
+  const nodeNames = [];
+  const nodeSet = new Set();
   const links = [];
-  let nodeIdx = 0;
   paths.forEach(({ path, count }) => {
     const steps = path.split(' → ');
     if (steps.length < 2) return; // Skip single-page paths
     // Skip paths with cycles (node appears more than once)
     const uniqueSteps = new Set(steps);
     if (uniqueSteps.size !== steps.length) return;
+    steps.forEach((step) => {
+      if (!nodeSet.has(step)) {
+        nodeSet.add(step);
+        nodeNames.push(step);
+      }
+    });
+  });
+  // Map node names to their index in the nodes array
+  const nodeMap = new Map(nodeNames.map((name, idx) => [name, idx]));
+  // Build links using these indices
+  paths.forEach(({ path, count }) => {
+    const steps = path.split(' → ');
+    if (steps.length < 2) return;
+    const uniqueSteps = new Set(steps);
+    if (uniqueSteps.size !== steps.length) return;
     for (let i = 0; i < steps.length - 1; i++) {
-      const source = steps[i];
-      const target = steps[i + 1];
-      if (!nodeMap.has(source)) nodeMap.set(source, nodeIdx++);
-      if (!nodeMap.has(target)) nodeMap.set(target, nodeIdx++);
-      links.push({
-        source: nodeMap.get(source),
-        target: nodeMap.get(target),
-        value: count
-      });
+      const sourceIdx = nodeMap.get(steps[i]);
+      const targetIdx = nodeMap.get(steps[i + 1]);
+      if (typeof sourceIdx === 'number' && typeof targetIdx === 'number') {
+        links.push({
+          source: sourceIdx,
+          target: targetIdx,
+          value: count
+        });
+      }
     }
   });
-  const nodes = Array.from(nodeMap.entries()).map(([name]) => ({ name }));
+  const nodes = nodeNames.map((name) => ({ name }));
   return { nodes, links };
 }
 
