@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Box, Typography, Button, useTheme } from '@mui/material';
+import { logErrorToServer } from '../../utils/logError';
 
 function ErrorBoundary({ children }) {
   const theme = useTheme();
@@ -15,8 +16,8 @@ function ErrorBoundary({ children }) {
       return { hasError: true };
     }
     componentDidCatch(error, errorInfo) {
-      // You can log the error to an error reporting service
-      console.error("ErrorBoundary caught an error", error, errorInfo);
+      // Log error to analytics backend
+      logErrorToServer(error, errorInfo);
       setHasError(true);
     }
     render() {

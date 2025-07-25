@@ -4,6 +4,7 @@ import { get } from '../../utils/api';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, LineChart, Line, BarChart, Bar, LabelList } from 'recharts';
 import PropTypes from 'prop-types';
 import PageVisitsTrendChart from './PageVisitsTrendChart';
+
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import IconButton from '@mui/material/IconButton';
 import Popover from '@mui/material/Popover';
@@ -578,8 +579,9 @@ const TrafficEngagement = ({ dateRange }) => {
             ))}
           </Box>
         </Box>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    
   );
 };
 

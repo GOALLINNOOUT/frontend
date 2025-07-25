@@ -11,6 +11,7 @@ import MarketingPerformance from '../components/analytics/MarketingPerformance';
 import ExportButtons from '../components/analytics/ExportButtons';
 import UserFlowAnalytics from '../components/analytics/UserFlowAnalytics';
 import SiteSpeedAnalytics from '../components/analytics/SiteSpeedAnalytics';
+import ErrorEventsAnalytics from '../components/analytics/ErrorEventsAnalytics';
 
 const AdminAnalytics = () => {
   const [tab, setTab] = useState(0);
@@ -30,6 +31,7 @@ const AdminAnalytics = () => {
     { key: 'marketing', label: 'Marketing', component: <MarketingPerformance dateRange={dateRange} /> },
     { key: 'userflow', label: 'User Flow', component: <UserFlowAnalytics dateRange={dateRange} /> },
     { key: 'siteSpeed', label: 'Site Speed', component: <SiteSpeedAnalytics dateRange={dateRange} /> },
+    { key: 'errors', label: 'Error Boundary Events', component: <ErrorEventsAnalytics dateRange={dateRange} /> },
   ];
 
   return (
