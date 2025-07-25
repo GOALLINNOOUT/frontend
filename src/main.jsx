@@ -1,3 +1,6 @@
+import { reportWebVitals } from './utils/reportWebVitals';
+// Start reporting web vitals
+reportWebVitals();
 // Listen for pushResubscribe messages from service worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', event => {
