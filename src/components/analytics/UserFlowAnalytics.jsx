@@ -14,6 +14,9 @@ function buildSankeyData(paths) {
   paths.forEach(({ path, count }) => {
     const steps = path.split(' → ');
     if (steps.length < 2) return; // Skip single-page paths
+    // Skip paths with cycles (node appears more than once)
+    const uniqueSteps = new Set(steps);
+    if (uniqueSteps.size !== steps.length) return;
     for (let i = 0; i < steps.length - 1; i++) {
       const source = steps[i];
       const target = steps[i + 1];
