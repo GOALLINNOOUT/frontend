@@ -207,22 +207,38 @@ function AdminOrders() {
         <meta name="description" content="Admin panel for managing orders at JC's Closet." />
       </Helmet>
       <div className="admin-dashboard">
-        {/* Admin notification opt-in */}
-        {adminNotifStatus !== 'granted' && adminNotifStatus !== 'denied' && (
-          <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
+        {/* Admin notification opt-in dialog */}
+        <Dialog open={adminNotifStatus === 'idle'}>
+          <DialogTitle>Enable Admin Notifications?</DialogTitle>
+          <DialogContent>
+            <p>Would you like to receive notifications for new orders and important admin events?</p>
+            {adminNotifStatus === 'error' && <span style={{ color: '#b71c1c', fontWeight: 500 }}>Error enabling notifications. Please try again.</span>}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => { setAdminNotifStatus('denied'); localStorage.setItem('jc_closet_admin_notif', 'denied'); }}>No, thanks</Button>
             <Button
+              onClick={handleAdminNotif}
               variant="contained"
               color="info"
-              onClick={handleAdminNotif}
               disabled={notifLoading}
               startIcon={notifLoading ? <CircularProgress size={18} color="inherit" /> : null}
-              sx={{ fontWeight: 600, borderRadius: 2 }}
+              autoFocus
             >
-              {notifLoading ? 'Enabling...' : 'Enable Admin Notifications'}
+              {notifLoading ? 'Enabling...' : 'Yes, enable'}
             </Button>
-            {adminNotifStatus === 'error' && <span style={{ color: '#b71c1c', fontWeight: 500 }}>Error enabling notifications</span>}
-          </div>
-        )}
+          </DialogActions>
+        </Dialog>
+        {/* Show result dialog if accepted or denied */}
+        <Dialog open={adminNotifStatus === 'granted' || adminNotifStatus === 'denied'} onClose={() => {}}>
+          <DialogTitle>Admin Notifications</DialogTitle>
+          <DialogContent>
+            {adminNotifStatus === 'granted' && <span style={{ color: '#388e3c', fontWeight: 500 }}>Notifications enabled! You will now receive admin alerts.</span>}
+            {adminNotifStatus === 'denied' && <span style={{ color: '#b71c1c', fontWeight: 500 }}>Notifications are disabled. You can enable them in your browser settings later.</span>}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => { setAdminNotifStatus('done'); }}>OK</Button>
+          </DialogActions>
+        </Dialog>
         <h1>Orders</h1>
         <div style={{ marginBottom: 20, display: 'flex', flexWrap: 'wrap', gap: 16, position: 'relative' }}>
           <input
