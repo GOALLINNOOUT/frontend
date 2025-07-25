@@ -51,6 +51,13 @@ import { Helmet } from 'react-helmet-async';
 
 
 function AdminOrders() {
+  // On mount, only show dialog if not already confirmed/denied
+  const [adminNotifStatus, setAdminNotifStatus] = useState(() => {
+    const stored = localStorage.getItem('jc_closet_admin_notif');
+    if (stored === 'granted' || stored === 'denied') return 'done';
+    return stored || 'idle';
+  });
+  const [notifLoading, setNotifLoading] = useState(false);
 
   // Only show button if not already granted/denied
   const handleAdminNotif = async () => {
@@ -81,9 +88,6 @@ function AdminOrders() {
     }
     setNotifLoading(false);
   };
-  // Admin notification opt-in state (must be inside component)
-  const [adminNotifStatus, setAdminNotifStatus] = useState(() => localStorage.getItem('jc_closet_admin_notif') || 'idle'); // idle | granted | denied | error
-  const [notifLoading, setNotifLoading] = useState(false);
   const [orders, setOrders] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(false);
