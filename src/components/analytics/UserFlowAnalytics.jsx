@@ -11,9 +11,11 @@ function buildSankeyData(paths) {
   // Collect all unique node names in order of appearance
   const nodeNames = [];
   const nodeSet = new Set();
-  const links = [];
+  // Use a map to aggregate duplicate links
+  const linkMap = new Map();
   paths.forEach(({ path, count }) => {
-    const steps = path.split(' → ');
+    if (!path || typeof path !== 'string') return;
+    const steps = path.split(' → ').map(s => s.trim()).filter(Boolean);
     if (steps.length < 2) return; // Skip single-page paths
     // Skip paths with cycles (node appears more than once)
     const uniqueSteps = new Set(steps);
@@ -24,28 +26,35 @@ function buildSankeyData(paths) {
         nodeNames.push(step);
       }
     });
+    // Aggregate links
+    for (let i = 0; i < steps.length - 1; i++) {
+      const source = steps[i];
+      const target = steps[i + 1];
+      const key = `${source}__${target}`;
+      linkMap.set(key, (linkMap.get(key) || 0) + count);
+    }
   });
   // Map node names to their index in the nodes array
   const nodeMap = new Map(nodeNames.map((name, idx) => [name, idx]));
-  // Build links using these indices
-  paths.forEach(({ path, count }) => {
-    const steps = path.split(' → ');
-    if (steps.length < 2) return;
-    const uniqueSteps = new Set(steps);
-    if (uniqueSteps.size !== steps.length) return;
-    for (let i = 0; i < steps.length - 1; i++) {
-      const sourceIdx = nodeMap.get(steps[i]);
-      const targetIdx = nodeMap.get(steps[i + 1]);
-      if (typeof sourceIdx === 'number' && typeof targetIdx === 'number') {
-        links.push({
-          source: sourceIdx,
-          target: targetIdx,
-          value: count
-        });
-      }
+  // Build links using these indices, skip invalid
+  const links = [];
+  for (const [key, value] of linkMap.entries()) {
+    const [source, target] = key.split('__');
+    const sourceIdx = nodeMap.get(source);
+    const targetIdx = nodeMap.get(target);
+    if (
+      typeof sourceIdx === 'number' &&
+      typeof targetIdx === 'number' &&
+      sourceIdx !== targetIdx &&
+      !isNaN(sourceIdx) &&
+      !isNaN(targetIdx)
+    ) {
+      links.push({ source: sourceIdx, target: targetIdx, value });
     }
-  });
+  }
   const nodes = nodeNames.map((name) => ({ name }));
+  // Final validation: if no valid links, return empty
+  if (!nodes.length || !links.length) return { nodes: [], links: [] };
   return { nodes, links };
 }
 
