@@ -115,8 +115,10 @@ const UserFlowAnalytics = ({ dateRange }) => {
 
   // Custom link renderer for color and interactivity
   const renderLink = (linkProps) => {
-    const { source, target, value, path } = linkProps;
-    const color = NODE_COLORS[source.index % NODE_COLORS.length];
+    const { source, value, path } = linkProps;
+    const color = source && typeof source.index === 'number'
+      ? NODE_COLORS[source.index % NODE_COLORS.length]
+      : '#ccc';
     return (
       <g>
         <path d={path} stroke={color} strokeWidth={Math.max(1, value)} fill="none" opacity={0.4} />
