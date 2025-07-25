@@ -5,6 +5,16 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import PropTypes from 'prop-types';
 import * as api from '../../utils/api';
 
+
+const METRIC_DESCRIPTIONS = {
+  LCP: 'Largest Contentful Paint (LCP) measures loading performance. It marks the time when the largest content element is visible. Aim for LCP under 2.5s.',
+  FID: 'First Input Delay (FID) measures interactivity. It is the time from when a user first interacts with your site to the time the browser responds. Aim for FID under 100ms.',
+  CLS: 'Cumulative Layout Shift (CLS) measures visual stability. It quantifies how much the page layout shifts unexpectedly. Aim for CLS below 0.1.',
+  FCP: 'First Contentful Paint (FCP) measures when the first text or image is painted. Faster FCP means users see content sooner.',
+  TTFB: 'Time to First Byte (TTFB) measures the time it takes for the browser to receive the first byte from the server. Lower TTFB means faster server response.',
+  INP: 'Interaction to Next Paint (INP) measures overall responsiveness to user interactions. It replaces FID. Aim for INP under 200ms.',
+};
+
 const METRICS = [
   { key: 'LCP', label: 'Largest Contentful Paint' },
   { key: 'FID', label: 'First Input Delay' },
@@ -128,6 +138,10 @@ const SiteSpeedAnalytics = ({ dateRange }) => {
           >
             <Typography variant="body2" color="text.secondary">{infoText}</Typography>
           </Popover>
+        </Box>
+        {/* Metric description */}
+        <Box sx={{ mb: 1, fontSize: 14, color: theme.palette.text.secondary }}>
+          {METRIC_DESCRIPTIONS[currentMetric]}
         </Box>
         {/* Summary panel for latest value and rating */}
         <Box display="flex" alignItems="center" mb={2}>
