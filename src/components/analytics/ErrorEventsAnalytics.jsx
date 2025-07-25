@@ -130,13 +130,19 @@ const ErrorEventsAnalytics = ({ dateRange }) => {
                         <TableCell>{err.timestamp ? new Date(err.timestamp).toLocaleString() : ''}</TableCell>
                         <TableCell>{err.message}</TableCell>
                         <TableCell>
-                          <MuiTooltip title={err.url || ''}>
+                          <MuiTooltip 
+                            title={err.url || ''}
+                            slotProps={{ tooltip: { sx: { bgcolor: theme.palette.background.paper, color: theme.palette.text.primary, boxShadow: 3, fontSize: 14 } } }}
+                          >
                             <span style={{ maxWidth: 120, display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{err.url}</span>
                           </MuiTooltip>
                         </TableCell>
                         <TableCell>{err.user || '-'}</TableCell>
                         <TableCell>
-                          <MuiTooltip title={err.stack || ''}>
+                          <MuiTooltip 
+                            title={err.stack || ''}
+                            slotProps={{ tooltip: { sx: { bgcolor: theme.palette.background.paper, color: theme.palette.text.primary, boxShadow: 3, fontSize: 14 } } }}
+                          >
                             <span style={{ maxWidth: 120, display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{err.stack ? err.stack.slice(0, 30) + '...' : '-'}</span>
                           </MuiTooltip>
                         </TableCell>
@@ -171,13 +177,19 @@ const ErrorEventsAnalytics = ({ dateRange }) => {
                   <TableCell>{err.timestamp ? new Date(err.timestamp).toLocaleString() : ''}</TableCell>
                   <TableCell>{err.message}</TableCell>
                   <TableCell>
-                    <MuiTooltip title={err.url || ''}>
+                    <MuiTooltip 
+                      title={err.url || ''}
+                      slotProps={{ tooltip: { sx: { bgcolor: theme.palette.background.paper, color: theme.palette.text.primary, boxShadow: 3, fontSize: 14 } } }}
+                    >
                       <span style={{ maxWidth: 120, display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{err.url}</span>
                     </MuiTooltip>
                   </TableCell>
                   <TableCell>{err.user || '-'}</TableCell>
                   <TableCell>
-                    <MuiTooltip title={err.stack || ''}>
+                    <MuiTooltip 
+                      title={err.stack || ''}
+                      slotProps={{ tooltip: { sx: { bgcolor: theme.palette.background.paper, color: theme.palette.text.primary, boxShadow: 3, fontSize: 14 } } }}
+                    >
                       <span style={{ maxWidth: 120, display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{err.stack ? err.stack.slice(0, 30) + '...' : '-'}</span>
                     </MuiTooltip>
                   </TableCell>
