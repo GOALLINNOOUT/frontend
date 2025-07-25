@@ -13,6 +13,7 @@ function buildSankeyData(paths) {
   let nodeIdx = 0;
   paths.forEach(({ path, count }) => {
     const steps = path.split(' → ');
+    if (steps.length < 2) return; // Skip single-page paths
     for (let i = 0; i < steps.length - 1; i++) {
       const source = steps[i];
       const target = steps[i + 1];
