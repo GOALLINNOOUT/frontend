@@ -1,4 +1,74 @@
 import React, { useEffect, useState, useRef } from 'react';
+// Helper: subscribe admin to push notifications and send to backend
+async function subscribeAdminToPush() {
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
+    const reg = await navigator.serviceWorker.ready;
+    try {
+      const subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array('BAnXpkSuLZLZcgOO0ibI-Z3grRNhkuszV8R7ZyGsRuPMUaAFnIhEtVyvdi8aqGxGVr5PCeG57DPnTt7iOgFgfdU')
+      });
+      // Get auth token from localStorage
+      const token = localStorage.getItem('token');
+      // Send subscription to backend with admin flag
+      await fetch('https://jcserver.onrender.com/api/push/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ ...subscription, admin: true })
+      });
+      console.log('Admin push subscription sent to backend:', subscription);
+    } catch (err) {
+      console.error('Admin push subscription error:', err);
+    }
+  }
+}
+
+// Helper to convert VAPID key
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+  // Admin notification opt-in state
+  const [adminNotifStatus, setAdminNotifStatus] = useState(() => localStorage.getItem('jc_closet_admin_notif') || 'idle'); // idle | granted | denied | error
+  const [notifLoading, setNotifLoading] = useState(false);
+  // Only show button if not already granted/denied
+  const handleAdminNotif = async () => {
+    setNotifLoading(true);
+    if ('Notification' in window && Notification.permission !== 'granted') {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          setAdminNotifStatus('granted');
+          localStorage.setItem('jc_closet_admin_notif', 'granted');
+          new Notification('Admin notifications enabled!');
+          await subscribeAdminToPush();
+        } else {
+          setAdminNotifStatus('denied');
+          localStorage.setItem('jc_closet_admin_notif', 'denied');
+        }
+      } catch (e) {
+        setAdminNotifStatus('error');
+        localStorage.setItem('jc_closet_admin_notif', 'error');
+      }
+    } else if (Notification.permission === 'granted') {
+      setAdminNotifStatus('granted');
+      localStorage.setItem('jc_closet_admin_notif', 'granted');
+      await subscribeAdminToPush();
+    } else {
+      setAdminNotifStatus('denied');
+      localStorage.setItem('jc_closet_admin_notif', 'denied');
+    }
+    setNotifLoading(false);
+  };
 import * as api from '../utils/api';
 import './AdminDashboard.css';
 import Dialog from '@mui/material/Dialog';
@@ -135,6 +205,22 @@ function AdminOrders() {
         <meta name="description" content="Admin panel for managing orders at JC's Closet." />
       </Helmet>
       <div className="admin-dashboard">
+        {/* Admin notification opt-in */}
+        {adminNotifStatus !== 'granted' && adminNotifStatus !== 'denied' && (
+          <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Button
+              variant="contained"
+              color="info"
+              onClick={handleAdminNotif}
+              disabled={notifLoading}
+              startIcon={notifLoading ? <CircularProgress size={18} color="inherit" /> : null}
+              sx={{ fontWeight: 600, borderRadius: 2 }}
+            >
+              {notifLoading ? 'Enabling...' : 'Enable Admin Notifications'}
+            </Button>
+            {adminNotifStatus === 'error' && <span style={{ color: '#b71c1c', fontWeight: 500 }}>Error enabling notifications</span>}
+          </div>
+        )}
         <h1>Orders</h1>
         <div style={{ marginBottom: 20, display: 'flex', flexWrap: 'wrap', gap: 16, position: 'relative' }}>
           <input
