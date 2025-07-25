@@ -87,7 +87,7 @@ const SiteSpeedAnalytics = ({ dateRange }) => {
         }).toString();
         const res = await api.get(`/v1/analytics/web-vitals?${params}`);
         setData(res.data.metrics || []);
-      } catch (err) {
+      } catch {
         setError('Failed to load site speed analytics');
       } finally {
         setLoading(false);

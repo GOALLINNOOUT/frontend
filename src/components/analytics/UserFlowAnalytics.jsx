@@ -49,14 +49,11 @@ function buildSankeyData(paths, options = {}) {
   paths.forEach(({ path, count }) => {
     if (!path || typeof path !== 'string' || !count || count < minLinkValue) return;
     if (path.includes('/admin/')) return;
-    
     const steps = path.split(' → ').map(s => s.trim()).filter(Boolean);
     if (steps.length < minPathLength) return;
-    
     // Skip paths with cycles
     const uniqueSteps = new Set(steps);
     if (uniqueSteps.size !== steps.length) return;
-    
     // Only process if all steps are in our node set
     if (steps.every(step => nodeSet.has(step))) {
       for (let i = 0; i < steps.length - 1; i++) {
@@ -75,14 +72,11 @@ function buildSankeyData(paths, options = {}) {
   const links = [];
   for (const [key, value] of linkMap.entries()) {
     if (!value || value < minLinkValue || !Number.isFinite(value)) continue;
-    
     const parts = key.split('__');
     if (parts.length !== 2) continue;
-    
     const [source, target] = parts;
     const sourceIdx = nodeMap.get(source);
     const targetIdx = nodeMap.get(target);
-    
     if (
       typeof sourceIdx === 'number' &&
       typeof targetIdx === 'number' &&
@@ -100,8 +94,8 @@ function buildSankeyData(paths, options = {}) {
         value: Number(value)
       });
     }
-  });
-  
+  }
+
   // Sort links by value for better visual hierarchy
   links.sort((a, b) => b.value - a.value);
   
