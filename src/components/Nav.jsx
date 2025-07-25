@@ -83,7 +83,6 @@ function Nav() {
     { to: '/blog', label: 'Blog' },
     { to: '/contact', label: 'Contact' },
     { to: '/style-guide', label: 'Style Guide' },
-    { to: '/notifications', label: 'Notifications' }
   ];
   const adminLinks = [
     { to: '/admin/dashboard', label: 'Dashboard' },
@@ -99,6 +98,7 @@ function Nav() {
   const userMenuLinks = [
     { to: '/orders', label: 'My Orders' },
     { to: '/users', label: 'My Account' },
+    { to: '/notifications', label: 'Notifications', icon: true }
   ];
   // Admin dropdown links (can add more in the future)
   const adminMenuLinks = [
