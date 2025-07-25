@@ -27,7 +27,7 @@ const AdminAnalytics = () => {
     { key: 'traffic', label: 'Traffic & Engagement', component: <TrafficEngagement dateRange={dateRange} /> },
     { key: 'orders', label: 'Orders Overview', component: <OrdersOverview dateRange={dateRange} /> },
     { key: 'marketing', label: 'Marketing', component: <MarketingPerformance dateRange={dateRange} /> },
-    { key: 'userflow', label: 'User Flow', component: <UserFlowAnalytics /> },
+    { key: 'userflow', label: 'User Flow', component: <UserFlowAnalytics dateRange={dateRange} /> },
   ];
 
   return (
