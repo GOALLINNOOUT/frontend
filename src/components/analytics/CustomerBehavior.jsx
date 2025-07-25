@@ -59,7 +59,7 @@ const CustomerBehavior = ({ dateRange }) => {
     spend: 'This chart shows how much each customer have spent. It helps you see your typical order value per customer.',
     topCart: "This chart shows which products are most often added to customers' carts. It helps you spot your most popular items.",
     funnel: 'This chart shows the steps customers take from visiting your site to making a purchase. It helps you see where people drop off in the buying process.'
-    ,colorMode: 'This chart shows which color mode (light, dark, or system) your users prefer. It helps you understand how people like to view your site.'
+    ,colorMode: 'This chart shows which color mode (light or dark) your users prefer. It helps you understand how people like to view your site.'
   };
 
   function InfoPopover({ id, open, anchorEl, onClose, text }) {
