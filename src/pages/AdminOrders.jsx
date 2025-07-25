@@ -212,7 +212,6 @@ function AdminOrders() {
           <DialogTitle>Enable Admin Notifications?</DialogTitle>
           <DialogContent>
             <p>Would you like to receive notifications for new orders and important admin events?</p>
-            {adminNotifStatus === 'error' && <span style={{ color: '#b71c1c', fontWeight: 500 }}>Error enabling notifications. Please try again.</span>}
           </DialogContent>
           <DialogActions>
             <Button onClick={() => { setAdminNotifStatus('denied'); localStorage.setItem('jc_closet_admin_notif', 'denied'); }}>No, thanks</Button>
@@ -228,12 +227,13 @@ function AdminOrders() {
             </Button>
           </DialogActions>
         </Dialog>
-        {/* Show result dialog if accepted or denied */}
-        <Dialog open={adminNotifStatus === 'granted' || adminNotifStatus === 'denied'} onClose={() => {}}>
+        {/* Show result dialog if accepted, denied, or error */}
+        <Dialog open={adminNotifStatus === 'granted' || adminNotifStatus === 'denied' || adminNotifStatus === 'error'} onClose={() => {}}>
           <DialogTitle>Admin Notifications</DialogTitle>
           <DialogContent>
             {adminNotifStatus === 'granted' && <span style={{ color: '#388e3c', fontWeight: 500 }}>Notifications enabled! You will now receive admin alerts.</span>}
             {adminNotifStatus === 'denied' && <span style={{ color: '#b71c1c', fontWeight: 500 }}>Notifications are disabled. You can enable them in your browser settings later.</span>}
+            {adminNotifStatus === 'error' && <span style={{ color: '#b71c1c', fontWeight: 500 }}>Error enabling notifications. Please try again or check your browser settings.</span>}
           </DialogContent>
           <DialogActions>
             <Button onClick={() => { setAdminNotifStatus('done'); }}>OK</Button>
