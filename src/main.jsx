@@ -1,6 +1,4 @@
 import { reportWebVitals } from './utils/reportWebVitals';
-// Start reporting web vitals
-reportWebVitals();
 // Listen for pushResubscribe messages from service worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', event => {
@@ -67,6 +65,7 @@ import theme from './theme';
 import { AuthProvider } from './components/AuthContext';
 import { HelmetProvider } from 'react-helmet-async';
 
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
@@ -78,7 +77,10 @@ createRoot(document.getElementById('root')).render(
       </HelmetProvider>
     </AuthProvider>
   </StrictMode>,
-)
+);
+
+// Start reporting web vitals after app is mounted
+reportWebVitals();
 
 // Register service worker only (notification logic moved to OrderConfirmation)
 if ('serviceWorker' in navigator) {
