@@ -37,9 +37,21 @@ function urlBase64ToUint8Array(base64String) {
   }
   return outputArray;
 }
-  // Admin notification opt-in state
-  const [adminNotifStatus, setAdminNotifStatus] = useState(() => localStorage.getItem('jc_closet_admin_notif') || 'idle'); // idle | granted | denied | error
-  const [notifLoading, setNotifLoading] = useState(false);
+
+import * as api from '../utils/api';
+import './AdminDashboard.css';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+
+import { Helmet } from 'react-helmet-async';
+
+
+function AdminOrders() {
+
   // Only show button if not already granted/denied
   const handleAdminNotif = async () => {
     setNotifLoading(true);
@@ -69,19 +81,9 @@ function urlBase64ToUint8Array(base64String) {
     }
     setNotifLoading(false);
   };
-import * as api from '../utils/api';
-import './AdminDashboard.css';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
-
-import { Helmet } from 'react-helmet-async';
-
-
-function AdminOrders() {
+  // Admin notification opt-in state (must be inside component)
+  const [adminNotifStatus, setAdminNotifStatus] = useState(() => localStorage.getItem('jc_closet_admin_notif') || 'idle'); // idle | granted | denied | error
+  const [notifLoading, setNotifLoading] = useState(false);
   const [orders, setOrders] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(false);
