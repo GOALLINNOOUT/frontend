@@ -50,6 +50,11 @@ function getTooltipStyles(theme) {
   };
 }
 
+// Color palette for nodes
+const NODE_COLORS = [
+  '#8884d8', '#82ca9d', '#ffc658', '#ff7f50', '#8dd1e1', '#a4de6c', '#d0ed57', '#ffc0cb', '#b0e0e6', '#ffb347',
+];
+
 const UserFlowAnalytics = ({ dateRange }) => {
   const [paths, setPaths] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -85,6 +90,62 @@ const UserFlowAnalytics = ({ dateRange }) => {
   }, [dateRange]);
 
   const sankeyData = buildSankeyData(paths);
+
+  // Custom node renderer for labeling and color
+  const renderNode = (nodeProps) => {
+    const { x, y, width, height, index, name } = nodeProps;
+    const fill = NODE_COLORS[index % NODE_COLORS.length];
+    return (
+      <g>
+        <rect x={x} y={y} width={width} height={height} fill={fill} stroke="#333" strokeWidth={1} rx={4} />
+        <text
+          x={x + width + 6}
+          y={y + height / 2}
+          textAnchor="start"
+          alignmentBaseline="middle"
+          fontSize={13}
+          fill="#333"
+          aria-label={name}
+        >
+          {name}
+        </text>
+      </g>
+    );
+  };
+
+  // Custom link renderer for color and interactivity
+  const renderLink = (linkProps) => {
+    const { source, target, value, path } = linkProps;
+    const color = NODE_COLORS[source.index % NODE_COLORS.length];
+    return (
+      <g>
+        <path d={path} stroke={color} strokeWidth={Math.max(1, value)} fill="none" opacity={0.4} />
+      </g>
+    );
+  };
+
+  // Enhanced tooltip content
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const item = payload[0].payload;
+      if (item.source && item.target) {
+        return (
+          <Box sx={{ p: 1 }}>
+            <Typography variant="subtitle2">{item.source.name} → {item.target.name}</Typography>
+            <Typography variant="body2">Count: {item.value}</Typography>
+          </Box>
+        );
+      }
+      if (item.name) {
+        return (
+          <Box sx={{ p: 1 }}>
+            <Typography variant="subtitle2">{item.name}</Typography>
+          </Box>
+        );
+      }
+    }
+    return null;
+  };
 
   return (
     <Card elevation={2} sx={{ mb: 3, borderRadius: 3, bgcolor: theme.palette.background.paper }}>
@@ -124,10 +185,11 @@ const UserFlowAnalytics = ({ dateRange }) => {
               data={sankeyData}
               nodePadding={30}
               margin={{ top: 20, bottom: 20 }}
-              link={{ stroke: '#8884d8' }}
-              node={{ stroke: '#333', strokeWidth: 1 }}
+              node={renderNode}
+              link={renderLink}
             >
               <RechartsTooltip
+                content={<CustomTooltip />}
                 contentStyle={tooltipStyles.contentStyle}
                 labelStyle={tooltipStyles.labelStyle}
                 itemStyle={tooltipStyles.itemStyle}
