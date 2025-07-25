@@ -21,7 +21,9 @@ const Notifications = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const unreadCount = notifications.filter(n => !n.read).length;
-  const [marking, setMarking] = useState(false);
+  // removed unused marking state
+  const [markingId, setMarkingId] = useState(null); // for per-item loading
+  const [markingAll, setMarkingAll] = useState(false); // for mark all as read
 
   useEffect(() => {
     fetchNotifications();
@@ -70,7 +72,7 @@ const Notifications = () => {
       socket.disconnect();
       console.log('[Notifications] Socket disconnected and listeners removed');
     };
-    // eslint-disable-next-line
+    //
   }, []);
 
   const fetchNotifications = () => {
@@ -91,19 +93,20 @@ const Notifications = () => {
       });
   };
 
+
   const markAsRead = async (id) => {
-    setMarking(true);
+    setMarkingId(id);
     try {
       await api.patch(`/notifications/${id}/read`);
       fetchNotifications();
     } catch {
       setError('Failed to mark as read');
     }
-    setMarking(false);
+    setMarkingId(null);
   };
 
   const markAllAsRead = async () => {
-    setMarking(true);
+    setMarkingAll(true);
     try {
       const unreadIds = notifications.filter(n => !n.read).map(n => n._id);
       await Promise.all(unreadIds.map(id => api.patch(`/notifications/${id}/read`)));
@@ -111,7 +114,7 @@ const Notifications = () => {
     } catch {
       setError('Failed to mark all as read');
     }
-    setMarking(false);
+    setMarkingAll(false);
   };
 
   if (loading) return (
@@ -156,12 +159,12 @@ const Notifications = () => {
                 variant="contained"
                 color="primary"
                 size="small"
-                startIcon={<DoneAllIcon />}
+                startIcon={markingAll ? <CircularProgress size={18} color="inherit" /> : <DoneAllIcon />}
                 onClick={markAllAsRead}
-                disabled={marking}
-                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                disabled={markingAll}
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, minWidth: 140 }}
               >
-                Mark all as read
+                {markingAll ? 'Marking...' : 'Mark all as read'}
               </Button>
             )}
           </Box>
@@ -198,12 +201,12 @@ const Notifications = () => {
                   <Stack direction="row" alignItems="center" gap={1} mb={{ xs: 1, sm: 0 }}>
                     {note.type === 'order' && <LocalMallIcon color="primary" sx={{ fontSize: 22 }} />}
                     {note.type === 'system' && <SystemSecurityUpdateGoodIcon color="info" sx={{ fontSize: 22 }} />}
-                    {note.type === 'info' && <InfoIcon color="secondary" sx={{ fontSize: 22 }} />}
+                    {note.type === 'info' && <InfoIcon color="info" sx={{ fontSize: 22 }} />}
                     <Chip
                       label={note.type ? note.type.charAt(0).toUpperCase() + note.type.slice(1) : 'Info'}
                       size="small"
-                      color={note.type === 'order' ? 'primary' : note.type === 'system' ? 'info' : 'secondary'}
-                      sx={{ fontWeight: 600, textTransform: 'capitalize', mr: 1 }}
+                      color={note.type === 'order' ? 'primary' : note.type === 'system' ? 'info' : 'default'}
+                      sx={{ fontWeight: 600, textTransform: 'capitalize', mr: 1, bgcolor: note.type === 'info' ? theme.palette.info.light : undefined, color: note.type === 'info' ? theme.palette.info.contrastText : undefined }}
                     />
                   </Stack>
                   <ListItemText
@@ -218,10 +221,14 @@ const Notifications = () => {
                       color="primary"
                       aria-label="mark as read"
                       onClick={() => markAsRead(note._id)}
-                      disabled={marking}
-                      sx={{ ml: { sm: 2 }, mt: { xs: 1, sm: 0 }, alignSelf: { xs: 'flex-end', sm: 'center' } }}
+                      disabled={markingId === note._id || markingAll}
+                      sx={{ ml: { sm: 2 }, mt: { xs: 1, sm: 0 }, alignSelf: { xs: 'flex-end', sm: 'center' }, position: 'relative' }}
                     >
-                      <MarkEmailReadIcon />
+                      {markingId === note._id ? (
+                        <CircularProgress size={22} color="inherit" />
+                      ) : (
+                        <MarkEmailReadIcon />
+                      )}
                     </IconButton>
                   )}
                 </ListItem>
