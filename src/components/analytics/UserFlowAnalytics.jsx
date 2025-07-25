@@ -73,7 +73,7 @@ const UserFlowAnalytics = ({ dateRange }) => {
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
         }).toString();
-        const res = await api.get(`/analytics/userflow?${params}`);
+        const res = await api.get(`/v1/analytics/userflow?${params}`);
         setPaths(res.data.topPaths || []);
       } catch (err) {
         setError('Failed to load user flow');
