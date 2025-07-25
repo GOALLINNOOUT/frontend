@@ -98,7 +98,7 @@ const Notifications = () => {
     setMarkingId(id);
     try {
       await api.patch(`/notifications/${id}/read`);
-      fetchNotifications();
+      setNotifications((prev) => prev.map(n => n._id === id ? { ...n, read: true } : n));
     } catch {
       setError('Failed to mark as read');
     }
@@ -110,7 +110,7 @@ const Notifications = () => {
     try {
       const unreadIds = notifications.filter(n => !n.read).map(n => n._id);
       await Promise.all(unreadIds.map(id => api.patch(`/notifications/${id}/read`)));
-      fetchNotifications();
+      setNotifications((prev) => prev.map(n => unreadIds.includes(n._id) ? { ...n, read: true } : n));
     } catch {
       setError('Failed to mark all as read');
     }
