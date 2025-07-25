@@ -83,6 +83,7 @@ function Nav() {
     { to: '/blog', label: 'Blog' },
     { to: '/contact', label: 'Contact' },
     { to: '/style-guide', label: 'Style Guide' },
+    { to: '/notifications', label: 'Notifications' }
   ];
   const adminLinks = [
     { to: '/admin/dashboard', label: 'Dashboard' },
