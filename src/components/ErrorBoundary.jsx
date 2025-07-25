@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, Typography, Button, useTheme } from '@mui/material';
-import { logErrorToServer } from '../../utils/logError';
+import { logErrorToServer } from '../utils/logError';
 
 function ErrorBoundary({ children }) {
   const theme = useTheme();
