@@ -231,18 +231,28 @@ function Checkout() {
     // Check stock and price before payment
     try {
       const res = await api.post('/cart/check-stock', {
-        items: cart.map(item => ({
-          _id: item._id,
-          quantity: item.quantity,
-          price:
-            item.promoEnabled && item.promoValue && item.promoStart && item.promoEnd && new Date(item.promoStart) <= new Date() && new Date(item.promoEnd) >= new Date()
-              ? (item.promoType === 'discount'
-                  ? Math.round(item.price * (1 - item.promoValue / 100))
-                  : item.promoType === 'price'
-                  ? item.promoValue
-                  : item.price)
-              : item.price
-        }))
+        items: cart.map(item => {
+          // Use promo price if promo is active, else fallback to normal price
+          let promoActive = false;
+          let promoPrice = item.price;
+          const now = new Date();
+          if (item.promoActive && item.promoPrice !== undefined) {
+            promoActive = true;
+            promoPrice = item.promoPrice;
+          } else if (item.promoEnabled && item.promoValue != null && item.promoStart && item.promoEnd && new Date(item.promoStart) <= now && new Date(item.promoEnd) >= now) {
+            promoActive = true;
+            if (item.promoType === 'discount') {
+              promoPrice = Math.round(item.price * (1 - item.promoValue / 100));
+            } else if (item.promoType === 'price') {
+              promoPrice = item.promoValue;
+            }
+          }
+          return {
+            _id: item._id,
+            quantity: item.quantity,
+            price: promoActive ? promoPrice : item.price
+          };
+        })
       });
       if (!res.data?.success) {
         let msg = res.data?.message || 'Some items are out of stock or unavailable. Please review your cart.';
