@@ -56,20 +56,6 @@ export default function Login({ onLogin }) {
       }
       localStorage.setItem('role', res.data.user.role);
       window.dispatchEvent(new Event('role-changed'));
-      // Store token in localStorage if cookies are not allowed
-      function cookiesEnabled() {
-        try {
-          document.cookie = "cookietest=1";
-          const enabled = document.cookie.indexOf("cookietest=") !== -1;
-          document.cookie = "cookietest=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-          return enabled;
-        } catch {
-          return false;
-        }
-      }
-      if (!cookiesEnabled() && res.data.token) {
-        localStorage.setItem('token', res.data.token);
-      }
       try {
         const resSession = await post('/session/start', {}, { credentials: 'include' });
         if (resSession.data && resSession.data.sessionId) {

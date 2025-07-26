@@ -3,28 +3,11 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 
 export async function request(endpoint, { method = 'GET', data, headers = {}, ...options } = {}) {
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
-  // Helper to check if cookies are enabled
-  function cookiesEnabled() {
-    try {
-      document.cookie = "cookietest=1";
-      const enabled = document.cookie.indexOf("cookietest=") !== -1;
-      document.cookie = "cookietest=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-      return enabled;
-    } catch {
-      return false;
-    }
-  }
+  // No need to manually attach JWT token; sent automatically via HTTP-only cookie
   // Attach x-session-id header ONLY if it exists in localStorage
   const sessionId = localStorage.getItem('sessionId');
   if (sessionId) {
     headers = { ...headers, 'x-session-id': sessionId };
-  }
-  // If cookies are disabled, send token from localStorage as Authorization header
-  if (!cookiesEnabled()) {
-    const token = localStorage.getItem('token');
-    if (token) {
-      headers = { ...headers, 'Authorization': `Bearer ${token}` };
-    }
   }
   let fetchHeaders = { 'Content-Type': 'application/json', ...headers };
   let fetchBody = undefined;
