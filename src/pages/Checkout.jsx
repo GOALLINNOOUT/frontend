@@ -178,22 +178,7 @@ function Checkout() {
   }, [navigate]);
 
   const total = cart.reduce((sum, item) => {
-    const now = new Date();
-    let displayPrice = item.price;
-    if (
-      item.promoEnabled &&
-      item.promoValue &&
-      item.promoStart &&
-      item.promoEnd &&
-      new Date(item.promoStart) <= now &&
-      new Date(item.promoEnd) >= now
-    ) {
-      if (item.promoType === 'discount') {
-        displayPrice = Math.round(item.price * (1 - item.promoValue / 100));
-      } else if (item.promoType === 'price') {
-        displayPrice = item.promoValue;
-      }
-    }
+    const { displayPrice } = getPerfumePromo(item);
     return sum + (displayPrice * (item.quantity || 1));
   }, 0);
 
@@ -424,23 +409,19 @@ function Checkout() {
         <Divider sx={{ mb: 2 }} />
         <Typography variant="h6" mb={1} color="text.secondary">Order Summary</Typography>
         <Stack spacing={1} mb={2} component={motion.div} initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } }}>
-          {cart.map(item => (
-            <motion.div key={item._id} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}>
-              <Box display="flex" justifyContent="space-between" alignItems="center" px={1} py={0.5} borderRadius={2} bgcolor="grey.100">
-                <Typography fontWeight={500} fontSize={{ xs: 14, sm: 16 }}>{item.name} <span style={{ color: '#888' }}>x{item.quantity}</span></Typography>
-                <Typography fontWeight={600} color="primary.main" fontSize={{ xs: 14, sm: 16 }}>
-                  ₦{((item.promoEnabled && item.promoValue && item.promoStart && item.promoEnd && new Date(item.promoStart) <= new Date() && new Date(item.promoEnd) >= new Date())
-                    ? (item.promoType === 'discount'
-                      ? Math.round(item.price * (1 - item.promoValue / 100))
-                      : item.promoType === 'price'
-                        ? item.promoValue
-                        : item.price)
-                    : item.price
-                  ).toLocaleString()}
-                </Typography>
-              </Box>
-            </motion.div>
-          ))}
+          {cart.map(item => {
+            const { displayPrice } = getPerfumePromo(item);
+            return (
+              <motion.div key={item._id} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" px={1} py={0.5} borderRadius={2} bgcolor="grey.100">
+                  <Typography fontWeight={500} fontSize={{ xs: 14, sm: 16 }}>{item.name} <span style={{ color: '#888' }}>x{item.quantity}</span></Typography>
+                  <Typography fontWeight={600} color="primary.main" fontSize={{ xs: 14, sm: 16 }}>
+                    ₦{displayPrice.toLocaleString()}
+                  </Typography>
+                </Box>
+              </motion.div>
+            );
+          })}
         </Stack>
         <Divider sx={{ mb: 2 }} />
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
