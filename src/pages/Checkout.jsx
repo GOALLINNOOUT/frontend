@@ -58,7 +58,7 @@ const NIGERIAN_STATES = [
 
 // Delivery fees per state (customize as needed)
 const DELIVERY_FEES = {
-  Lagos: 2000,
+  'Lagos': 2000,
   'FCT': 2500,
   'Abuja': 2500, // in case Abuja is used
   'Ogun': 2200,
@@ -221,7 +221,10 @@ function Checkout() {
     try {
       const res = await api.post('/cart/check-stock', {
         items: cart.map(item => {
-          const { displayPrice } = getPerfumePromo(item);
+          // Use promo price from cart item if present, else fallback to getPerfumePromo
+          const displayPrice = item.promoActive && item.promoPrice !== undefined
+            ? item.promoPrice
+            : getPerfumePromo(item).displayPrice;
           return {
             _id: item._id,
             quantity: item.quantity,
