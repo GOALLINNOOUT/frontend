@@ -132,7 +132,14 @@ const Cart = () => {
     setLoading(true);
     // Check stock for all cart items before proceeding
     try {
-      const res = await api.post('/cart/check-stock', { items: cartItems.map(item => ({ _id: item._id, quantity: item.quantity })) });
+      // Send price with each item for backend validation
+      const res = await api.post('/cart/check-stock', {
+        items: cartItems.map(item => ({
+          _id: item._id,
+          quantity: item.quantity,
+          price: (item.promoActive && item.promoPrice !== undefined) ? item.promoPrice : item.price
+        }))
+      });
       if (res.data && res.data.success) {
         setLoading(false);
         navigate('/checkout');
@@ -141,6 +148,7 @@ const Cart = () => {
         if (msg.includes('not found')) msg = 'One or more products in your cart could not be found.';
         if (msg.includes('Insufficient stock')) msg = 'Sorry, some items in your cart are out of stock or have limited quantity.';
         if (msg.includes('required')) msg = 'Please fill in all required fields.';
+        if (msg.includes('price')) msg = 'The price of one or more products in your cart has changed. Please review your cart before checking out.';
         if (msg.includes('try again')) msg = 'Oops! Something went wrong. Please try again later.';
         setErrorDialogMessage(msg);
         setErrorDialogOpen(true);
