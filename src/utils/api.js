@@ -10,15 +10,24 @@ export async function request(endpoint, { method = 'GET', data, headers = {}, ..
   if (sessionId) {
     headers = { ...headers, 'x-session-id': sessionId };
   }
+  let fetchHeaders = { 'Content-Type': 'application/json', ...headers };
+  let fetchBody = undefined;
+  if (data) {
+    if (typeof window !== 'undefined' && data instanceof FormData) {
+      // If FormData, let browser set Content-Type
+      fetchHeaders = { ...headers };
+      fetchBody = data;
+    } else {
+      fetchBody = JSON.stringify(data);
+    }
+  }
   const fetchOptions = {
     method,
-    headers: { 'Content-Type': 'application/json', ...headers },
+    headers: fetchHeaders,
     credentials: 'include',
     ...options,
+    ...(fetchBody ? { body: fetchBody } : {}),
   };
-  if (data) {
-    fetchOptions.body = JSON.stringify(data);
-  }
 
   // Helper to actually make the fetch and parse response
   async function doFetch() {
