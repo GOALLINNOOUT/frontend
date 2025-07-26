@@ -249,7 +249,14 @@ function Checkout() {
         if (msg.includes('not found')) msg = 'One or more products in your cart could not be found.';
         if (msg.includes('Insufficient stock')) msg = 'Sorry, some items in your cart are out of stock or have limited quantity.';
         if (msg.includes('required')) msg = 'Please fill in all required fields.';
-        if (msg.includes('price')) msg = 'The price of one or more products in your cart has changed. Please review your cart before checking out.';
+        if (msg.includes('price')) {
+          // Try to extract product name from backend message
+          const match = msg.match(/The price of (.+?) has changed/);
+          const productName = match ? match[1] : null;
+          msg = productName
+            ? `The price of "${productName}" has changed. To update, please remove it from your cart and add it again to use the new price.`
+            : 'The price of one or more products in your cart has changed. To update, please remove the affected product(s) from your cart and add them again.';
+        }
         if (msg.includes('try again')) msg = 'Oops! Something went wrong. Please try again later.';
         setError(msg);
         setLoading(false);
