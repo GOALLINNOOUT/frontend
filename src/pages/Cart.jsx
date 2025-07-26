@@ -76,7 +76,10 @@ const Cart = () => {
 
   useEffect(() => {
     const sum = cartItems.reduce((acc, item) => {
-      const { displayPrice } = getPerfumePromo(item);
+      // Use promo price from cart item if present, else fallback to getPerfumePromo
+      const displayPrice = item.promoActive && item.promoPrice !== undefined
+        ? item.promoPrice
+        : getPerfumePromo(item).displayPrice;
       return acc + (displayPrice * item.quantity);
     }, 0);
     setTotal(sum);
