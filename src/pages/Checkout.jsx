@@ -1,4 +1,5 @@
 import * as api from '../utils/api';
+import { getPerfumePromo } from '../utils/perfumePromo';
 import React, { useEffect, useState, useContext } from 'react';
 import { Box, Typography, Button, TextField, Stack, Divider, Alert, Checkbox, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -232,25 +233,11 @@ function Checkout() {
     try {
       const res = await api.post('/cart/check-stock', {
         items: cart.map(item => {
-          // Use promo price if promo is active, else fallback to normal price
-          let promoActive = false;
-          let promoPrice = item.price;
-          const now = new Date();
-          if (item.promoActive && item.promoPrice !== undefined) {
-            promoActive = true;
-            promoPrice = item.promoPrice;
-          } else if (item.promoEnabled && item.promoValue != null && item.promoStart && item.promoEnd && new Date(item.promoStart) <= now && new Date(item.promoEnd) >= now) {
-            promoActive = true;
-            if (item.promoType === 'discount') {
-              promoPrice = Math.round(item.price * (1 - item.promoValue / 100));
-            } else if (item.promoType === 'price') {
-              promoPrice = item.promoValue;
-            }
-          }
+          const { displayPrice } = getPerfumePromo(item);
           return {
             _id: item._id,
             quantity: item.quantity,
-            price: promoActive ? promoPrice : item.price
+            price: displayPrice
           };
         })
       });
