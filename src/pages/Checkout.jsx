@@ -178,7 +178,10 @@ function Checkout() {
   }, [navigate]);
 
   const total = cart.reduce((sum, item) => {
-    const { displayPrice } = getPerfumePromo(item);
+    // Use promo price from cart item if present, else fallback to getPerfumePromo
+    const displayPrice = item.promoActive && item.promoPrice !== undefined
+      ? item.promoPrice
+      : getPerfumePromo(item).displayPrice;
     return sum + (displayPrice * (item.quantity || 1));
   }, 0);
 
@@ -409,16 +412,22 @@ function Checkout() {
         <Divider sx={{ mb: 2 }} />
         <Typography variant="h6" mb={1} color="text.secondary">Order Summary</Typography>
         <Stack spacing={1} mb={2} component={motion.div} initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } }}>
-          {cart.map(item => (
-            <motion.div key={item._id} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}>
-              <Box display="flex" justifyContent="space-between" alignItems="center" px={1} py={0.5} borderRadius={2} bgcolor="grey.100">
-                <Typography fontWeight={500} fontSize={{ xs: 14, sm: 16 }}>{item.name} <span style={{ color: '#888' }}>x{item.quantity}</span></Typography>
-                <Typography fontWeight={600} color="primary.main" fontSize={{ xs: 14, sm: 16 }}>
-                  ₦{getPerfumePromo(item).displayPrice.toLocaleString()}
-                </Typography>
-              </Box>
-            </motion.div>
-          ))}
+          {cart.map(item => {
+            // Use promo price from cart item if present, else fallback to getPerfumePromo
+            const displayPrice = item.promoActive && item.promoPrice !== undefined
+              ? item.promoPrice
+              : getPerfumePromo(item).displayPrice;
+            return (
+              <motion.div key={item._id} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" px={1} py={0.5} borderRadius={2} bgcolor="grey.100">
+                  <Typography fontWeight={500} fontSize={{ xs: 14, sm: 16 }}>{item.name} <span style={{ color: '#888' }}>x{item.quantity}</span></Typography>
+                  <Typography fontWeight={600} color="primary.main" fontSize={{ xs: 14, sm: 16 }}>
+                    ₦{displayPrice.toLocaleString()}
+                  </Typography>
+                </Box>
+              </motion.div>
+            );
+          })}
         </Stack>
         <Divider sx={{ mb: 2 }} />
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
