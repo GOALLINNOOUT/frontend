@@ -30,8 +30,6 @@ function urlBase64ToUint8Array(base64String) {
   }
   return outputArray;
 }
-
-import * as api from '../utils/api';
 import './AdminDashboard.css';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
