@@ -44,8 +44,14 @@ const ExportButtons = ({ dateRange, tab, chartImage, chartRef }) => {
     };
     const query = buildQuery();
     const url = `/api/v1/analytics/export/${type}${query}`;
-    // Get token from localStorage if present
-    const token = localStorage.getItem('token');
+    // Get token from cookie if present
+    const getCookie = (name) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    };
+    const token = getCookie('token');
     const fetchOptions = {
       method: type === 'pdf' && imageToExport ? 'POST' : 'GET',
       headers: {},
@@ -64,8 +70,10 @@ const ExportButtons = ({ dateRange, tab, chartImage, chartRef }) => {
       .then((blob) => {
         const fileURL = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
+        // Dynamic file name based on tab
+        const baseName = tab ? `${tab}-analytics` : 'analytics-export';
         a.href = fileURL;
-        a.download = type === 'csv' ? 'analytics-export.csv' : 'analytics-export.pdf';
+        a.download = type === 'csv' ? `${baseName}.csv` : `${baseName}.pdf`;
         document.body.appendChild(a);
         a.click();
         a.remove();
