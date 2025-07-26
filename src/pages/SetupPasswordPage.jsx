@@ -15,7 +15,7 @@ const SetupPasswordPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (password.length < 6) return setError('Password must be at least 6 characters.');
+    if (password.length < 6) return setError('Your password must be at least 6 characters.');
     if (password !== confirm) return setError('Passwords do not match.');
     setLoading(true);
     try {
@@ -24,10 +24,14 @@ const SetupPasswordPage = () => {
         setSuccess(res.data.message || 'Password set successfully!');
         setTimeout(() => navigate('/login'), 2000);
       } else {
-        setError(res.data?.error || 'Failed to set password.');
+        let msg = res.data?.error || 'Failed to set password.';
+        if (msg.includes('expired')) msg = 'Your password setup link has expired. Please request a new one.';
+        if (msg.includes('required')) msg = 'Please fill in all required fields.';
+        if (msg.includes('try again')) msg = 'Oops! Something went wrong. Please try again later.';
+        setError(msg);
       }
     } catch (err) {
-      setError('Failed to set password.');
+      setError('Oops! We could not set your password. Please try again later.');
     } finally {
       setLoading(false);
     }

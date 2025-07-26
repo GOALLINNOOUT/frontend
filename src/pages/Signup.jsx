@@ -21,12 +21,12 @@ export default function Signup({ onSignup }) {
 
   const validate = () => {
     const errors = {};
-    if (!name.trim()) errors.name = 'Name is required.';
-    else if (name.trim().length < 2) errors.name = 'Name must be at least 2 characters.';
-    if (!email.trim()) errors.email = 'Email is required.';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Invalid email address.';
-    if (!password) errors.password = 'Password is required.';
-    else if (password.length < 6) errors.password = 'Password must be at least 6 characters.';
+    if (!name.trim()) errors.name = 'Please enter your name.';
+    else if (name.trim().length < 2) errors.name = 'Your name must be at least 2 characters.';
+    if (!email.trim()) errors.email = 'Please enter your email address.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Please enter a valid email address.';
+    if (!password) errors.password = 'Please enter a password.';
+    else if (password.length < 6) errors.password = 'Your password must be at least 6 characters.';
     if (!confirm) errors.confirm = 'Please confirm your password.';
     else if (password !== confirm) errors.confirm = 'Passwords do not match.';
     return errors;
@@ -45,16 +45,21 @@ export default function Signup({ onSignup }) {
     const res = await post('/auth/signup', { name, email, password, role });
     setLoading(false);
     if (res.ok) {
-      // Only save user role in localStorage
       localStorage.setItem('role', res.data.user.role);
       if (onSignup) onSignup(res.data.user);
       if (res.data.user.role === 'admin') {
-        navigate('/admin'); // Redirect admin directly
+        navigate('/admin');
       } else {
         navigate('/login');
       }
     } else {
-      setError(res.data?.error || 'Signup failed');
+      // Map backend error to user-friendly message
+      let msg = res.data?.error || 'Signup failed';
+      if (msg.includes('already exists')) msg = 'An account with this email already exists. Please log in or use a different email.';
+      if (msg.includes('invalid email')) msg = 'Please enter a valid email address.';
+      if (msg.includes('required')) msg = 'Please fill in all required fields.';
+      if (msg.includes('try again')) msg = 'Oops! Something went wrong. Please try again later.';
+      setError(msg);
     }
   };
 

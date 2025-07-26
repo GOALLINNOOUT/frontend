@@ -62,11 +62,17 @@ const OrderPage = () => {
       .then(res => {
         console.log('OrderPage /orders/my response:', res);
         if (res.ok) setOrders(res.data);
-        else setError('Failed to fetch orders.');
+        else {
+          let msg = res.data?.error || 'Failed to fetch orders.';
+          if (msg.includes('not found')) msg = 'No orders found for your account.';
+          if (msg.includes('required')) msg = 'Please log in to view your orders.';
+          if (msg.includes('try again')) msg = 'Oops! Something went wrong. Please try again later.';
+          setError(msg);
+        }
       })
       .catch((err) => {
         console.error('OrderPage /orders/my error:', err);
-        setError('Failed to fetch orders.');
+        setError('Oops! We could not fetch your orders. Please try again later.');
       })
       .finally(() => setLoading(false));
   }, [user]);
@@ -95,10 +101,14 @@ const OrderPage = () => {
             setOrders(orders => orders.map(o => o._id === orderId ? { ...o, status: 'cancelled', cancelledAt: new Date().toISOString() } : o));
             setSuccessDialog({ open: true, message: 'Order cancelled successfully.' });
           } else {
-            setErrorDialog({ open: true, message: res.data?.error || 'Failed to cancel order.' });
+            let msg = res.data?.error || 'Failed to cancel order.';
+            if (msg.includes('not found')) msg = 'Sorry, we could not find the order to cancel.';
+            if (msg.includes('cannot be cancelled')) msg = 'This order cannot be cancelled.';
+            if (msg.includes('try again')) msg = 'Oops! Something went wrong. Please try again later.';
+            setErrorDialog({ open: true, message: msg });
           }
         } catch {
-          setErrorDialog({ open: true, message: 'Failed to cancel order.' });
+          setErrorDialog({ open: true, message: 'Oops! We could not cancel your order. Please try again later.' });
         }
         setLoading(false);
       }

@@ -33,10 +33,10 @@ export default function Login({ onLogin }) {
 
   const validate = () => {
     const errors = {};
-    if (!email.trim()) errors.email = 'Email is required.';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Invalid email address.';
-    if (!password) errors.password = 'Password is required.';
-    else if (password.length < 6) errors.password = 'Password must be at least 6 characters.';
+    if (!email.trim()) errors.email = 'Please enter your email address.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Please enter a valid email address.';
+    if (!password) errors.password = 'Please enter your password.';
+    else if (password.length < 6) errors.password = 'Your password must be at least 6 characters.';
     return errors;
   };
 
@@ -47,7 +47,6 @@ export default function Login({ onLogin }) {
     setValidationErrors(errors);
     if (Object.keys(errors).length > 0) return;
     setLoading(true);
-    // Send login request; token will be set in HTTP-only cookie by backend
     const res = await post('/auth/login', { email, password }, { credentials: 'include' });
     setLoading(false);
     if (res.ok) {
@@ -55,41 +54,41 @@ export default function Login({ onLogin }) {
         setError('Your account is suspended. Please contact support.');
         return;
       }
-      // Save user role in localStorage for client-side checks
       localStorage.setItem('role', res.data.user.role);
       window.dispatchEvent(new Event('role-changed'));
-      // --- SESSION LOGGING: End previous session on login ---
-      // Start a new session and store sessionId in localStorage
       try {
         const resSession = await post('/session/start', {}, { credentials: 'include' });
         if (resSession.data && resSession.data.sessionId) {
           localStorage.setItem('sessionId', resSession.data.sessionId);
         }
       } catch {}
-      setUser(res.data.user); // Set user in AuthContext for immediate update
+      setUser(res.data.user);
       if (onLogin) onLogin(res.data.user);
-      setSuccess(true); // Show success message
-      // Set welcome flag for next page
-      // Store the full user object (at least name) for the welcome message
+      setSuccess(true);
       sessionStorage.setItem('showWelcome', JSON.stringify({ name: res.data.user.name }));
       if (res.data.user.role === 'admin') {
-        setTimeout(() => navigate('/admin/dashboard'), 1000); // Redirect admin to dashboard
+        setTimeout(() => navigate('/admin/dashboard'), 1000);
       } else {
-        // Redirect to previous page or home
         const from = location.state?.from?.pathname || '/';
         setTimeout(() => navigate(from), 2000);
       }
     } else {
-      setError(res.data?.error || 'Login failed');
+      let msg = res.data?.error || 'Login failed';
+      if (msg.includes('not found')) msg = 'No account found with this email. Please check your email or sign up.';
+      if (msg.includes('incorrect')) msg = 'Incorrect password. Please try again.';
+      if (msg.includes('required')) msg = 'Please fill in all required fields.';
+      if (msg.includes('try again')) msg = 'Oops! Something went wrong. Please try again later.';
+      if (msg.includes('expired')) msg = 'Your session has expired. Please log in again.';
+      setError(msg);
     }
   };
 
   const handleForgotSubmit = async (e) => {
     e.preventDefault();
-    setForgotMsg('');
     setForgotError('');
+    setForgotMsg('');
     if (!forgotEmail.trim()) {
-      setForgotError('Email is required.');
+      setForgotError('Please enter your email address.');
       return;
     }
     setForgotLoading(true);
@@ -99,7 +98,11 @@ export default function Login({ onLogin }) {
       setForgotMsg('If this email exists, a reset link has been sent.');
       setForgotEmail('');
     } else {
-      setForgotError(res.data?.error || 'Request failed');
+      let msg = res.data?.error || 'Request failed';
+      if (msg.includes('not found')) msg = 'No account found with this email.';
+      if (msg.includes('required')) msg = 'Please enter your email address.';
+      if (msg.includes('try again')) msg = 'Oops! Something went wrong. Please try again later.';
+      setForgotError(msg);
     }
   };
 

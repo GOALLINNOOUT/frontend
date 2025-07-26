@@ -33,11 +33,15 @@ function StyleGuide() {
         if (res.ok) {
           setPerfumes(res.data);
         } else {
-          setError('Failed to load perfume collection');
+          let msg = res.data?.error || 'Failed to load perfume collection';
+          if (msg.includes('not found')) msg = 'No perfumes found in our collection.';
+          if (msg.includes('required')) msg = 'Please provide all required information.';
+          if (msg.includes('try again')) msg = 'Oops! Something went wrong. Please try again later.';
+          setError(msg);
         }
       } catch (error) {
         console.error('Error fetching perfumes:', error);
-        setError('Failed to load perfume collection');
+        setError('Oops! We could not load the perfume collection. Please try again later.');
       }
     };
     fetchPerfumes();

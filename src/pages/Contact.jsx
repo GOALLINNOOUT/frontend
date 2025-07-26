@@ -62,10 +62,15 @@ function Contact() {
         setForm({ name: '', email: '', message: '' });
         setErrors({});
       } else {
-        setStatus({ type: 'error', message: data?.error || 'Failed to send message.' });
+        // Map backend error to user-friendly message
+        let msg = data?.error || 'Failed to send message.';
+        if (msg.includes('required')) msg = 'Please fill in all required fields.';
+        if (msg.includes('invalid email')) msg = 'Please enter a valid email address.';
+        if (msg.includes('try again')) msg = 'Oops! Something went wrong. Please try again later.';
+        setStatus({ type: 'error', message: msg });
       }
     } catch {
-      setStatus({ type: 'error', message: 'Network error. Please try again.' });
+      setStatus({ type: 'error', message: 'Network error. Please check your connection and try again.' });
     } finally {
       setSubmitting(false);
     }

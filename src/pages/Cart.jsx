@@ -137,12 +137,17 @@ const Cart = () => {
         setLoading(false);
         navigate('/checkout');
       } else {
-        setErrorDialogMessage(res.data?.message || 'Some items are out of stock or unavailable. Please review your cart.');
+        let msg = res.data?.message || 'Some items are out of stock or unavailable. Please review your cart.';
+        if (msg.includes('not found')) msg = 'One or more products in your cart could not be found.';
+        if (msg.includes('Insufficient stock')) msg = 'Sorry, some items in your cart are out of stock or have limited quantity.';
+        if (msg.includes('required')) msg = 'Please fill in all required fields.';
+        if (msg.includes('try again')) msg = 'Oops! Something went wrong. Please try again later.';
+        setErrorDialogMessage(msg);
         setErrorDialogOpen(true);
         setLoading(false);
       }
     } catch {
-      setErrorDialogMessage('Could not verify stock. Please try again.');
+      setErrorDialogMessage('Oops! We could not verify stock. Please try again later.');
       setErrorDialogOpen(true);
       setLoading(false);
     }

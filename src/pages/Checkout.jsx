@@ -232,12 +232,17 @@ function Checkout() {
     try {
       const res = await api.post('/cart/check-stock', { items: cart.map(item => ({ _id: item._id, quantity: item.quantity })) });
       if (!res.data?.success) {
-        setError(res.data?.message || 'Some items are out of stock or unavailable. Please review your cart.');
+        let msg = res.data?.message || 'Some items are out of stock or unavailable. Please review your cart.';
+        if (msg.includes('not found')) msg = 'One or more products in your cart could not be found.';
+        if (msg.includes('Insufficient stock')) msg = 'Sorry, some items in your cart are out of stock or have limited quantity.';
+        if (msg.includes('required')) msg = 'Please fill in all required fields.';
+        if (msg.includes('try again')) msg = 'Oops! Something went wrong. Please try again later.';
+        setError(msg);
         setLoading(false);
         return;
       }
     } catch {
-      setError('Could not verify stock. Please try again.');
+      setError('Oops! We could not verify stock. Please try again later.');
       setLoading(false);
       return;
     }
@@ -305,7 +310,7 @@ function Checkout() {
           });
         })
         .catch(() => {
-          setError('Order saved failed, but payment was successful. Please contact support.');
+          setError('Your payment was successful, but we could not save your order. Please contact support.');
           setLoading(false);
         });
       },
@@ -314,7 +319,7 @@ function Checkout() {
       }
     });
     if (handler) handler.openIframe();
-    else setError('Paystack failed to load. Please try again.');
+    else setError('Oops! We could not load the payment system. Please refresh and try again.');
   };
 
   // Log checkout event when user lands on the checkout page
