@@ -40,7 +40,7 @@ const AdminPerfumes = () => {
   const [perfumeToDelete, setPerfumeToDelete] = useState(null);
   const [errors, setErrors] = useState({});
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(5);
   const [hasMore, setHasMore] = useState(false);
   const [search, setSearch] = useState("");
   const [message, setMessage] = useState("");
@@ -829,13 +829,16 @@ const AdminPerfumes = () => {
                 <span style={{ fontWeight: 600 }}>
                   Page {page} {hasMore ? '' : '(last page)'}
                 </span>
-                <button
-                  className="primary-btn"
-                  onClick={() => setPage(p => p + 1)}
-                  disabled={!hasMore || loading}
-                >
-                  Next
-                </button>
+                {/* Only show Next button if there are more pages */}
+                {hasMore && (
+                  <button
+                    className="primary-btn"
+                    onClick={() => setPage(p => p + 1)}
+                    disabled={loading}
+                  >
+                    Next
+                  </button>
+                )}
                 <span style={{ marginLeft: 16 }}>
                   Show
                   <select value={limit} onChange={e => { setLimit(Number(e.target.value)); setPage(1); }} style={{ margin: '0 6px', padding: '2px 6px', borderRadius: 4 }}>
