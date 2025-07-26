@@ -4,11 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 
 export async function request(endpoint, { method = 'GET', data, headers = {}, ...options } = {}) {
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
-  // Attach JWT token if present
-  const token = localStorage.getItem('token');
-  if (token) {
-    headers = { ...headers, Authorization: `Bearer ${token}` };
-  }
+  // No need to manually attach JWT token; sent automatically via HTTP-only cookie
   // Attach x-session-id header ONLY if it exists in localStorage
   const sessionId = localStorage.getItem('sessionId');
   if (sessionId) {
@@ -17,6 +13,7 @@ export async function request(endpoint, { method = 'GET', data, headers = {}, ..
   const fetchOptions = {
     method,
     headers: { 'Content-Type': 'application/json', ...headers },
+    credentials: 'include',
     ...options,
   };
   if (data) {
@@ -40,6 +37,8 @@ export async function request(endpoint, { method = 'GET', data, headers = {}, ..
   }
 
   let response = await doFetch();
+  // Update lastActivity in localStorage after every backend request
+  localStorage.setItem('lastActivity', Date.now().toString());
   // Check for session expiration and renew globally
   if (
     response.status === 440 ||

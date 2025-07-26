@@ -1,5 +1,6 @@
 // useSession.js - React hook to handle session expiration and renewal
 import { useCallback } from 'react';
+import * as api from '../utils/api';
 
 
 export function useSession() {
@@ -16,13 +17,9 @@ export function useSession() {
       localStorage.removeItem('sessionId');
       // Request a new session from the backend
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/session/start`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
-        const data = await res.json();
-        if (data && data.sessionId) {
-          localStorage.setItem('sessionId', data.sessionId);
+        const res = await api.post('/session/start');
+        if (res.data && res.data.sessionId) {
+          localStorage.setItem('sessionId', res.data.sessionId);
         }
       } catch (e) {
         // Optionally handle error

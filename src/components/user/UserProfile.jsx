@@ -17,10 +17,8 @@ const UserProfile = () => {
       setLoading(true);
       setError('');
       try {
-        const token = localStorage.getItem('token');
-        const res = await get('/users/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Token sent via HTTP-only cookie
+        const res = await get('/users/me', { credentials: 'include' });
         const userObj = res.data && res.data.data;
         setUser(userObj);
         setForm({
@@ -47,10 +45,8 @@ const UserProfile = () => {
     setError('');
     setSuccess('');
     try {
-      const token = localStorage.getItem('token');
-      const res = await put('/users/me', form, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // Token sent via HTTP-only cookie
+      const res = await put('/users/me', form, { credentials: 'include' });
       const userObj = res.data && res.data.data;
       setUser(userObj);
       setEditMode(false);

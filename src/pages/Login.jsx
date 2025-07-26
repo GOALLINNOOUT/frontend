@@ -47,34 +47,25 @@ export default function Login({ onLogin }) {
     setValidationErrors(errors);
     if (Object.keys(errors).length > 0) return;
     setLoading(true);
-    const res = await post('/auth/login', { email, password });
+    // Send login request; token will be set in HTTP-only cookie by backend
+    const res = await post('/auth/login', { email, password }, { credentials: 'include' });
     setLoading(false);
     if (res.ok) {
       if (res.data.user.status === 'suspended' || res.data.user.status === 'blacklisted') {
         setError('Your account is suspended. Please contact support.');
         return;
       }
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('role', res.data.user.role); // Store user role
+      // Save user role in localStorage for client-side checks
+      localStorage.setItem('role', res.data.user.role);
       window.dispatchEvent(new Event('role-changed'));
       // --- SESSION LOGGING: End previous session on login ---
-      const oldSessionId = localStorage.getItem('sessionId');
-      if (oldSessionId) {
-        await post('/session/end', { sessionId: oldSessionId });
-      }
-      localStorage.removeItem('sessionId');
-      // --- START NEW SESSION FOR LOGGED-IN USER ---
+      // Start a new session and store sessionId in localStorage
       try {
-        const resSession = await fetch(`${import.meta.env.VITE_API_BASE_URL}/session/start`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
-        const data = await resSession.json();
-        if (data && data.sessionId) {
-          localStorage.setItem('sessionId', data.sessionId);
+        const resSession = await post('/session/start', {}, { credentials: 'include' });
+        if (resSession.data && resSession.data.sessionId) {
+          localStorage.setItem('sessionId', resSession.data.sessionId);
         }
       } catch {}
-      // --- END SESSION LOGGING ---
       setUser(res.data.user); // Set user in AuthContext for immediate update
       if (onLogin) onLogin(res.data.user);
       setSuccess(true); // Show success message

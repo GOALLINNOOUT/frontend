@@ -45,8 +45,8 @@ export default function Signup({ onSignup }) {
     const res = await post('/auth/signup', { name, email, password, role });
     setLoading(false);
     if (res.ok) {
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('role', res.data.user.role); // Store user role
+      // Only save user role in localStorage
+      localStorage.setItem('role', res.data.user.role);
       if (onSignup) onSignup(res.data.user);
       if (res.data.user.role === 'admin') {
         navigate('/admin'); // Redirect admin directly

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import * as api from '../utils/api';
 import { Box, Typography, Button, useTheme, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 // Helper: subscribe user to push notifications and send to backend
 async function subscribeUserToPush() {
@@ -9,17 +10,8 @@ async function subscribeUserToPush() {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array('BAnXpkSuLZLZcgOO0ibI-Z3grRNhkuszV8R7ZyGsRuPMUaAFnIhEtVyvdi8aqGxGVr5PCeG57DPnTt7iOgFgfdU')
       });
-      // Get auth token from localStorage
-      const token = localStorage.getItem('token');
-      // Send subscription to backend with Authorization header if token exists
-      await fetch('https://jcserver.onrender.com/api/push/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(subscription)
-      });
+      // Send subscription to backend; token sent via HTTP-only cookie
+      await api.post('/push/subscribe', subscription);
       console.log('Push subscription sent to backend:', subscription);
     } catch (err) {
       console.error('Push subscription error:', err);

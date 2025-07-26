@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { logPageView } from '../utils/pageViewLogger';
+import * as api from '../utils/api';
 
 /**
  * React hook to log page views on route change.
  * Only logs if a sessionId exists (session is started on login/app start).
- * Handles session expiration (30 min inactivity) and cleanup.
+ * Handles session expiration (10 min inactivity) and cleanup.
  */
-const SESSION_TIMEOUT_MINUTES = 30;
+const SESSION_TIMEOUT_MINUTES = 10;
 
 const usePageViewLogger = () => {
   const location = useLocation();
@@ -22,17 +23,13 @@ const usePageViewLogger = () => {
 
     // If no sessionId, request from backend
     if (!sessionId) {
-      fetch(`${import.meta.env.VITE_API_BASE_URL}/session/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data && data.sessionId) {
-            localStorage.setItem('sessionId', data.sessionId);
+      api.post('/session/start')
+        .then(res => {
+          if (res.data && res.data.sessionId) {
+            localStorage.setItem('sessionId', res.data.sessionId);
             // After receiving, log the page view
             localStorage.setItem('lastActivity', now.toString());
-            logPageView({ page, referrer, sessionId: data.sessionId, timestamp: new Date().toISOString() });
+            logPageView({ page, referrer, sessionId: res.data.sessionId, timestamp: new Date().toISOString() });
           }
         });
       return;
@@ -41,11 +38,7 @@ const usePageViewLogger = () => {
     // Helper to end session
     const endSession = async sessionId => {
       try {
-        await fetch('/api/session/end', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId }),
-        });
+        await api.post('/session/end', { sessionId });
       } catch {
         // Optionally log error
       }

@@ -11,26 +11,18 @@ const LogoutButton = () => {
   const handleLogout = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        await post('/users/logout', {}, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      }
+      // Call logout endpoint; backend will clear HTTP-only cookie
+      await post('/users/logout', {}, { credentials: 'include' });
       // --- SESSION LOGGING: End session on logout ---
       const sessionId = localStorage.getItem('sessionId');
       if (sessionId) {
-        await post('/session/end', { sessionId });
-        // Remove sessionId for next visit; backend will set new one
+        await post('/session/end', { sessionId }, { credentials: 'include' });
         localStorage.removeItem('sessionId');
       }
-      // --- END SESSION LOGGING ---
+      localStorage.removeItem('role');
     } catch {
       // Optionally handle error
     } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-      // Optionally clear other user-related data
       // Notify other tabs
       window.dispatchEvent(new Event('role-changed'));
       setLoading(false);

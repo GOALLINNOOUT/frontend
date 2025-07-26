@@ -185,17 +185,8 @@ const AdminPerfumes = () => {
     setLoading(true);
     try {
       const publicId = extractCloudinaryPublicId(imgUrl);
-      const token = localStorage.getItem('token');
-      const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/perfumes/${editingId}/image`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeader
-        },
-        body: JSON.stringify({ publicId })
-      });
-      if (!res.ok) throw new Error('Failed to delete image');
+      const res = await api.del(`/perfumes/${editingId}/image`, { data: { publicId } });
+      if (res.status !== 200) throw new Error('Failed to delete image');
       // Remove from local state
       setForm((prev) => {
         const images = prev.images.filter((_, i) => i !== idx);
@@ -262,22 +253,12 @@ const AdminPerfumes = () => {
       form.images.forEach(img => data.append('images', img));
       imageFiles.forEach(file => data.append('images', file));
       let res;
-      const token = localStorage.getItem('token');
-      const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
       if (editingId) {
-        res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/perfumes/${editingId}`, {
-          method: 'PUT',
-          headers: authHeader, // Attach token
-          body: data
-        });
+        res = await api.put(`/perfumes/${editingId}`, data);
       } else {
-        res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/perfumes`, {
-          method: 'POST',
-          headers: authHeader, // Attach token
-          body: data
-        });
+        res = await api.post(`/perfumes`, data);
       }
-      if (!res.ok) throw new Error('Failed to submit perfume');
+      if (res.status !== 200 && res.status !== 201) throw new Error('Failed to submit perfume');
       setForm({ name: '', description: '', price: '', stock: '', images: [], mainImageIndex: 0, promoEnabled: false, promoType: 'discount', promoValue: '', promoStart: '', promoEnd: '', categories: [] });
       setImageFiles([]);
       setEditingId(null);
@@ -417,14 +398,9 @@ const AdminPerfumes = () => {
       const data = {};
       if (edit.stock !== undefined) data.stock = edit.stock;
       if (edit.price !== undefined) data.price = edit.price;
-      const token = localStorage.getItem('token');
-      const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/perfumes/${id}`, {
-        method: 'PUT',
-        headers: authHeader, // Attach token
-        body: (() => { const fd = new FormData(); Object.entries(data).forEach(([k,v])=>fd.append(k,v)); return fd; })()
-      });
-      if (!res.ok) throw new Error('Failed to update perfume');
+      const fd = new FormData(); Object.entries(data).forEach(([k,v])=>fd.append(k,v));
+      const res = await api.put(`/perfumes/${id}`, fd);
+      if (res.status !== 200) throw new Error('Failed to update perfume');
       setMessage('Perfume updated successfully!');
       setMessageType('success');
       setLowStockEdits(prev => { const n = { ...prev }; delete n[id]; return n; });

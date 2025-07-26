@@ -72,7 +72,6 @@ function Admin() {
 
   function handleSearchChange(e) {
     const value = e.target.value;
-    setSearch(value);
     fetchDesigns(value);
     // Debounced suggestion fetch
     if (suggestionTimeout.current) clearTimeout(suggestionTimeout.current);
@@ -95,6 +94,7 @@ function Admin() {
     setSuggestions([]);
     fetchDesigns(s);
   }
+      let res;
 
   function handleChange(e) {
     const { name, value, checked } = e.target;
@@ -195,21 +195,18 @@ function Admin() {
           data.append('images', file);
         }
       });
-      // Get JWT token from localStorage
-      const token = localStorage.getItem('token');
       let res;
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
       if (editingId) {
         res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/designs/${editingId}`, {
           method: 'PUT',
           body: data,
-          headers
+          credentials: 'include',
         });
       } else {
         res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/designs`, {
           method: 'POST',
           body: data,
-          headers
+          credentials: 'include',
         });
       }
       if (!res.ok) throw new Error('Failed to submit design');

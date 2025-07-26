@@ -137,18 +137,15 @@ function Checkout() {
       setAutofillData(JSON.parse(localInfo));
       setShowAutofillDialog(true);
     } else if (isSignedIn) {
-      // If signed in, fetch backend autofill info with JWT
-      const token = localStorage.getItem('token');
-      if (token) {
-        api.get('/users/me', { headers: { 'Authorization': 'Bearer ' + token } })
-          .then(res => {
-            const data = res.data;
-            if (data && (data.name || data.phone || data.address)) {
-              setAutofillData(data);
-              setShowAutofillDialog(true);
-            }
-          });
-      }
+      // If signed in, fetch backend autofill info; token sent via HTTP-only cookie
+      api.get('/users/me', { credentials: 'include' })
+        .then(res => {
+          const data = res.data;
+          if (data && (data.name || data.phone || data.address)) {
+            setAutofillData(data);
+            setShowAutofillDialog(true);
+          }
+        });
     }
   }, [navigate, isSignedIn]);
 
@@ -251,8 +248,8 @@ function Checkout() {
       localStorage.setItem('jc_closet_customer_autofill', JSON.stringify(customer));
       // Only send to backend if user is signed in
       if (user) {
-        const token = localStorage.getItem('token');
-        api.post('/users/save-info', customer, { headers: { 'Authorization': 'Bearer ' + token } });
+        // Token sent via HTTP-only cookie
+        api.post('/users/save-info', customer, { credentials: 'include' });
       }
     }
     // Only retrieve sessionId, do not generate if missing

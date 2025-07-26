@@ -99,7 +99,6 @@ const TrafficEngagement = ({ dateRange }) => {
       setLoading(true);
       setError(null);
       try {
-        const token = localStorage.getItem('token');
         // Build query string for startDate and endDate
         let url = '/v1/analytics/traffic';
         if (dateRange.startDate && dateRange.endDate) {
@@ -109,9 +108,8 @@ const TrafficEngagement = ({ dateRange }) => {
           });
           url += `?${params.toString()}`;
         }
-        const res = await get(url, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+        // Token sent via HTTP-only cookie
+        const res = await get(url, { credentials: 'include' });
         setData(res.data);
       } catch (err) {
         setError(err?.response?.data?.error || 'Failed to load traffic & engagement analytics');

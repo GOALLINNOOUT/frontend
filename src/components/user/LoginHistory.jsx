@@ -14,10 +14,8 @@ const LoginHistory = () => {
       setLoading(true);
       setError('');
       try {
-        const token = localStorage.getItem('token');
-        const res = await get('/users/login-history', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Token sent via HTTP-only cookie
+        const res = await get('/users/login-history', { credentials: 'include' });
         setHistory(res.data);
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to load login history');
@@ -33,10 +31,8 @@ const LoginHistory = () => {
     setSuccess('');
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      await del('/users/login-history', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // Token sent via HTTP-only cookie
+      await del('/users/login-history', { credentials: 'include' });
       setHistory([]);
       setSuccess('Login/logout history deleted successfully.');
     } catch (err) {

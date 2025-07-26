@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import * as api from '../utils/api';
 // Helper: subscribe admin to push notifications and send to backend
 async function subscribeAdminToPush() {
   if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -8,17 +9,9 @@ async function subscribeAdminToPush() {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array('BAnXpkSuLZLZcgOO0ibI-Z3grRNhkuszV8R7ZyGsRuPMUaAFnIhEtVyvdi8aqGxGVr5PCeG57DPnTt7iOgFgfdU')
       });
-      // Get auth token from localStorage
-      const token = localStorage.getItem('token');
-      // Send subscription to backend with admin flag
-      await fetch('https://jcserver.onrender.com/api/push/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(subscription)
-      });
+      await api.post('/push/subscribe', subscription);
+      // Send subscription to backend using api utility
+      await api.post('/push/subscribe', subscription);
       console.log('Admin push subscription sent to backend:', subscription);
     } catch (err) {
       console.error('Admin push subscription error:', err);

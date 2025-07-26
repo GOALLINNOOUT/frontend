@@ -1,14 +1,11 @@
 import { reportWebVitals } from './utils/reportWebVitals';
+import * as api from './utils/api';
 // Listen for pushResubscribe messages from service worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', event => {
     if (event.data && event.data.type === 'pushResubscribe' && event.data.subscription) {
       // Send new subscription to backend
-      fetch('https://jcserver.onrender.com/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(event.data.subscription)
-      })
+      api.post('/push/subscribe', event.data.subscription)
         .then(() => {
           console.log('Push subscription updated on backend after change.');
         })
@@ -27,17 +24,8 @@ async function subscribeUserToPush() {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array('BAnXpkSuLZLZcgOO0ibI-Z3grRNhkuszV8R7ZyGsRuPMUaAFnIhEtVyvdi8aqGxGVr5PCeG57DPnTt7iOgFgfdU')
       });
-      // Get auth token from localStorage
-      const token = localStorage.getItem('token');
-      // Send subscription to backend with Authorization header if token exists
-      await fetch('https://jcserver.onrender.com/api/push/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(subscription)
-      });
+      // Send subscription to backend using api utility
+      await api.post('/push/subscribe', subscription);
       console.log('Push subscription sent to backend:', subscription);
     } catch (err) {
       console.error('Push subscription error:', err);

@@ -24,12 +24,11 @@ const ChangePassword = () => {
     }
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const response = await post('/users/change-password', {
         currentPassword: form.currentPassword,
         newPassword: form.newPassword,
       }, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
       if (response.ok) {
         setSuccess('Password changed successfully!');

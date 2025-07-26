@@ -133,7 +133,6 @@ const AdminBlog = () => {
         params.append('searchQuery', query.trim());
       }
       const { data, ok } = await api.get(`/articles?${params.toString()}`);
-      if (!ok) throw new Error();
       const articlesData = data.articles ? data : { articles: data, total: data.length };
       setArticles(prev => opts.reset ? articlesData.articles : [...prev, ...articlesData.articles]);
       setHasMore(articles.length + articlesData.articles.length < articlesData.total);
@@ -169,6 +168,7 @@ const AdminBlog = () => {
     } finally {
       setLoading(false);
     }
+      const data = new FormData();
   };
 
   const handleRemoveImage = () => {
@@ -272,9 +272,8 @@ const AdminBlog = () => {
       } else if (form.image) {
         data.append('image', form.image);
       }
-      // Attach JWT token for admin-protected endpoints
-      const token = localStorage.getItem('token');
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      // Token sent via HTTP-only cookie
+      const headers = {};
       let res;
       if (editingId) {
         res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/articles/${editingId}`, {

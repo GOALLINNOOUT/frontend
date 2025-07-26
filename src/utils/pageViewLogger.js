@@ -12,7 +12,6 @@ import { handleInvalidSession } from '../App';
  */
 export async function logPageView({ page, referrer, sessionId, timestamp }) {
   try {
-    const token = localStorage.getItem('token');
     await post(
       '/v1/page-views',
       {
@@ -22,12 +21,11 @@ export async function logPageView({ page, referrer, sessionId, timestamp }) {
         timestamp
       },
       {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: 'include',
       }
     );
   } catch (err) {
     handleInvalidSession(err);
-    // Silently fail in production, or log if needed
     if (typeof window !== 'undefined' && window?.location?.hostname === 'localhost') {
       // eslint-disable-next-line no-console
       console.error('Failed to log page view', err);
