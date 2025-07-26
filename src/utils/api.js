@@ -1,7 +1,7 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-export async function request(endpoint, { method = 'GET', data, headers = {}, ...options } = {}) {
+export async function request(endpoint, { method = 'GET', data, headers = {}, responseType = 'json', ...options } = {}) {
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
   // No need to manually attach JWT token; sent automatically via HTTP-only cookie
   // Attach x-session-id header ONLY if it exists in localStorage
@@ -35,13 +35,17 @@ export async function request(endpoint, { method = 'GET', data, headers = {}, ..
     if (newSessionId) {
       localStorage.setItem('sessionId', newSessionId);
     }
-    let json;
-    try {
-      json = await res.json();
-    } catch {
-      json = null;
+    let data;
+    if (responseType === 'blob') {
+      data = await res.blob();
+    } else {
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
     }
-    return { ok: res.ok, status: res.status, data: json };
+    return { ok: res.ok, status: res.status, data };
   }
 
   let response = await doFetch();

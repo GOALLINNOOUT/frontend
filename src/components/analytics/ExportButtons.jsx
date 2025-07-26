@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import * as api from '../../utils/api';
 import PropTypes from 'prop-types';
 import { Box, Button } from '@mui/material';
 
@@ -43,41 +44,25 @@ const ExportButtons = ({ dateRange, tab, chartImage, chartRef }) => {
       return params.length ? `?${params.join('&')}` : '';
     };
     const query = buildQuery();
-    const url = `/api/v1/analytics/export/${type}${query}`;
-    // Get token from cookie if present
-    const getCookie = (name) => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
-      return null;
-    };
-    const token = getCookie('token');
-    const fetchOptions = {
-      method: type === 'pdf' && imageToExport ? 'POST' : 'GET',
-      headers: {},
-    };
-    if (token) {
-      fetchOptions.headers['Authorization'] = `Bearer ${token}`;
-    }
+    const endpoint = `/v1/analytics/export/${type}${query}`;
+    let response;
     if (type === 'pdf' && imageToExport) {
-      // For PDF, send chart image as POST body
       const formData = new FormData();
       formData.append('chartImage', imageToExport);
-      fetchOptions.body = formData;
+      response = await api.request(endpoint, { method: 'POST', data: formData, responseType: 'blob' });
+    } else {
+      response = await api.request(endpoint, { method: 'GET', responseType: 'blob' });
     }
-    fetch(url, fetchOptions)
-      .then((res) => res.blob())
-      .then((blob) => {
-        const fileURL = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        // Dynamic file name based on tab
-        const baseName = tab ? `${tab}-analytics` : 'analytics-export';
-        a.href = fileURL;
-        a.download = type === 'csv' ? `${baseName}.csv` : `${baseName}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      });
+    if (response && response.ok && response.data) {
+      const fileURL = window.URL.createObjectURL(response.data);
+      const a = document.createElement('a');
+      const baseName = tab ? `${tab}-analytics` : 'analytics-export';
+      a.href = fileURL;
+      a.download = type === 'csv' ? `${baseName}.csv` : `${baseName}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
   };
 
   return (
