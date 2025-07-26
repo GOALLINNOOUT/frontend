@@ -6,9 +6,9 @@ import { useTheme } from '@mui/material/styles';
 import { Helmet } from 'react-helmet-async';
 import { get } from '../utils/api';
 
-// Replace with your actual Cohere API key
-const COHERE_API_KEY = 'NS32G7UwwRpuz5tqIHFQI0PaKIn4PjREwelxKAm4';
-const COHERE_API_URL = 'https://api.cohere.ai/v1/generate';
+// Use environment variables for sensitive data
+const COHERE_API_KEY = import.meta.env.VITE_COHERE_API_KEY;
+const COHERE_API_URL = import.meta.env.VITE_COHERE_API_URL || 'https://api.cohere.ai/v1/generate';
 
 function StyleGuide() {
   const [style, setStyle] = useState('');
@@ -289,8 +289,8 @@ Response:`;
                 px: { xs: 1, sm: 3 },
                 py: 1,
                 mb: 0,
-                minHeight: 200,
-                maxHeight: isMobile ? 300 : 340,
+                    minHeight: '90vh',
+                    maxHeight: '90vh',
                 display: 'flex',
                 flexDirection: 'column',
                 borderRadius: 3,
