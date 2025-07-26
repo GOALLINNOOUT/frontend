@@ -228,14 +228,28 @@ function Checkout() {
     setError('');
     if (!validate()) return;
     setLoading(true);
-    // Check stock before payment
+    // Check stock and price before payment
     try {
-      const res = await api.post('/cart/check-stock', { items: cart.map(item => ({ _id: item._id, quantity: item.quantity })) });
+      const res = await api.post('/cart/check-stock', {
+        items: cart.map(item => ({
+          _id: item._id,
+          quantity: item.quantity,
+          price:
+            item.promoEnabled && item.promoValue && item.promoStart && item.promoEnd && new Date(item.promoStart) <= new Date() && new Date(item.promoEnd) >= new Date()
+              ? (item.promoType === 'discount'
+                  ? Math.round(item.price * (1 - item.promoValue / 100))
+                  : item.promoType === 'price'
+                  ? item.promoValue
+                  : item.price)
+              : item.price
+        }))
+      });
       if (!res.data?.success) {
         let msg = res.data?.message || 'Some items are out of stock or unavailable. Please review your cart.';
         if (msg.includes('not found')) msg = 'One or more products in your cart could not be found.';
         if (msg.includes('Insufficient stock')) msg = 'Sorry, some items in your cart are out of stock or have limited quantity.';
         if (msg.includes('required')) msg = 'Please fill in all required fields.';
+        if (msg.includes('price')) msg = 'The price of one or more products in your cart has changed. Please review your cart before checking out.';
         if (msg.includes('try again')) msg = 'Oops! Something went wrong. Please try again later.';
         setError(msg);
         setLoading(false);
