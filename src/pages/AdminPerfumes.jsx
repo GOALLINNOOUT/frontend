@@ -477,7 +477,7 @@ const AdminPerfumes = () => {
               onBlur={e => e.target.style.border = '1.5px solid #cbd5e1'}
             />
             {/* Suggestions dropdown */}
-            {suggestions.length > 0 && (
+            {search.trim().length > 0 && suggestions.length > 0 && (
               <div style={{
                 position: 'absolute',
                 top: 44,

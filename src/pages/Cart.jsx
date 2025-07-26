@@ -211,7 +211,10 @@ const Cart = () => {
               <Box>
                 <AnimatePresence>
                   {cartItems.map(item => {
-                    const { displayPrice, promoActive, promoLabel } = getPerfumePromo(item);
+                    // Use promo info from cart item if present, else fallback to getPerfumePromo
+                    const promoActive = item.promoActive;
+                    const promoLabel = item.promoLabel;
+                    const displayPrice = promoActive && item.promoPrice !== undefined ? item.promoPrice : getPerfumePromo(item).displayPrice;
                     return (
                       <motion.div
                         key={item._id + (item.size || '') + (item.color || '')}
